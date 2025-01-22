@@ -107,15 +107,9 @@ const HomePage: React.FC = () => {
                 image=""
               />
               <FounderCard
-                name="Michael Rodriguez"
+                name="Sailor Z"
                 role="CTO & Platform Architect"
                 bio="Ex-Google engineer, specialized in building scalable educational platforms."
-                image=""
-              />
-              <FounderCard
-                name="Dr. Emily Wang"
-                role="Chief Education Officer"
-                bio="PhD in Educational Psychology, pioneering AI-driven personalized learning."
                 image=""
               />
             </SimpleGrid>
@@ -190,28 +184,33 @@ interface FounderCardProps {
 }
 
 const FounderCard: React.FC<FounderCardProps> = ({ name, role, bio, image }) => {
-  return (
-    <VStack
-      p={8}
-      bg={useColorModeValue('white', 'gray.800')}
-      borderRadius="lg"
-      boxShadow="xl"
-      spacing={4}
-      align="center"
-      _hover={{ transform: 'translateY(-5px)', transition: '0.3s' }}
-    >
-      <Avatar 
-        size="2xl" 
-        name={name} 
-        bg="blue.500"
-        color="white"
-      />
-      <Heading size="md">{name}</Heading>
-      <Text color="blue.500" fontWeight="bold">{role}</Text>
-      <Text color="gray.600" textAlign="center">{bio}</Text>
-    </VStack>
-  );
-};
+    return (
+      <VStack
+        p={8}
+        bg={useColorModeValue('white', 'gray.800')}
+        borderRadius="lg"
+        boxShadow="xl"
+        spacing={4}
+        align="center"
+        _hover={{ transform: 'translateY(-5px)', transition: '0.3s' }}
+      >
+        {image ? (
+          <Image
+            src={image}
+            alt={name}
+            borderRadius="full"
+            boxSize="150px"
+            objectFit="cover"
+          />
+        ) : (
+          <Avatar size="2xl" name={name} bg="blue.500" color="white" />
+        )}
+        <Heading size="md">{name}</Heading>
+        <Text color="blue.500" fontWeight="bold">{role}</Text>
+        <Text color="gray.600" textAlign="center">{bio}</Text>
+      </VStack>
+    );
+  };
 
 interface StatProps {
   number: string;

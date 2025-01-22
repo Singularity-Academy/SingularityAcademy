@@ -1,32 +1,17 @@
 package config
 
 import (
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
-	"log"
-	"time"
-	"backend/global"
+    "gorm.io/driver/mysql"
+    "gorm.io/gorm"
 )
 
-func initDB(){
-	Dsn := AppConfig.Database.Dsn
-	db, err := gorm.Open(mysql.Open(Dsn), &gorm.Config{})
-	
-	if err != nil {
-		log.Fatalf("Error connecting to database: %v", err)
-	}
+var DB *gorm.DB
 
-	sqlDB, err := db.DB()
-
-	sqlDB.SetMaxIdleConns(AppConfig.Database.MaxIdleConns)
-	sqlDB.SetMaxOpenConns(AppConfig.Database.MaxOpenConns)
-	sqlDB.SetConnMaxLifetime(time.Hour)
-	
-	if err != nil {
-		log.Fatalf("Error connecting to database: %v", err)
-	}
-
-// 	// Migrate the schema
-	global.Db = db 
+func ConnectDatabase() {
+    dsn := "user:password@tcp(127.0.0.1:3306)/test1?charset=utf8mb4&parseTime=True&loc=Local"
+    database, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+    if err != nil {
+        panic("Failed to connect to database!")
+    }
+    DB = database
 }
-
