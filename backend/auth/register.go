@@ -52,7 +52,7 @@ func Register(context *gin.Context) {
 	}
 
 	config.DB.Create(&user)
-	println("[auth]" + user.Username + "register success!")
+	println("[auth] " + user.Username + "register success!")
 	context.JSON(http.StatusOK, gin.H{
 		"message": "register success",
 	})
