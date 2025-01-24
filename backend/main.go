@@ -3,8 +3,8 @@ package main
 import (
 	"backend/auth"
 	"backend/config"
+	"backend/middlewares"
 	"backend/models"
-	"backend/utils"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -22,8 +22,8 @@ func main() {
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"}, // 允许的请求头
 		AllowCredentials: true,                                                // 是否允许携带认证信息
 	}))
-	r.POST("/api/auth/register", utils.IsJsonMiddleware(), auth.Register)
-	r.POST("/api/auth/login", utils.IsJsonMiddleware(), auth.Login)
+	r.POST("/api/auth/register", middlewares.IsJsonMiddleware(), auth.Register)
+	r.POST("/api/auth/login", middlewares.IsJsonMiddleware(), auth.Login)
 	err = r.Run("0.0.0.0:8080")
 	if err != nil {
 		return
