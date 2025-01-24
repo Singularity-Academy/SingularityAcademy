@@ -78,8 +78,8 @@ const HomePage: React.FC = () => {
                 icon="🤖"
               />
               <Feature
-                title="Expert Instructors"
-                description="Learn from industry professionals and experienced educators"
+                title="An entire school for your ONLY"
+                description="Every student will have a pesonalized school, a group of educators, including principle, deans, and teachers,."
                 icon="👨‍🏫"
               />
               <Feature
@@ -107,9 +107,9 @@ const HomePage: React.FC = () => {
                 image=""
               />
               <FounderCard
-                name="Sailor Z"
-                role="CTO & Platform Architect"
-                bio="Ex-Google engineer, specialized in building scalable educational platforms."
+                name="Di Huang"
+                role = "CTO & Backend Platform Architecture"
+                bio="Ph.D. in Computer Science from MIT, holding Bachelor from University of Oxford."
                 image=""
               />
             </SimpleGrid>
@@ -135,8 +135,7 @@ const HomePage: React.FC = () => {
           <VStack spacing={6}>
             <Heading color="blue.500">Start Your Learning Journey Today</Heading>
             <Text fontSize="lg" maxW="2xl">
-              Join thousands of students who are already transforming their careers
-              with AI-powered education.
+             Join Our Community.
             </Text>
             <Button
               size="lg"
