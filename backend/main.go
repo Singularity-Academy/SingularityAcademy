@@ -2,11 +2,18 @@ package main
 
 import (
 	"backend/auth"
+	"backend/config"
+	"backend/models"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	config.ConnectDatabase()
+	err := config.DB.AutoMigrate(&models.User{})
+	if err != nil {
+		return
+	}
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},                                       // 允许访问的来源
@@ -16,7 +23,7 @@ func main() {
 	}))
 	r.POST("/api/auth/register", auth.Register)
 	r.POST("/api/auth/login", auth.Login)
-	err := r.Run("0.0.0.0:8080")
+	err = r.Run("0.0.0.0:8080")
 	if err != nil {
 		return
 	}
