@@ -6,7 +6,6 @@ import (
 	"backend/utils"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"strings"
 )
 
 type RegisterRequest struct {
@@ -16,13 +15,6 @@ type RegisterRequest struct {
 }
 
 func Register(context *gin.Context) {
-	// 非json请求
-	if !strings.Contains(context.GetHeader("Content-Type"), "application/json") {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"detail": "unsupported content type, expected 'application/json'",
-		})
-		return
-	}
 
 	var request RegisterRequest
 
@@ -52,7 +44,7 @@ func Register(context *gin.Context) {
 	}
 
 	config.DB.Create(&user)
-	println("[auth] " + user.Username + " register success!")
+	Logger.Println(user.Username + " register success!")
 	context.JSON(http.StatusOK, gin.H{
 		"message": "register success",
 	})
