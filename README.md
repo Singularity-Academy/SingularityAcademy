@@ -4,6 +4,10 @@ A modern AI-driven online learning platform built with React, Go, and MySQL.
 
 ## Technology Stack
 
+### Reverse Proxy
+- Caddy
+
+
 ### Frontend
 - React with TypeScript
 - Tailwind CSS for styling
