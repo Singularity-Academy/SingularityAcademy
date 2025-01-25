@@ -1,6 +1,6 @@
 :1298 {
     # API 路由反向代理到 8080 端口
-    reverse_proxy /api* 127.0.0.1:8080
+    reverse_proxy /api/* 127.0.0.1:8080
 
     # 其他路由反向代理到 3000 端口
     reverse_proxy /* 127.0.0.1:3000
