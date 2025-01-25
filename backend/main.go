@@ -3,6 +3,7 @@ package main
 import (
 	"backend/auth"
 	"backend/config"
+	"backend/me"
 	"backend/middlewares"
 	"backend/models"
 	"github.com/gin-contrib/cors"
@@ -24,6 +25,8 @@ func main() {
 	}))
 	r.POST("/api/auth/register", middlewares.IsJsonMiddleware(), auth.Register)
 	r.POST("/api/auth/login", middlewares.IsJsonMiddleware(), auth.Login)
+	r.GET("/api/me", middlewares.JwtMiddleware(), me.Me)
+
 	err = r.Run("0.0.0.0:8080")
 	if err != nil {
 		return
