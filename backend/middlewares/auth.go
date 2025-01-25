@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"backend/models"
 	"backend/utils"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -33,8 +34,18 @@ func JwtMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		var users []models.User
+		users, err = utils.FindUsersByID(claims.ID)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		}
+
+		if len(users) == 0 {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		}
+
 		// 将解析出的 Claims 放入上下文中
-		c.Set("claims", claims)
+		c.Set("user", users[0])
 
 		// 继续执行后续处理
 		c.Next()

@@ -116,6 +116,14 @@ func ParseToken(tokenString string) (*Claims, error) {
 	return claims, nil
 }
 
+func FindUsersByID(id uint64) ([]models.User, error) {
+	var users []models.User
+	if err := config.DB.Where("id = ?", id).Find(&users).Error; err != nil {
+		return users, err
+	}
+	return users, nil
+}
+
 func FindUsersByEmail(email string) ([]models.User, error) {
 	var users []models.User
 	if err := config.DB.Where("email = ?", email).Find(&users).Error; err != nil {
