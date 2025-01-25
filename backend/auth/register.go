@@ -27,8 +27,24 @@ func Register(context *gin.Context) {
 		return
 	}
 
+	users, err := utils.FindUsersByEmail(request.Email)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"error":  "The email has been registered",
+			"detail": "The email has been registered",
+		})
+		return
+	}
+
+	if len(users) != 0 {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"error":  "The email has been registered",
+			"detail": "The email has been registered",
+		})
+		return
+	}
+
 	var user models.User
-	var err error
 
 	user.ID = utils.GenerateSnowflakeID()
 	user.Username = request.Username

@@ -1,8 +1,6 @@
 package auth
 
 import (
-	"backend/config"
-	"backend/models"
 	"backend/utils"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -25,11 +23,17 @@ func Login(context *gin.Context) {
 		})
 		return
 	}
+	users, err := utils.FindUsersByEmail(request.Email)
+	if err != nil {
+		context.JSON(http.StatusUnauthorized, gin.H{
+			"error":  "email or password is wrong",
+			"detail": "email or password is wrong",
+		})
+		return
+	}
 
-	var users []models.User
-
-	if err := config.DB.Where("email = ?", request.Email).Find(&users).Error; err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{
+	if len(users) == 0 {
+		context.JSON(http.StatusUnauthorized, gin.H{
 			"error":  "email or password is wrong",
 			"detail": "email or password is wrong",
 		})
@@ -39,7 +43,7 @@ func Login(context *gin.Context) {
 	user := users[0]
 
 	if !utils.CheckPassword(request.Password, user.Password) {
-		context.JSON(http.StatusBadRequest, gin.H{
+		context.JSON(http.StatusUnauthorized, gin.H{
 			"error":  "email or password is wrong",
 			"detail": "email or password is wrong",
 		})

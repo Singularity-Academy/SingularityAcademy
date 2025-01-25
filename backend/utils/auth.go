@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"backend/config"
+	"backend/models"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
@@ -112,4 +114,12 @@ func ParseToken(tokenString string) (*Claims, error) {
 		return nil, fmt.Errorf("invalid token")
 	}
 	return claims, nil
+}
+
+func FindUsersByEmail(email string) ([]models.User, error) {
+	var users []models.User
+	if err := config.DB.Where("email = ?", email).Find(&users).Error; err != nil {
+		return users, err
+	}
+	return users, nil
 }
