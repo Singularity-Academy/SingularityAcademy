@@ -47,9 +47,9 @@ func SendVerifyEmail(to string, token string) {
 		[]byte(message),
 	)
 	if err != nil {
-		fmt.Println("verify email to "+to+"sent failed:", err)
+		fmt.Println("verify email to "+to+" was sent failed:", err)
 	} else {
-		fmt.Println("verify email to " + to + "sent successfully!")
+		fmt.Println("verify email to " + to + " was sent successfully!")
 	}
 }
 
