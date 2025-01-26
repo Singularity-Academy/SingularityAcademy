@@ -47,6 +47,7 @@ func Verify(context *gin.Context) {
 			"error":  "user already verified",
 			"detail": "user already verified",
 		})
+		return
 	}
 
 	user.IsVerified = true
