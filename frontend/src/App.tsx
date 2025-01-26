@@ -5,6 +5,8 @@ import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import HomePage from './pages/HomePage';
 import theme from './theme';
+import PersonalHomePage from './pages/PersonalHomePage';
+import LearningPage from './pages/LearningPage';
 
 const App: React.FC = () => {
   return (
@@ -15,6 +17,8 @@ const App: React.FC = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path='/homepage' element={<PersonalHomePage />} />
+          <Route path='/me/homepage' element={<LearningPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
