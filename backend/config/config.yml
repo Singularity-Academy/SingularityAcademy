@@ -7,3 +7,8 @@ database:
   charset: "utf8mb4"
   parseTime: true
   loc: "Local"
+email:
+  email: admin@dicloud.vip
+  password: 6kziffhAngtWsJas
+  host: smtp.exmail.qq.com
+  port: 465

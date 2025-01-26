@@ -5,27 +5,11 @@ import (
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"log"
 )
 
 var DB *gorm.DB
 
-func LoadConfig() {
-	viper.SetConfigName("config") // Config file name without extension
-	viper.SetConfigType("yaml")   // Config file type
-	viper.AddConfigPath("config") // Path to look for the config file in the current directory
-
-	// Read the configuration
-	err := viper.ReadInConfig()
-	if err != nil {
-		log.Fatalf("Error reading config file: %s", err)
-	}
-}
-
 func ConnectDatabase() {
-	// Load configuration
-	LoadConfig()
-
 	// Extract database details from the configuration
 	user := viper.GetString("database.user")
 	password := viper.GetString("database.password")

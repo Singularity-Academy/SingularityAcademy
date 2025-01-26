@@ -10,6 +10,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/sony/sonyflake"
 	"math/big"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -25,7 +26,7 @@ func GenerateSnowflakeID() uint64 {
 
 const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
-func generateSecureRandomString(length int) (string, error) {
+func GenerateSecureRandomString(length int) (string, error) {
 	result := make([]byte, length)
 	for i := range result {
 		randomByte, err := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
@@ -39,7 +40,7 @@ func generateSecureRandomString(length int) (string, error) {
 
 func Encrypt(passwd string) (string, error) {
 	//生成salt
-	salt, err := generateSecureRandomString(10)
+	salt, err := GenerateSecureRandomString(10)
 	if err != nil {
 		return "", err
 	}
@@ -130,4 +131,19 @@ func FindUsersByEmail(email string) ([]models.User, error) {
 		return users, err
 	}
 	return users, nil
+}
+
+func FindUsersByVerifyToken(token string) ([]models.User, error) {
+	var users []models.User
+	if err := config.DB.Where("verification_token = ?", token).Find(&users).Error; err != nil {
+		return users, err
+	}
+	return users, nil
+}
+
+func IsValidEmail(email string) bool {
+	// 正则表达式检查邮箱格式
+	regex := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+	re := regexp.MustCompile(regex)
+	return re.MatchString(email)
 }

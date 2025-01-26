@@ -11,6 +11,8 @@ import (
 )
 
 func main() {
+	config.LoadConfig()
+	config.ConnectSMTP()
 	config.ConnectDatabase()
 	err := config.DB.AutoMigrate(&models.User{})
 	if err != nil {
@@ -25,6 +27,7 @@ func main() {
 	}))
 	r.POST("/api/auth/register", middlewares.IsJsonMiddleware(), auth.Register)
 	r.POST("/api/auth/login", middlewares.IsJsonMiddleware(), auth.Login)
+	r.POST("/api/auth/verify", middlewares.IsJsonMiddleware(), auth.Verify)
 	r.GET("/api/me", middlewares.JwtMiddleware(), me.Me)
 
 	err = r.Run("0.0.0.0:8080")

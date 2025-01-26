@@ -27,6 +27,13 @@ func Register(context *gin.Context) {
 		return
 	}
 
+	if !utils.IsValidEmail(request.Email) {
+		context.JSON(http.StatusBadRequest, gin.H{
+			"error":  "invalid email address",
+			"detail": "invalid email address",
+		})
+	}
+
 	users, err := utils.FindUsersByEmail(request.Email)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
@@ -53,13 +60,26 @@ func Register(context *gin.Context) {
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
-			"error":  "invalid request data",
+			"error":  "failed to encrypt password",
 			"detail": err.Error(), // 返回具体的绑定错误信息
 		})
 		return
 	}
 
-	config.DB.Create(&user)
+	user.IsVerified = true
+	user.VerificationToken, err = utils.GenerateSecureRandomString(10)
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"error":  "failed to generate verification token",
+			"detail": err.Error(), // 返回具体的绑定错误信息
+		})
+		return
+	}
+
+	go config.SendVerifyEmail(user.Email, user.VerificationToken)
+
+	go config.DB.Create(&user)
 	Logger.Println(user.Username + " register success!")
 	context.JSON(http.StatusOK, gin.H{
 		"message": "register success",
