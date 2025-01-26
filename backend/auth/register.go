@@ -66,7 +66,7 @@ func Register(context *gin.Context) {
 		return
 	}
 
-	user.IsVerified = true
+	user.IsVerified = false
 	user.VerificationToken, err = utils.GenerateSecureRandomString(10)
 
 	if err != nil {
