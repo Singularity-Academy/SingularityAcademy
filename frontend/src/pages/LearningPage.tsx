@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Button,
@@ -9,61 +9,47 @@ import {
   SimpleGrid,
   useColorModeValue,
   Avatar,
+  HStack,
+  IconButton,
+  Stack,
 } from '@chakra-ui/react';
+import { ChevronRightIcon, ChevronDownIcon } from '@chakra-ui/icons';
 
 const LearningPage: React.FC = () => {
   const bgColor = useColorModeValue('gray.50', 'gray.900');
   const cardBg = useColorModeValue('white', 'gray.700');
+  const [selectedSection, setSelectedSection] = useState<string>('overview');
 
-  return (
-    <Box bg={bgColor} minH="100vh">
-      <Container maxW="container.xl" py={20}>
-        <VStack spacing={10} align="center">
-          <Heading as="h1" size="2xl" textAlign="center" color="blue.500">
-            Your Learning Journey
-          </Heading>
-          <Text fontSize="xl" textAlign="center" maxW="2xl">
-            Welcome to your personalized learning dashboard. Here, you can track your progress and interact with your AI mentors.
-          </Text>
-        </VStack>
-      </Container>
-
-      {/* Principal AI Section */}
-      <Box bg={cardBg} py={20}>
-        <Container maxW="container.xl">
-          <VStack spacing={12}>
-            <Heading textAlign="center" color="blue.500">
-              Meet Your Principal AI
+  const renderContent = () => {
+    switch (selectedSection) {
+      case 'overview':
+        return (
+          <VStack spacing={10} align="center">
+            <Heading as="h1" size="2xl" textAlign="center" color="blue.500">
+              Your Learning Journey
             </Heading>
-            <VStack spacing={4} align="center">
-              <Avatar size="2xl" name="Principal AI" bg="blue.500" color="white" />
-              <Text fontSize="lg" textAlign="center">
-                Your Principal AI designs your overall learning path based on your goals. Whether you want to build rockets or explore AI, your path is tailored just for you!
-              </Text>
-            </VStack>
+            <Text fontSize="xl" textAlign="center" maxW="2xl">
+              Welcome to your personalized learning dashboard. Here, you can track your progress and interact with your AI mentors.
+            </Text>
           </VStack>
-        </Container>
-      </Box>
-
-      {/* Dean AI Section */}
-      <Box py={20}>
-        <Container maxW="container.xl">
-          <VStack spacing={12}>
-            <Heading textAlign="center" color="blue.500">
-              Meet Your Dean AI
-            </Heading>
-            <SimpleGrid columns={{ base: 1, md: 3 }} spacing={10}>
-              <DeanCard title="Physics" description="Breaks down physics into detailed units and steps." />
-              <DeanCard title="Mathematics" description="Guides you through mathematical concepts and applications." />
-              <DeanCard title="Engineering" description="Provides insights into engineering principles and practices." />
-            </SimpleGrid>
+        );
+      case 'meeting':
+        return (
+          <VStack spacing={6} textAlign="center">
+            <Heading color="blue.500">Schedule a Meeting</Heading>
+            <Text fontSize="lg" maxW="2xl">
+              Choose a meeting with your Principal or Dean to discuss your learning targets and schedule.
+            </Text>
+            <Button size="lg" colorScheme="blue" onClick={() => alert('Meeting with Principal scheduled!')}>
+              Meet with Principal AI
+            </Button>
+            <Button size="lg" colorScheme="teal" onClick={() => alert('Meeting with Dean scheduled!')}>
+              Meet with Dean AI
+            </Button>
           </VStack>
-        </Container>
-      </Box>
-
-      {/* Courses Section */}
-      <Box bg={cardBg} py={20}>
-        <Container maxW="container.xl">
+        );
+      case 'courses':
+        return (
           <VStack spacing={12}>
             <Heading textAlign="center" color="blue.500">
               Courses You Are Taking
@@ -74,22 +60,45 @@ const LearningPage: React.FC = () => {
               <CourseCard title="Engineering Fundamentals" description="Learn the basics of engineering design and analysis." />
             </SimpleGrid>
           </VStack>
-        </Container>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <Box bg={bgColor} minH="100vh" display="flex">
+      {/* Sidebar */}
+      <Box width="250px" bg={cardBg} p={5} boxShadow="md">
+        <VStack spacing={5} align="start">
+          <Heading size="md" color="blue.500">Navigation</Heading>
+          <Button
+            variant="link"
+            onClick={() => setSelectedSection('overview')}
+            color={selectedSection === 'overview' ? 'blue.500' : 'gray.600'}
+          >
+            Overview
+          </Button>
+          <Button
+            variant="link"
+            onClick={() => setSelectedSection('meeting')}
+            color={selectedSection === 'meeting' ? 'blue.500' : 'gray.600'}
+          >
+            Schedule a Meeting
+          </Button>
+          <Button
+            variant="link"
+            onClick={() => setSelectedSection('courses')}
+            color={selectedSection === 'courses' ? 'blue.500' : 'gray.600'}
+          >
+            Courses
+          </Button>
+        </VStack>
       </Box>
 
-      {/* Assistant AI Section */}
-      <Box py={20}>
-        <Container maxW="container.xl" textAlign="center">
-          <VStack spacing={6}>
-            <Heading color="blue.500">Meet Your Assistant AI</Heading>
-            <Text fontSize="lg" maxW="2xl">
-              Your Assistant AI is here to help with homework and exercises. Ask questions and get instant feedback!
-            </Text>
-            <Button size="lg" colorScheme="blue" onClick={() => alert('Chat with your Assistant AI!')}>
-              Chat with Assistant AI
-            </Button>
-          </VStack>
-        </Container>
+      {/* Main Content */}
+      <Box flex="1" p={10}>
+        {renderContent()}
       </Box>
     </Box>
   );
