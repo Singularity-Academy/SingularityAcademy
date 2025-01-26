@@ -1,0 +1,9 @@
+database:
+  user: "AIS"
+  password: "AISAISAAA"
+  host: "156.238.229.162"
+  port: 3306
+  name: "test1"
+  charset: "utf8mb4"
+  parseTime: true
+  loc: "Local"
