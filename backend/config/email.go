@@ -35,7 +35,7 @@ func SendVerifyEmail(to string, token string) {
 	for k, v := range header {
 		message += fmt.Sprintf("%s: %s\r\n", k, v)
 	}
-	htmlBody := fmt.Sprintf("<a href=\"http://localhost:1298/verify?token=%s\">click to verify your email</a>", token)
+	htmlBody := fmt.Sprintf("<a href=\"http://localhost:1298/auth/verify?token=%s\">click to verify your email</a>", token)
 	message += "\r\n" + htmlBody
 
 	// 使用 TLS 发送邮件

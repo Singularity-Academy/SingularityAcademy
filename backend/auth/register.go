@@ -80,6 +80,7 @@ func Register(context *gin.Context) {
 	go config.SendVerifyEmail(user.Email, user.VerificationToken)
 
 	go config.DB.Create(&user)
+
 	Logger.Println(user.Username + " register success!")
 	context.JSON(http.StatusOK, gin.H{
 		"message": "register success",
