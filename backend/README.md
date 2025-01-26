@@ -1,6 +1,4 @@
-## /api/auth
-
-### /register
+### /api/auth/register
 #### 请求方法: POST
 #### 需要传入Token: 否
 #### 请求体示例:
@@ -49,7 +47,7 @@
 | message | string | 登录成功的消息          |
 
 
-### /login
+### /api/auth/login
 #### 用于处理用户登录请求的接口
 #### 请求方法: POST
 #### 需要传入Token: 否
