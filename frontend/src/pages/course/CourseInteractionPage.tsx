@@ -13,7 +13,7 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
-import { useCookies } from 'react-cookie';
+// import { useCookies } from 'react-cookie';
 import axiosInstance from '../../utils/axios';
 import { API_ENDPOINTS } from '../../config/api';
 
@@ -22,7 +22,7 @@ const CourseInteractionPage: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [cookies, setCookie] = useCookies(['auth']);
+  // const [cookies, setCookie] = useCookies(['auth']);
 
   const studentVideoRef = useRef<HTMLVideoElement>(null);
   const videoAreaRef = useRef<HTMLDivElement>(null);
@@ -32,12 +32,12 @@ const CourseInteractionPage: React.FC = () => {
   const bgColor = useColorModeValue('gray.50', 'gray.900');
   const cardBg = useColorModeValue('white', 'gray.700');
 
-  useEffect(() => {
-    // Check if user is authenticated
-    if (!cookies.auth) {
-      window.location.href = '/login'; // Redirect to login page if not authenticated
-    }
-  }, [cookies.auth]);
+  // useEffect(() => {
+  //   // Check if user is authenticated
+  //   if (!cookies.auth) {
+  //     window.location.href = '/login'; // Redirect to login page if not authenticated
+  //   }
+  // }, [cookies.auth]);
 
   useEffect(() => {
     // Scroll to bottom when messages update
@@ -102,10 +102,10 @@ const CourseInteractionPage: React.FC = () => {
         messages: [...messages, userMessage],
       });
 
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: response.data.content 
-      }]);
+      setMessages(prev => [
+        ...prev,
+        { role: 'assistant', content: response.data.content },
+      ]);
     } catch (error) {
       toast({
         title: 'Error',
@@ -192,7 +192,9 @@ const CourseInteractionPage: React.FC = () => {
                           p={3}
                           borderRadius="md"
                       >
-                        <Text fontWeight="bold">{msg.role === 'user' ? 'You' : 'AI Teacher'}</Text>
+                        <Text fontWeight="bold">
+                          {msg.role === 'user' ? 'You' : 'AI Teacher'}
+                        </Text>
                         <Text>{msg.content}</Text>
                       </Box>
                   ))}
