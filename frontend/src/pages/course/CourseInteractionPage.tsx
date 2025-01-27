@@ -16,6 +16,7 @@ import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
 // import { useCookies } from 'react-cookie';
 import axiosInstance from '../../utils/axios';
 import { API_ENDPOINTS } from '../../config/api';
+import Cookies from "js-cookie";
 
 const CourseInteractionPage: React.FC = () => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([]);
@@ -32,12 +33,12 @@ const CourseInteractionPage: React.FC = () => {
   const bgColor = useColorModeValue('gray.50', 'gray.900');
   const cardBg = useColorModeValue('white', 'gray.700');
 
-  // useEffect(() => {
-  //   // Check if user is authenticated
-  //   if (!cookies.auth) {
-  //     window.location.href = '/login'; // Redirect to login page if not authenticated
-  //   }
-  // }, [cookies.auth]);
+ useEffect(() => {
+   // Check if user is authenticated
+   if (!Cookies.get('token')) {
+     window.location.href = '/login'; // Redirect to login page if not authenticated
+   }
+ }, [Cookies.get('token')]);
 
   useEffect(() => {
     // Scroll to bottom when messages update

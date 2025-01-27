@@ -15,6 +15,8 @@ import {
   Link,
 } from '@chakra-ui/react';
 
+import Cookies from 'js-cookie';
+
 interface LoginFormInputs {
   email: string;
   password: string;
@@ -35,7 +37,7 @@ const LoginPage: React.FC = () => {
 
       if (response.ok) {
         const result = await response.json();
-        localStorage.setItem('token', result.token);
+        Cookies.set('token', result.token, { expires: 30, secure: true, sameSite: 'strict' });
         toast({
           title: 'Login successful',
           status: 'success',

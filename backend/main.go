@@ -25,9 +25,9 @@ func main() {
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "X-Real-IP"}, // 允许的请求头
 		AllowCredentials: true,                                                             // 是否允许携带认证信息
 	}))
-	r.POST("/api/auth/register", middlewares.JsonMiddleware(auth.RegisterRequest{}), auth.Register)
-	r.POST("/api/auth/login", middlewares.JsonMiddleware(auth.LoginRequest{}), auth.Login)
-	r.POST("/api/auth/verify", middlewares.JsonMiddleware(auth.VerifyRequest{}), auth.Verify)
+	r.POST("/api/auth/register", middlewares.JsonMiddleware(&auth.RegisterRequest{}), auth.Register)
+	r.POST("/api/auth/login", middlewares.JsonMiddleware(&auth.LoginRequest{}), auth.Login)
+	r.POST("/api/auth/verify", middlewares.JsonMiddleware(&auth.VerifyRequest{}), auth.Verify)
 	r.GET("/api/me", middlewares.JwtMiddleware(), me.Me)
 
 	err = r.Run("0.0.0.0:8080")
