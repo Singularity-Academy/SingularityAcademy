@@ -12,16 +12,8 @@ type VerifyRequest struct {
 }
 
 func Verify(context *gin.Context) {
-	var request VerifyRequest
-
-	// 绑定 JSON 数据到结构体
-	if err := context.ShouldBindJSON(&request); err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"error":  "invalid request data",
-			"detail": err.Error(), // 返回具体的绑定错误信息
-		})
-		return
-	}
+	r, _ := context.Get("json")
+	request := r.(*VerifyRequest)
 
 	users, err := utils.FindUsersByVerifyToken(request.Token)
 	if err != nil {

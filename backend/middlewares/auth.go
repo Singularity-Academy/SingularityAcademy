@@ -68,7 +68,7 @@ func JwtMiddleware() gin.HandlerFunc {
 	}
 }
 
-func IsJsonMiddleware() gin.HandlerFunc {
+func JsonMiddleware(requestTemplate interface{}) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if !strings.Contains(c.GetHeader("Content-Type"), "application/json") {
 			c.JSON(http.StatusBadRequest, gin.H{
@@ -78,6 +78,16 @@ func IsJsonMiddleware() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+
+		if err := c.ShouldBindJSON(&requestTemplate); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":  "invalid request data",
+				"detail": err.Error(), // 返回具体的绑定错误信息
+			})
+			c.Abort()
+			return
+		}
+		c.Set("json", requestTemplate)
 		c.Next()
 	}
 }

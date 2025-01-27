@@ -16,7 +16,8 @@ type RegisterRequest struct {
 
 func Register(context *gin.Context) {
 
-	var request RegisterRequest
+	r, _ := context.Get("json")
+	request := r.(*RegisterRequest)
 
 	// 绑定 JSON 数据到结构体
 	if err := context.ShouldBindJSON(&request); err != nil {
