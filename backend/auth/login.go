@@ -12,17 +12,9 @@ type LoginRequest struct {
 }
 
 func Login(context *gin.Context) {
+	r, _ := context.Get("json")
+	request := r.(*LoginRequest)
 
-	var request LoginRequest
-
-	// 绑定 JSON 数据到结构体
-	if err := context.ShouldBindJSON(&request); err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"error":  "invalid request data",
-			"detail": err.Error(), // 返回具体的绑定错误信息
-		})
-		return
-	}
 	users, err := utils.FindUsersByEmail(request.Email)
 	if err != nil {
 		context.JSON(http.StatusUnauthorized, gin.H{
