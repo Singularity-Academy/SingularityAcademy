@@ -39,8 +39,8 @@ const VerifyPage: React.FC = () => {
     title: "Welcome to Our Learning Community!",
     message: "We're thrilled to have you join our mission to revolutionize online education. Together, we'll create an extraordinary learning journey.",
     founders: [
-      { name: "Sarah Chen", role: "CEO & Co-founder" },
-      { name: "Michael Rodriguez", role: "CTO & Co-founder" }
+      { name: "Jiace Zhao", role: "CEO & Co-founder" },
+      { name: "Huang Di", role: "CTO & Co-founder" }
     ]
   };
 
