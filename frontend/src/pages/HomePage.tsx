@@ -26,7 +26,7 @@ const HomePage: React.FC = () => {
 
   return (
     <Box bg={bgColor} minH="100vh">
-      {isLoggedIn && <Navbar />}
+      <Navbar />
       <Box pt={isLoggedIn ? '64px' : 0}>
         {/* Hero Section */}
         <Container maxW="container.xl" py={20}>

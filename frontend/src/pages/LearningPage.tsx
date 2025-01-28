@@ -13,7 +13,7 @@ import {
   IconButton,
   Stack,
 } from '@chakra-ui/react';
-import { ChevronRightIcon, ChevronDownIcon } from '@chakra-ui/icons';
+import Navbar from "../components/Navbar";
 
 const LearningPage: React.FC = () => {
   const bgColor = useColorModeValue('gray.50', 'gray.900');
@@ -68,8 +68,9 @@ const LearningPage: React.FC = () => {
 
   return (
     <Box bg={bgColor} minH="100vh" display="flex">
+      <Navbar/>
       {/* Sidebar */}
-      <Box width="250px" bg={cardBg} p={5} boxShadow="md">
+      <Box width="250px" bg={cardBg} p={5} boxShadow="md" mt={16}>
         <VStack spacing={5} align="start">
           <Heading size="md" color="blue.500">Navigation</Heading>
           <Button
@@ -97,7 +98,7 @@ const LearningPage: React.FC = () => {
       </Box>
 
       {/* Main Content */}
-      <Box flex="1" p={10}>
+      <Box flex="1" p={10} mt={16}>
         {renderContent()}
       </Box>
     </Box>

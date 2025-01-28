@@ -16,10 +16,10 @@ import {
 } from '@chakra-ui/react';
 
 import Cookies from 'js-cookie';
-
-import {API_ENDPOINTS, ErrorResponse} from '../../config/api'
+import {API_ENDPOINTS, ErrorResponse} from '../../config/api';
 import axiosInstance, {getToastMessage} from '../../utils/axios';
 import {AxiosError} from "axios";
+import Navbar from "../../components/Navbar";
 
 interface LoginFormInputs {
   email: string;
@@ -27,7 +27,7 @@ interface LoginFormInputs {
 }
 
 const LoginPage: React.FC = () => {
-  const { register, handleSubmit, formState: { errors } } = useForm<LoginFormInputs>();
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormInputs>();
   const navigate = useNavigate();
   const toast = useToast();
 
@@ -49,71 +49,62 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <Container maxW="container.sm" py={10}>
-      <VStack spacing={8}>
-        <Heading>Welcome Back</Heading>
-        <Box w="100%" p={8} borderWidth={1} borderRadius="lg" boxShadow="lg">
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <VStack spacing={4}>
-              <FormControl isInvalid={!!errors.email}>
-                <FormLabel>Email</FormLabel>
-                <Input
-                  type="email"
-                  {...register('email', {
-                    required: 'Email is required',
-                    pattern: {
-                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                      message: 'Invalid email address',
-                    },
-                  })}
-                />
-                {errors.email && (
-                  <Text color="red.500" fontSize="sm">
-                    {errors.email.message}
-                  </Text>
-                )}
-              </FormControl>
+      <><Navbar/><Container maxW="container.sm" py={10} mt={16}>
+        <VStack spacing={8}>
+          <Heading>Welcome Back</Heading>
+          <Box w="100%" p={8} borderWidth={1} borderRadius="lg" boxShadow="lg">
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <VStack spacing={4}>
+                <FormControl isInvalid={!!errors.email}>
+                  <FormLabel>Email</FormLabel>
+                  <Input
+                      type="email"
+                      {...register('email', {
+                        required: 'Email is required',
+                        pattern: {
+                          value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                          message: 'Invalid email address',
+                        },
+                      })} />
+                  {errors.email && <Text color="red.500" fontSize="sm">{errors.email.message}</Text>}
+                </FormControl>
 
-              <FormControl isInvalid={!!errors.password}>
-                <FormLabel>Password</FormLabel>
-                <Input
-                  type="password"
-                  {...register('password', {
-                    required: 'Password is required',
-                    minLength: {
-                      value: 6,
-                      message: 'Password must be at least 6 characters',
-                    },
-                  })}
-                />
-                {errors.password && (
-                  <Text color="red.500" fontSize="sm">
-                    {errors.password.message}
-                  </Text>
-                )}
-              </FormControl>
+                <FormControl isInvalid={!!errors.password}>
+                  <FormLabel>Password</FormLabel>
+                  <Input
+                      type="password"
+                      {...register('password', {
+                        required: 'Password is required',
+                        minLength: {
+                          value: 6,
+                          message: 'Password must be at least 6 characters',
+                        },
+                      })} />
+                  {errors.password && <Text color="red.500" fontSize="sm">{errors.password.message}</Text>}
+                </FormControl>
 
-              <Button
-                type="submit"
-                colorScheme="blue"
-                width="100%"
-                size="lg"
-                mt={4}
-              >
-                Sign In
-              </Button>
-            </VStack>
-          </form>
-        </Box>
-        <Text>
-          Don't have an account?{' '}
-          <Link color="blue.500" onClick={() => navigate('/register')}>
-            Sign up
-          </Link>
-        </Text>
-      </VStack>
-    </Container>
+                <Button
+                    type="submit"
+                    colorScheme="blue"
+                    width="100%"
+                    size="lg"
+                    mt={4}
+                    isLoading={isSubmitting} // loading indicator
+                >
+                  Sign In
+                </Button>
+              </VStack>
+            </form>
+          </Box>
+          <Text>
+            Don't have an account?{' '}
+            <Link color="blue.500" onClick={() => navigate('/register')}>
+              Sign up
+            </Link>
+          </Text>
+        </VStack>
+      </Container></>
   );
 };
 
-export default LoginPage; 
+export default LoginPage;

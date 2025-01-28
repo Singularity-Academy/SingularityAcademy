@@ -16,6 +16,7 @@ import { AxiosError } from 'axios';
 import { ErrorResponse as ApiErrorResponse } from '../../config/api';
 import { motion, Variants } from 'framer-motion';
 import { FaCheckCircle, FaTimesCircle, FaHourglassHalf } from 'react-icons/fa';
+import Navbar from "../../components/Navbar";
 
 interface ErrorResponse extends ApiErrorResponse {
   message: string;
@@ -79,136 +80,136 @@ const VerifyPage: React.FC = () => {
   }, [searchParams, toast]);
 
   return (
-    <Container maxW="container.md" py={20}>
-      <motion.div initial="initial" animate="animate" variants={fadeIn}>
-        <VStack spacing={12} align="center">
-          <Box 
-            textAlign="center" 
-            p={10} 
-            bg="rgba(255, 255, 255, 0.95)" 
-            borderRadius="2xl" 
-            boxShadow="2xl"
-            w="100%"
-            backdropFilter="blur(10px)"
-          >
-            <VStack spacing={8}>
-              <Heading 
-                size="xl" 
-                bgGradient="linear(to-r, blue.400, purple.500)" 
-                bgClip="text"
-              >
-                Email Verification
-              </Heading>
-              
-              {verificationStatus === 'verifying' && (
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                >
-                  <VStack spacing={4}>
-                    <FaHourglassHalf size="60px" color="#4299E1" />
-                    <Text fontSize="xl">Verifying your email...</Text>
-                  </VStack>
-                </motion.div>
-              )}
-
-              {verificationStatus === 'success' && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                >
-                  <VStack spacing={6}>
-                    <FaCheckCircle size="80px" color="#48BB78" />
-                    <Text 
-                      color="green.500" 
-                      fontSize="2xl"
-                      fontWeight="bold"
-                    >
-                      Your email has been successfully verified!
-                    </Text>
-                    <Button
-                      size="lg"
-                      colorScheme="blue"
-                      onClick={() => navigate('/login')}
-                      _hover={{ transform: 'translateY(-2px)', boxShadow: 'lg' }}
-                      transition="all 0.2s"
-                    >
-                      Proceed to Login
-                    </Button>
-                  </VStack>
-                </motion.div>
-              )}
-
-              {verificationStatus === 'error' && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                >
-                  <VStack spacing={6}>
-                    <FaTimesCircle size="80px" color="#E53E3E" />
-                    <Text 
-                      color="red.500" 
-                      fontSize="xl"
-                      fontWeight="bold"
-                    >
-                      Verification failed. Please try again or request a new verification link.
-                    </Text>
-                    <Button
-                      size="lg"
-                      colorScheme="blue"
-                      onClick={() => navigate('/login')}
-                      _hover={{ transform: 'translateY(-2px)', boxShadow: 'lg' }}
-                      transition="all 0.2s"
-                    >
-                      Back to Login
-                    </Button>
-                  </VStack>
-                </motion.div>
-              )}
-            </VStack>
-          </Box>
-
-          {verificationStatus === 'success' && (
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.8 }}
-            >
-              <Box
-                p={8}
-                bg="rgba(255, 255, 255, 0.95)"
-                borderRadius="xl"
-                boxShadow="xl"
-                w="100%"
+      <><Navbar/><Container maxW="container.md" py={20} mt={16}>
+        <motion.div initial="initial" animate="animate" variants={fadeIn}>
+          <VStack spacing={12} align="center">
+            <Box
                 textAlign="center"
-              >
-                <VStack spacing={6}>
-                  <Heading 
-                    size="md"
+                p={10}
+                bg="rgba(255, 255, 255, 0.95)"
+                borderRadius="2xl"
+                boxShadow="2xl"
+                w="100%"
+                backdropFilter="blur(10px)"
+            >
+              <VStack spacing={8}>
+                <Heading
+                    size="xl"
                     bgGradient="linear(to-r, blue.400, purple.500)"
                     bgClip="text"
+                >
+                  Email Verification
+                </Heading>
+
+                {verificationStatus === 'verifying' && (
+                    <motion.div
+                        animate={{rotate: 360}}
+                        transition={{duration: 2, repeat: Infinity, ease: "linear"}}
+                    >
+                      <VStack spacing={4}>
+                        <FaHourglassHalf size="60px" color="#4299E1"/>
+                        <Text fontSize="xl">Verifying your email...</Text>
+                      </VStack>
+                    </motion.div>
+                )}
+
+                {verificationStatus === 'success' && (
+                    <motion.div
+                        initial={{scale: 0}}
+                        animate={{scale: 1}}
+                        transition={{type: "spring", stiffness: 260, damping: 20}}
+                    >
+                      <VStack spacing={6}>
+                        <FaCheckCircle size="80px" color="#48BB78"/>
+                        <Text
+                            color="green.500"
+                            fontSize="2xl"
+                            fontWeight="bold"
+                        >
+                          Your email has been successfully verified!
+                        </Text>
+                        <Button
+                            size="lg"
+                            colorScheme="blue"
+                            onClick={() => navigate('/login')}
+                            _hover={{transform: 'translateY(-2px)', boxShadow: 'lg'}}
+                            transition="all 0.2s"
+                        >
+                          Proceed to Login
+                        </Button>
+                      </VStack>
+                    </motion.div>
+                )}
+
+                {verificationStatus === 'error' && (
+                    <motion.div
+                        initial={{scale: 0}}
+                        animate={{scale: 1}}
+                        transition={{type: "spring", stiffness: 260, damping: 20}}
+                    >
+                      <VStack spacing={6}>
+                        <FaTimesCircle size="80px" color="#E53E3E"/>
+                        <Text
+                            color="red.500"
+                            fontSize="xl"
+                            fontWeight="bold"
+                        >
+                          Verification failed. Please try again or request a new verification link.
+                        </Text>
+                        <Button
+                            size="lg"
+                            colorScheme="blue"
+                            onClick={() => navigate('/login')}
+                            _hover={{transform: 'translateY(-2px)', boxShadow: 'lg'}}
+                            transition="all 0.2s"
+                        >
+                          Back to Login
+                        </Button>
+                      </VStack>
+                    </motion.div>
+                )}
+              </VStack>
+            </Box>
+
+            {verificationStatus === 'success' && (
+                <motion.div
+                    initial={{opacity: 0, y: 30}}
+                    animate={{opacity: 1, y: 0}}
+                    transition={{delay: 0.5, duration: 0.8}}
+                >
+                  <Box
+                      p={8}
+                      bg="rgba(255, 255, 255, 0.95)"
+                      borderRadius="xl"
+                      boxShadow="xl"
+                      w="100%"
+                      textAlign="center"
                   >
-                    {founderMessage.title}
-                  </Heading>
-                  <Text fontSize="lg" color="gray.600">
-                    {founderMessage.message}
-                  </Text>
-                  <VStack spacing={2}>
-                    {founderMessage.founders.map((founder, index) => (
-                      <Text key={index} fontSize="md" color="gray.500">
-                        {founder.name} - {founder.role}
+                    <VStack spacing={6}>
+                      <Heading
+                          size="md"
+                          bgGradient="linear(to-r, blue.400, purple.500)"
+                          bgClip="text"
+                      >
+                        {founderMessage.title}
+                      </Heading>
+                      <Text fontSize="lg" color="gray.600">
+                        {founderMessage.message}
                       </Text>
-                    ))}
-                  </VStack>
-                </VStack>
-              </Box>
-            </motion.div>
-          )}
-        </VStack>
-      </motion.div>
-    </Container>
+                      <VStack spacing={2}>
+                        {founderMessage.founders.map((founder, index) => (
+                            <Text key={index} fontSize="md" color="gray.500">
+                              {founder.name} - {founder.role}
+                            </Text>
+                        ))}
+                      </VStack>
+                    </VStack>
+                  </Box>
+                </motion.div>
+            )}
+          </VStack>
+        </motion.div>
+      </Container></>
   );
 };
 

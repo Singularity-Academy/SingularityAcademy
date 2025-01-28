@@ -13,6 +13,7 @@ import {
 import axiosInstance, {getToastMessage} from '../utils/axios';
 import {API_ENDPOINTS, ErrorResponse} from '../config/api';
 import {AxiosError} from "axios";
+import Navbar from "../components/Navbar";
 
 const PersonalHomePage: React.FC = () => {
   const toast = useToast();
@@ -40,7 +41,8 @@ const PersonalHomePage: React.FC = () => {
 
   return (
       <Box bg={bgColor} minH="100vh">
-        <Container maxW="container.xl" py={20}>
+        <Navbar/>
+        <Container maxW="container.xl" py={20} mt={16}>
           <VStack spacing={10} align="center">
             <Avatar size="2xl" name={user.name} src="path/to/your/photo.jpg" />
             <Heading as="h1" size="2xl" textAlign="center" bgGradient="linear(to-r, teal.400, blue.500)" bgClip="text">

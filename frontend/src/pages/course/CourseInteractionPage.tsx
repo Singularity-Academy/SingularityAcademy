@@ -17,6 +17,7 @@ import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
 import axiosInstance from '../../utils/axios';
 import { API_ENDPOINTS } from '../../config/api';
 import Cookies from "js-cookie";
+import Navbar from "../../components/Navbar";
 
 const CourseInteractionPage: React.FC = () => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([]);
@@ -201,9 +202,9 @@ const CourseInteractionPage: React.FC = () => {
   }, [mediaRecorder]);
 
   return (
-      <Box bg={bgColor} minH="100vh" p={4}>
+      <><Navbar/><Box bg={bgColor} minH="100vh" p={4} mt={16}>
         <Container maxW="container.xl">
-          <Flex direction={{ base: 'column', lg: 'row' }} gap={6}>
+          <Flex direction={{base: 'column', lg: 'row'}} gap={6}>
             {/* Main Video Area */}
             <Box flex="2" ref={videoAreaRef} bg={cardBg} borderRadius="lg" p={4} position="relative">
               <Box
@@ -218,12 +219,11 @@ const CourseInteractionPage: React.FC = () => {
               </Box>
               <IconButton
                   aria-label="Toggle fullscreen"
-                  icon={isFullscreen ? <ViewOffIcon /> : <ViewIcon />}
+                  icon={isFullscreen ? <ViewOffIcon/> : <ViewIcon/>}
                   position="absolute"
                   bottom={4}
                   right={4}
-                  onClick={toggleFullscreen}
-              />
+                  onClick={toggleFullscreen}/>
             </Box>
 
             {/* Side Panel */}
@@ -251,11 +251,10 @@ const CourseInteractionPage: React.FC = () => {
                 >
                   <video
                       ref={studentVideoRef}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      style={{width: '100%', height: '100%', objectFit: 'cover'}}
                       playsInline
                       autoPlay
-                      muted
-                  />
+                      muted/>
                 </Box>
               </Box>
 
@@ -294,8 +293,7 @@ const CourseInteractionPage: React.FC = () => {
                     onChange={(e) => setInputValue(e.target.value)}
                     placeholder="Ask your question..."
                     mr={2}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
-                />
+                    onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}/>
                 <Button colorScheme="blue" onClick={handleSubmit}>
                   Send
                 </Button>
@@ -303,7 +301,7 @@ const CourseInteractionPage: React.FC = () => {
             </VStack>
           </Flex>
         </Container>
-      </Box>
+      </Box></>
   );
 };
 
