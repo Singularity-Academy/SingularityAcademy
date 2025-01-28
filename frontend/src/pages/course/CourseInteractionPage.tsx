@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   Box,
   Button,
@@ -23,12 +23,15 @@ const CourseInteractionPage: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [isStreaming, setIsStreaming] = useState(false);
   // const [cookies, setCookie] = useCookies(['auth']);
 
   const studentVideoRef = useRef<HTMLVideoElement>(null);
   const videoAreaRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const toast = useToast();
+  const wsRef = useRef<WebSocket | null>(null);
 
   const bgColor = useColorModeValue('gray.50', 'gray.900');
   const cardBg = useColorModeValue('white', 'gray.700');
@@ -47,29 +50,93 @@ const CourseInteractionPage: React.FC = () => {
     }
   }, [messages]);
 
-  // Camera toggle function
+  // Add WebSocket connection setup
+  useEffect(() => {
+    // Create WebSocket connection for video streaming
+    const ws = new WebSocket('ws://localhost:1298/ws/video');
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      console.log('WebSocket connection established');
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+      toast({
+        title: 'Connection Error',
+        description: 'Failed to establish video connection',
+        status: 'error',
+        duration: 3000,
+      });
+    };
+
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+    };
+  }, []);
+
+  // Update toggleCamera function
   const toggleCamera = async () => {
     try {
       if (!isCameraOn) {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: true, 
+          audio: false 
+        });
+        
         if (studentVideoRef.current) {
           studentVideoRef.current.srcObject = stream;
         }
+        
+        // Set up MediaRecorder
+        const recorder = new MediaRecorder(stream, {
+          mimeType: 'video/webm;codecs=vp8,opus'
+        });
+        
+        recorder.ondataavailable = (event) => {
+          if (event.data.size > 0 && wsRef.current?.readyState === WebSocket.OPEN) {
+            wsRef.current.send(event.data);
+          }
+        };
+
+        recorder.onstop = () => {
+          setIsStreaming(false);
+        };
+
+        setMediaRecorder(recorder);
         setIsCameraOn(true);
+        
+        // Start recording
+        recorder.start(1000); // Send video data every 1 second
+        setIsStreaming(true);
+
         toast({
           title: 'Camera activated',
+          description: 'Video stream started',
           status: 'success',
           duration: 2000,
         });
       } else {
+        // Stop recording and streaming
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+          mediaRecorder.stop();
+        }
+
         const stream = studentVideoRef.current?.srcObject as MediaStream;
         stream?.getTracks().forEach(track => track.stop());
+        
         if (studentVideoRef.current) {
           studentVideoRef.current.srcObject = null;
         }
+
         setIsCameraOn(false);
+        setIsStreaming(false);
+        setMediaRecorder(null);
       }
     } catch (error) {
+      console.error('Camera error:', error);
       toast({
         title: 'Camera error',
         description: 'Unable to access camera. Please check permissions.',
@@ -117,6 +184,22 @@ const CourseInteractionPage: React.FC = () => {
     }
   };
 
+  // Add cleanup effect
+  useEffect(() => {
+    return () => {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+      if (studentVideoRef.current?.srcObject) {
+        const stream = studentVideoRef.current.srcObject as MediaStream;
+        stream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [mediaRecorder]);
+
   return (
       <Box bg={bgColor} minH="100vh" p={4}>
         <Container maxW="container.xl">
@@ -153,6 +236,8 @@ const CourseInteractionPage: React.FC = () => {
                       size="sm"
                       colorScheme={isCameraOn ? 'red' : 'green'}
                       onClick={toggleCamera}
+                      isLoading={isStreaming}
+                      loadingText="Streaming"
                   >
                     {isCameraOn ? 'Turn Off' : 'Turn On'}
                   </Button>

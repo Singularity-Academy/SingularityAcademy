@@ -7,9 +7,10 @@ import (
 	"backend/me"
 	"backend/middlewares"
 	"backend/models"
+	"log"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"log"
 )
 
 func main() {
