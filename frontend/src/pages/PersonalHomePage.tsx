@@ -8,12 +8,14 @@ import {
   VStack,
   SimpleGrid,
   useColorModeValue,
-  Avatar, useToast,
+  Avatar,
+  useToast,
+  Spinner,  // 引入 Spinner 组件
 } from '@chakra-ui/react';
-import axiosInstance, {getToastMessage} from '../utils/axios';
-import {API_ENDPOINTS, ErrorResponse} from '../config/api';
-import {AxiosError} from "axios";
-import Navbar from "../components/Navbar";
+import axiosInstance, { getToastMessage } from '../utils/axios';
+import { API_ENDPOINTS, ErrorResponse } from '../config/api';
+import { AxiosError } from 'axios';
+import Navbar from '../components/Navbar';
 
 const PersonalHomePage: React.FC = () => {
   const toast = useToast();
@@ -22,6 +24,7 @@ const PersonalHomePage: React.FC = () => {
     name: '',
     email: '',
   });
+  const [loading, setLoading] = useState(true);  // 新增加载状态
 
   // 通过 axios 请求后端数据并更新 user 状态
   useEffect(() => {
@@ -29,10 +32,12 @@ const PersonalHomePage: React.FC = () => {
         .get(API_ENDPOINTS.ME)
         .then((response) => {
           setUser(response.data);  // 更新 user 状态
+          setLoading(false);  // 请求完成，关闭加载状态
         })
         .catch((err) => {
           const error = err as AxiosError<ErrorResponse>;
           toast(getToastMessage(error));
+          setLoading(false);  // 请求失败时关闭加载状态
         });
   }, []); // 依赖数组为空，表示组件挂载时只执行一次
 
@@ -41,19 +46,25 @@ const PersonalHomePage: React.FC = () => {
 
   return (
       <Box bg={bgColor} minH="100vh">
-        <Navbar/>
+        <Navbar />
         <Container maxW="container.xl" py={20} mt={16}>
           <VStack spacing={10} align="center">
-            <Avatar size="2xl" name={user.name} src="path/to/your/photo.jpg" />
-            <Heading as="h1" size="2xl" textAlign="center" bgGradient="linear(to-r, teal.400, blue.500)" bgClip="text">
-              Hello, I'm {user.name || 'Your Name'}
-            </Heading>
-            <Text fontSize="xl" textAlign="center" maxW="2xl">
-              A passionate developer with a love for creating innovative solutions and a keen interest in AI and web technologies.
-            </Text>
-            <Button size="lg" colorScheme="teal" onClick={() => window.location.href = '/contact'}>
-              Get in Touch
-            </Button>
+            {loading ? (  // 如果加载中，显示 Spinner
+                <Spinner size="xl" />
+            ) : (
+                <>
+                  <Avatar size="2xl" name={user.name} src="path/to/your/photo.jpg" />
+                  <Heading as="h1" size="2xl" textAlign="center" bgGradient="linear(to-r, teal.400, blue.500)" bgClip="text">
+                    Hello, I'm {user.name || 'Your Name'}
+                  </Heading>
+                  <Text fontSize="xl" textAlign="center" maxW="2xl">
+                    A passionate developer with a love for creating innovative solutions and a keen interest in AI and web technologies.
+                  </Text>
+                  <Button size="lg" colorScheme="teal" onClick={() => window.location.href = '/contact'}>
+                    Get in Touch
+                  </Button>
+                </>
+            )}
           </VStack>
         </Container>
 

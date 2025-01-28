@@ -68,7 +68,7 @@ const Navbar: React.FC<NavbarProps> = () => {
                       )}
                     </MenuButton>
                     <MenuList>
-                      <MenuItem onClick={() => navigate('/me/homepage')}>Profile</MenuItem>
+                      <MenuItem onClick={() => navigate('/homepage')}>Profile</MenuItem>
                       <MenuItem onClick={handleLogout}>Logout</MenuItem>
                     </MenuList>
                   </Menu>
