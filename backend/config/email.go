@@ -11,7 +11,7 @@ import (
 
 var SmtpAuth smtp.Auth
 
-// 初始化 SMTP 认证
+// ConnectSMTP 初始化 SMTP 认证
 func ConnectSMTP() {
 	SmtpAuth = smtp.PlainAuth(
 		"",
@@ -21,11 +21,11 @@ func ConnectSMTP() {
 	)
 }
 
-// 发送验证邮件
+// SendVerifyEmail 发送验证邮件
 func SendVerifyEmail(to string, token string) {
 	// 构造邮件头
 	header := make(map[string]string)
-	header["From"] = viper.GetString("email.email")
+	header["From"] = fmt.Sprintf("AI Online School<%s>", viper.GetString("email.email"))
 	header["To"] = to
 	header["Subject"] = "Email Verification"
 	header["Content-Type"] = "text/html; charset=UTF-8"
