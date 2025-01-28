@@ -166,7 +166,7 @@ func SendVerifyEmail(to string, token string) {
       <div class="founders-section">
         <h3>Meet Our Founders</h3>
         <div class="founder">Jiace Zhao - CEO & AI Research Lead</div>
-        <div class="founder">Di Huang - CTO & Backend Platform Architect</div>
+        <div class="founder">Di Huang - CTO & Backend Platform Architecture</div>
       </div>
     </div>
     
