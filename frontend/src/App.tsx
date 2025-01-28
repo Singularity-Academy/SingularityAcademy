@@ -8,6 +8,7 @@ import theme from './theme';
 import PersonalHomePage from './pages/PersonalHomePage';
 import LearningPage from './pages/LearningPage';
 import CourseInteractionPage from './pages/course/CourseInteractionPage';
+import VerifyPage from './pages/auth/VerifyPage';
 
 const App: React.FC = () => {
   return (
@@ -22,6 +23,7 @@ const App: React.FC = () => {
           <Route path='/me/homepage' element={<LearningPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
           <Route path="/course/interaction" element={<CourseInteractionPage />} />
+          <Route path="/auth/verify" element={<VerifyPage />} />
         </Routes>
       </Router>
     </ChakraProvider>
