@@ -17,6 +17,10 @@ import {
 
 import Cookies from 'js-cookie';
 
+import {API_ENDPOINTS, ErrorResponse} from '../../config/api'
+import axiosInstance, {getToastMessage} from '../../utils/axios';
+import {AxiosError} from "axios";
+
 interface LoginFormInputs {
   email: string;
   password: string;
@@ -29,31 +33,18 @@ const LoginPage: React.FC = () => {
 
   const onSubmit = async (data: LoginFormInputs) => {
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        Cookies.set('token', result.token, { expires: 30, secure: true, sameSite: 'strict' });
-        toast({
-          title: 'Login successful',
-          status: 'success',
-          duration: 3000,
-        });
-        navigate('/dashboard');
-      } else {
-        throw new Error('Login failed');
-      }
-    } catch (error) {
+      const response = await axiosInstance.post(API_ENDPOINTS.AUTH.LOGIN, data);
+      const { token } = response.data;
+      Cookies.set('token', token, { expires: 30, secure: true, sameSite: 'strict' });
       toast({
-        title: 'Login failed',
-        description: 'Please check your credentials and try again',
-        status: 'error',
+        title: 'Login successful',
+        status: 'success',
         duration: 3000,
       });
+      navigate('/dashboard');
+    } catch (err) {
+      const error = err as AxiosError<ErrorResponse>;
+      toast(getToastMessage(error));
     }
   };
 

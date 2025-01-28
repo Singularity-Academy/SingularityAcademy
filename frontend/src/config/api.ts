@@ -1,6 +1,7 @@
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:1298/api';
 
 export const API_ENDPOINTS = {
+  ME: `${API_BASE_URL}/me`,
   AUTH: {
     LOGIN: `${API_BASE_URL}/auth/login`,
     REGISTER: `${API_BASE_URL}/auth/register`,
@@ -18,4 +19,9 @@ export const axiosConfig = {
   headers: {
     'Content-Type': 'application/json',
   },
-}; 
+};
+
+export interface ErrorResponse {
+  error: string;
+  detail: string;
+}

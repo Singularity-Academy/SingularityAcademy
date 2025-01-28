@@ -14,6 +14,9 @@ import {
   Heading,
   Link,
 } from '@chakra-ui/react';
+import {API_ENDPOINTS, ErrorResponse} from "../../config/api";
+import axiosInstance, {getToastMessage} from "../../utils/axios";
+import {AxiosError} from "axios";
 
 interface RegisterFormInputs {
   name: string;
@@ -29,30 +32,17 @@ const RegisterPage: React.FC = () => {
 
   const onSubmit = async (data: RegisterFormInputs) => {
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-
-      if (response.ok) {
-        toast({
-          title: 'Registration successful',
-          description: 'Please login with your credentials',
-          status: 'success',
-          duration: 3000,
-        });
-        navigate('/login');
-      } else {
-        throw new Error('Registration failed');
-      }
-    } catch (error) {
+      const response = await axiosInstance.post(API_ENDPOINTS.AUTH.REGISTER, data)
       toast({
-        title: 'Registration failed',
-        description: 'Please try again',
-        status: 'error',
+        title: 'Registration successful',
+        description: 'Please login with your credentials',
+        status: 'success',
         duration: 3000,
       });
+      navigate('/login');
+    } catch (err) {
+      const error = err as AxiosError<ErrorResponse>;
+      toast(getToastMessage(error));
     }
   };
 
