@@ -179,3 +179,42 @@
 | email | string | 用户绑定的邮箱 |
 | id    | int    | 用户的id   |
 | name  | string | 用户的名字   |
+
+### /api/info/\<id\>
+#### 用于用户查询信息的接口
+#### 请求方法: GET
+#### 需要传入Token: 否
+#### 响应体示例:
+#### 出现错误时
+```json
+{
+  "error":  "User not found",
+  "detail": "No users found with the given ID"
+}
+```
+
+#### 数据字段说明
+
+| 字段名    | 类型     | 描述     |
+|--------|--------|--------|
+| error  | string | 错误类型   |
+| detail | string | 错误详细信息 |
+
+#### 查询成功时
+
+```json
+{
+  "email": "zhangsan123@example.com",
+  "id": 550707222846377484,
+  "name": "张三"
+}
+```
+
+
+#### 数据字段说明
+
+| 字段名   | 类型     | 描述      |
+|-------|--------|---------|
+| email | string | 用户绑定的邮箱 |
+| id    | int    | 用户的id   |
+| name  | string | 用户的名字   |

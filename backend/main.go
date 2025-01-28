@@ -41,7 +41,7 @@ func main() {
 	r.POST("/api/auth/login", middlewares.JsonMiddleware(&auth.LoginRequest{}), auth.Login)
 	r.POST("/api/auth/verify", middlewares.JsonMiddleware(&auth.VerifyRequest{}), auth.Verify)
 	r.GET("/api/me", middlewares.JwtMiddleware(), me.Me)
-	r.GET("/api/info/:id", middlewares.JwtMiddleware(), info.Info)
+	r.GET("/api/info/:id", info.Info)
 
 	// 启动服务器
 	err = r.Run("0.0.0.0:8080")
