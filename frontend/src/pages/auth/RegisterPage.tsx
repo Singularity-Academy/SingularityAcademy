@@ -32,7 +32,7 @@ const RegisterPage: React.FC = () => {
 
   const onSubmit = async (data: RegisterFormInputs) => {
     try {
-      const response = await axiosInstance.post(API_ENDPOINTS.AUTH.REGISTER, data)
+      await axiosInstance.post(API_ENDPOINTS.AUTH.REGISTER, data);
       toast({
         title: 'Registration successful',
         description: 'Please login with your credentials',
@@ -146,6 +146,6 @@ const RegisterPage: React.FC = () => {
       </VStack>
     </Container>
   );
-};
+}; // End of RegisterPage component
 
-export default RegisterPage; 
+export default RegisterPage;
