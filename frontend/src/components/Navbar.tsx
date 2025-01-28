@@ -1,48 +1,46 @@
-import React, { useEffect, useState } from 'react';  // 引入 useState 和 useEffect
+import React, { useEffect, useState } from 'react';
+import { Box, Flex, Button, HStack, Avatar, Menu, MenuButton, MenuList, MenuItem, useColorModeValue } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Box,
-  Flex,
-  Button,
-  HStack,
-  useColorModeValue,
-  Avatar,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  Spinner,  // 引入 Spinner 组件
-} from '@chakra-ui/react';
 import Cookies from 'js-cookie';
 import axiosInstance from "../utils/axios";
 import { API_ENDPOINTS } from "../config/api";
 
-interface NavbarProps {}
-
-const Navbar: React.FC<NavbarProps> = () => {
+const Navbar: React.FC = () => {
+  const [userName, setUserName] = useState<string | null>(null);
   const navigate = useNavigate();
   const bgColor = useColorModeValue('white', 'gray.800');
-  const token = Cookies.get('token');
-
-  const [name, setName] = useState('');  // 使用 useState 存储 name
-  const [loading, setLoading] = useState(true);  // 新增 loading 状态
+  const token = Cookies.get('token'); // 获取当前的 token
 
   const handleLogout = () => {
     Cookies.remove('token');
+    localStorage.removeItem('userName'); // 清除缓存
     navigate('/login');
   };
 
   useEffect(() => {
-    if (token) {  // 只有在有 token 时才发送请求
-      setLoading(true);  // 开始加载
-      axiosInstance.get(API_ENDPOINTS.ME).then((response) => {
-        setName(response.data.name);  // 设置用户名
-        setLoading(false);  // 请求完成，设置 loading 为 false
-      }).catch(() => {
-        setLoading(false);  // 如果请求失败，设置 loading 为 false
-      });
+    const cachedUserName = localStorage.getItem('userName'); // 获取缓存的用户名
+    if (token) {  // 如果存在 token
+      if (cachedUserName) {
+        setUserName(cachedUserName); // 如果缓存中有用户名，则直接使用缓存的用户名
+      } else {
+        // 如果没有缓存的用户名，则发请求获取并缓存
+        axiosInstance.get(API_ENDPOINTS.ME)
+            .then((response) => {
+              const name = response.data.name;
+              setUserName(name);
+              localStorage.setItem('userName', name); // 缓存用户名
+            })
+            .catch((error) => {
+              console.error(error);
+            });
+      }
+    } else {
+      // 如果没有 token，则说明用户已经退出，清除缓存并跳转到登录页面
+      localStorage.removeItem('userName');
+      setUserName(null); // 清除用户信息
+      navigate('/login'); // 跳转到登录页
     }
-  }, [token]);  // 如果 token 发生变化，重新执行请求
+  }, [token]); // 监听 token 的变化
 
   return (
       <Box bg={bgColor} px={4} boxShadow="sm" position="fixed" width="100%" zIndex={100} top={0}>
@@ -61,14 +59,10 @@ const Navbar: React.FC<NavbarProps> = () => {
                   </Button>
                   <Menu>
                     <MenuButton>
-                      {loading ? (
-                          <Spinner size="sm" />  // 如果正在加载，显示 Spinner
-                      ) : (
-                          <Avatar size="sm" name={name || "User"} />  // 否则显示头像
-                      )}
+                      <Avatar size="sm" name={userName || "User"} />
                     </MenuButton>
                     <MenuList>
-                      <MenuItem onClick={() => navigate('/homepage')}>Profile</MenuItem>
+                      <MenuItem onClick={() => navigate('/me/homepage')}>Profile</MenuItem>
                       <MenuItem onClick={handleLogout}>Logout</MenuItem>
                     </MenuList>
                   </Menu>
