@@ -40,7 +40,7 @@ const VerifyPage: React.FC = () => {
     message: "We're thrilled to have you join our mission to revolutionize online education. Together, we'll create an extraordinary learning journey.",
     founders: [
       { name: "Jiace Zhao", role: "CEO & Co-founder" },
-      { name: "Huang Di", role: "CTO & Co-founder" }
+      { name: "Di Huang", role: "CTO & Co-founder" }
     ]
   };
 

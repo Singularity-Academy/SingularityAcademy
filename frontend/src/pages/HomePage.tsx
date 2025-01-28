@@ -113,7 +113,7 @@ const HomePage: React.FC = () => {
                 />
                 <FounderCard
                   name="Di Huang"
-                  role = "CTO & Backend Platform Architecture"
+                  role = "CTO & Backend Platform Architect"
                   bio="Ph.D. in Computer Science from MIT, holding Bachelor from University of Oxford."
                   image=""
                 />
