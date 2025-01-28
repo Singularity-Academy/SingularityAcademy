@@ -17,7 +17,7 @@ func Login(context *gin.Context) {
 
 	users, err := utils.FindUsersByEmail(request.Email)
 	if err != nil {
-		context.JSON(http.StatusUnauthorized, gin.H{
+		context.JSON(http.StatusNotFound, gin.H{
 			"error":  "email or password is wrong",
 			"detail": "email or password is wrong",
 		})
@@ -25,7 +25,7 @@ func Login(context *gin.Context) {
 	}
 
 	if len(users) == 0 {
-		context.JSON(http.StatusUnauthorized, gin.H{
+		context.JSON(http.StatusNotFound, gin.H{
 			"error":  "email or password is wrong",
 			"detail": "email or password is wrong",
 		})
@@ -35,7 +35,7 @@ func Login(context *gin.Context) {
 	user := users[0]
 
 	if !utils.CheckPassword(request.Password, user.Password) {
-		context.JSON(http.StatusUnauthorized, gin.H{
+		context.JSON(http.StatusNotFound, gin.H{
 			"error":  "email or password is wrong",
 			"detail": "email or password is wrong",
 		})
