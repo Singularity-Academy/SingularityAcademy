@@ -38,7 +38,6 @@ const Navbar: React.FC = () => {
       // 如果没有 token，则说明用户已经退出，清除缓存并跳转到登录页面
       localStorage.removeItem('userName');
       setUserName(null); // 清除用户信息
-      navigate('/login'); // 跳转到登录页
     }
   }, [token]); // 监听 token 的变化
 
