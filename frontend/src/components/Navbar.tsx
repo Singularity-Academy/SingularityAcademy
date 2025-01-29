@@ -49,6 +49,7 @@ const Navbar: React.FC = () => {
     const handleLogout = () => {
         Cookies.remove('token');
         localStorage.removeItem('user'); // 清除缓存
+        navigate("/login")
     };
 
     return (
