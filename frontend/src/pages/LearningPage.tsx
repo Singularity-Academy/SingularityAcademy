@@ -14,10 +14,12 @@ import {
   Stack,
 } from '@chakra-ui/react';
 import Navbar from "../components/Navbar";
+import {useNavigate} from "react-router-dom";
 
 const LearningPage: React.FC = () => {
   const bgColor = useColorModeValue('gray.50', 'gray.900');
   const cardBg = useColorModeValue('white', 'gray.700');
+  const navigate = useNavigate();
   const [selectedSection, setSelectedSection] = useState<string>('overview');
 
   const renderContent = () => {
@@ -40,10 +42,10 @@ const LearningPage: React.FC = () => {
             <Text fontSize="lg" maxW="2xl">
               Choose a meeting with your Principal or Dean to discuss your learning targets and schedule.
             </Text>
-            <Button size="lg" colorScheme="blue" onClick={() => alert('Meeting with Principal scheduled!')}>
+            <Button size="lg" colorScheme="blue" onClick={() => navigate("/course/interaction?AI=Principal")}>
               Meet with Principal AI
             </Button>
-            <Button size="lg" colorScheme="teal" onClick={() => alert('Meeting with Dean scheduled!')}>
+            <Button size="lg" colorScheme="teal" onClick={() => navigate("/course/interaction?AI=Dean")}>
               Meet with Dean AI
             </Button>
           </VStack>
