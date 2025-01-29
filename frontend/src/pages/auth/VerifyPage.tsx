@@ -82,15 +82,7 @@ const VerifyPage: React.FC = () => {
       <><Navbar/><Container maxW="container.md" py={20} mt={16}>
         <motion.div initial="initial" animate="animate" variants={fadeIn}>
           <VStack spacing={12} align="center">
-            <Box
-                textAlign="center"
-                p={10}
-                bg="rgba(255, 255, 255, 0.95)"
-                borderRadius="2xl"
-                boxShadow="2xl"
-                w="100%"
-                backdropFilter="blur(10px)"
-            >
+            <Box w="100%" p={8} borderWidth={1} borderRadius="lg" boxShadow="lg">
               <VStack spacing={8}>
                 <Heading
                     size="xl"
