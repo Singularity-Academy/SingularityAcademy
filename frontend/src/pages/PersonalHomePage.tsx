@@ -12,10 +12,8 @@ import {
   useToast,
   Spinner,
 } from '@chakra-ui/react';
-import axiosInstance, {getToastMessage, getUserData} from '../utils/axios';
-import { API_ENDPOINTS, ErrorResponse } from '../config/api';
-import { AxiosError } from 'axios';
-import Navbar from '../components/Navbar';
+import {getUserData} from '@utils/axios';
+import Navbar from '@components/Navbar';
 import Cookies from "js-cookie";
 import {useNavigate} from "react-router-dom";
 

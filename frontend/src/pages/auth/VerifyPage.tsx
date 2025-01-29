@@ -9,13 +9,13 @@ import {
   useToast,
   Button,
 } from '@chakra-ui/react';
-import { API_ENDPOINTS } from '../../config/api';
-import axiosInstance, { getToastMessage } from '../../utils/axios';
+import { API_ENDPOINTS } from '@/config/api';
+import axiosInstance, { getToastMessage } from '@/utils/axios';
 import { AxiosError } from 'axios';
-import { ErrorResponse as ApiErrorResponse } from '../../config/api';
+import { ErrorResponse as ApiErrorResponse } from '@/config/api';
 import { motion, Variants } from 'framer-motion';
 import { FaCheckCircle, FaTimesCircle, FaHourglassHalf } from 'react-icons/fa';
-import Navbar from "../../components/Navbar";
+import Navbar from "@components/Navbar";
 
 interface ErrorResponse extends ApiErrorResponse {
   message: string;

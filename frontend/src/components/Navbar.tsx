@@ -18,7 +18,7 @@ import {
 import { FaMoon, FaSun } from 'react-icons/fa'; // 导入太阳和月亮图标
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
-import {getUserData} from "../utils/axios";
+import {getUserData} from "@utils/axios";
 
 const Navbar: React.FC = () => {
     const [user, setUser] = useState<{ id: number; name: string; email: string } | null>(null);

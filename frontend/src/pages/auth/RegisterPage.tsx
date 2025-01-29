@@ -14,10 +14,10 @@ import {
   Heading,
   Link,
 } from '@chakra-ui/react';
-import {API_ENDPOINTS, ErrorResponse} from "../../config/api";
-import axiosInstance, {getToastMessage} from "../../utils/axios";
+import {API_ENDPOINTS, ErrorResponse} from "@/config/api";
+import axiosInstance, {getToastMessage} from "@utils/axios";
 import {AxiosError} from "axios";
-import Navbar from "../../components/Navbar";
+import Navbar from "@components/Navbar";
 
 interface RegisterFormInputs {
   name: string;

@@ -14,10 +14,10 @@ import {
 } from '@chakra-ui/react';
 import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
 // import { useCookies } from 'react-cookie';
-import axiosInstance from '../../utils/axios';
-import { API_ENDPOINTS } from '../../config/api';
+import axiosInstance from '@utils/axios';
+import { API_ENDPOINTS } from '@/config/api';
 import Cookies from "js-cookie";
-import Navbar from "../../components/Navbar";
+import Navbar from "@components/Navbar";
 
 const CourseInteractionPage: React.FC = () => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([]);

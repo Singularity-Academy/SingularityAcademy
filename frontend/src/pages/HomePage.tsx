@@ -12,9 +12,8 @@ import {
   SimpleGrid,
   useColorModeValue,
   Avatar,
-  Divider,
 } from '@chakra-ui/react';
-import Navbar from '../components/Navbar';
+import Navbar from '@components/Navbar';
 import Cookies from 'js-cookie';
 
 const HomePage: React.FC = () => {

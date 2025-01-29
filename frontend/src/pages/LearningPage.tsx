@@ -2,18 +2,13 @@ import React, { useState } from 'react';
 import {
   Box,
   Button,
-  Container,
   Heading,
   Text,
   VStack,
   SimpleGrid,
   useColorModeValue,
-  Avatar,
-  HStack,
-  IconButton,
-  Stack,
 } from '@chakra-ui/react';
-import Navbar from "../components/Navbar";
+import Navbar from "@components/Navbar";
 import {useNavigate} from "react-router-dom";
 
 const LearningPage: React.FC = () => {
