@@ -13,13 +13,14 @@ import {
     useColorMode, // 导入 useColorMode hook
     useToast,
     Spinner,
-    IconButton // 导入 IconButton 用于主题切换按钮
+    IconButton, Text // 导入 IconButton 用于主题切换按钮
 } from '@chakra-ui/react';
-import { FaMoon, FaSun } from 'react-icons/fa'; // 导入太阳和月亮图标
+import {FaMoon, FaSun} from 'react-icons/fa'; // 导入太阳和月亮图标
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import {getUserData} from "@utils/axios";
 import {useTranslation} from "react-i18next";
+import {PiTextAaBold} from "react-icons/pi";
 
 const Navbar: React.FC = () => {
     const [user, setUser] = useState<{ id: number; name: string; email: string } | null>(null);
@@ -105,8 +106,9 @@ const Navbar: React.FC = () => {
                         variant="ghost"
                     />
                     <Button variant="ghost" onClick={toggleLanguage}>
-                        {i18n.language === 'en' ? '中文' : 'EN'}
+                        {i18n.language === 'en' ? <Text width={6}>中</Text> : <Text width={6} >EN</Text>}
                     </Button>
+
                 </HStack>
             </Flex>
         </Box>
