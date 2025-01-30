@@ -19,6 +19,7 @@ import { FaMoon, FaSun } from 'react-icons/fa'; // 导入太阳和月亮图标
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import {getUserData} from "@utils/axios";
+import {useTranslation} from "react-i18next";
 
 const Navbar: React.FC = () => {
     const [user, setUser] = useState<{ id: number; name: string; email: string } | null>(null);
@@ -28,6 +29,7 @@ const Navbar: React.FC = () => {
     const bgColor = useColorModeValue('white', 'gray.800');
     const token = Cookies.get('token');
     const { colorMode, toggleColorMode } = useColorMode(); // 获取当前主题并提供切换功能
+    const { t, i18n } = useTranslation()
 
     useEffect(() => {
         const fetchData = async () => {
@@ -53,6 +55,11 @@ const Navbar: React.FC = () => {
         navigate("/login");
     };
 
+    const toggleLanguage = () => {
+        const newLanguage = i18n.language === 'en' ? 'zh' : 'en'; // 切换语言
+        i18n.changeLanguage(newLanguage);
+    };
+
     return (
         <Box bg={bgColor} px={4} borderBottomWidth={1} boxShadow="sm" position="fixed" width="100%" zIndex={100} top={0}>
             <Flex h={16} alignItems="center" justifyContent="space-between">
@@ -67,7 +74,7 @@ const Navbar: React.FC = () => {
                         !loading ? (
                             <>
                                 <Button variant="ghost" onClick={() => navigate('/me/homepage')}>
-                                    Dashboard
+                                    {t('Navbar.dashboard')}
                                 </Button>
                                 <Menu>
                                     <MenuButton>
@@ -77,8 +84,8 @@ const Navbar: React.FC = () => {
                                         <MenuItem fontWeight={'bold'} cursor={'default'} background={'none'}>
                                             {(user || { name: 'User' }).name}
                                         </MenuItem>
-                                        <MenuItem onClick={() => navigate('/homepage')}>Profile</MenuItem>
-                                        <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                                        <MenuItem onClick={() => navigate('/homepage')}>{t('Navbar.profile')}</MenuItem>
+                                        <MenuItem onClick={handleLogout}>{t('Navbar.logout')}</MenuItem>
                                     </MenuList>
                                 </Menu>
                             </>
@@ -86,7 +93,7 @@ const Navbar: React.FC = () => {
                             <Spinner size="sm" />
                         )) : (
                         <Button variant="ghost" onClick={() => navigate('/login')}>
-                            Sign In
+                            {t('common.signIn')}
                         </Button>
                     )}
 
@@ -97,6 +104,9 @@ const Navbar: React.FC = () => {
                         onClick={toggleColorMode} // 切换主题
                         variant="ghost"
                     />
+                    <Button variant="ghost" onClick={toggleLanguage}>
+                        {i18n.language === 'en' ? '中文' : 'EN'}
+                    </Button>
                 </HStack>
             </Flex>
         </Box>

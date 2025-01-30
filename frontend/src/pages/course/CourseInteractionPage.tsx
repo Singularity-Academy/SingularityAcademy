@@ -67,21 +67,29 @@ const CourseInteractionPage: React.FC = () => {
           };
           mediaRecorder.start(500);  // Capture every 1 second of audio
         })
-        .catch((error) => console.error("Error accessing media devices.", error));
+        .catch((error) => toast({
+            title: "error accessing media devices",
+            description: error,
+            status: 'error',
+            duration: 3000,
+        }));
   };
 
   const startVideo = () => {
-    try {
-      navigator.mediaDevices.getUserMedia({ video: true })
-          .then((stream) => {
-            if (studentVideoRef.current) {
-              studentVideoRef.current.srcObject = stream;
-            }
-            setVideoStream(stream);
-          });
-    } catch (error) {
-      console.error("can't get camera:", error);
-    }
+    navigator.mediaDevices.getUserMedia({ video: true })
+    .then((stream) => {
+      if (studentVideoRef.current) {
+        studentVideoRef.current.srcObject = stream;
+      }
+      setVideoStream(stream);
+    })
+    .catch((error) => toast({
+        title: "error accessing media devices",
+        description: error,
+        status: 'error',
+        duration: 3000,
+      })
+    );
   };
 
   const connectWebSocket = () => {

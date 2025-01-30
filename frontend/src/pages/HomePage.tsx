@@ -15,6 +15,7 @@ import {
 } from '@chakra-ui/react';
 import Navbar from '@components/Navbar';
 import Cookies from 'js-cookie';
+import { useTranslation, Trans } from 'react-i18next';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ const HomePage: React.FC = () => {
   const buttonBg = useColorModeValue('blue.500', 'blue.200');
   const cardBg = useColorModeValue('white', 'gray.700');
   const isLoggedIn = !!Cookies.get('token');
+  const { t } = useTranslation();
 
   return (
     <Box bg={bgColor} minH="100vh">
@@ -37,13 +39,11 @@ const HomePage: React.FC = () => {
               bgGradient="linear(to-r, blue.400, purple.500)"
               bgClip="text"
             >
-              Welcome to AI Online School
+              {t("HomePage.welcome")}
             </Heading>
             
             <Text fontSize="xl" textAlign="center" maxW="2xl">
-              Transform your learning experience with AI-powered education. 
-              Join our platform to access personalized learning paths and 
-              interactive content.
+              {t("HomePage.description")}
             </Text>
 
             <HStack spacing={6}>
@@ -54,7 +54,7 @@ const HomePage: React.FC = () => {
                 _hover={{ transform: 'translateY(-2px)', boxShadow: 'lg' }}
                 onClick={() => navigate('/register')}
               >
-                Get Started
+                {t("HomePage.getStarted")}
               </Button>
               <Button
                 size="lg"
@@ -62,7 +62,7 @@ const HomePage: React.FC = () => {
                 _hover={{ transform: 'translateY(-2px)', boxShadow: 'lg' }}
                 onClick={() => navigate('/login')}
               >
-                Sign In
+                {t("common.signIn")}
               </Button>
             </HStack>
           </VStack>
@@ -73,23 +73,23 @@ const HomePage: React.FC = () => {
           <Container maxW="container.xl">
             <VStack spacing={12}>
               <Heading textAlign="center" color="blue.500">
-                Key Features
+                {t("HomePage.feature")}
               </Heading>
               <SimpleGrid columns={{ base: 1, md: 3 }} spacing={10}>
                 <Feature
-                  title="AI-Powered Learning"
-                  description="Personalized learning paths adapted to your pace and style"
-                  icon="🤖"
+                    title={t('HomePage.features.0.title')}
+                    description={t("HomePage.features.0.description")}
+                    icon={t("HomePage.features.0.icon")}
                 />
                 <Feature
-                  title="An entire school for your ONLY"
-                  description="Every student will have a pesonalized school, a group of educators, including principle, deans, and teachers,."
-                  icon="👨‍🏫"
+                    title={t('HomePage.features.1.title')}
+                    description={t("HomePage.features.1.description")}
+                    icon={t("HomePage.features.1.icon")}
                 />
                 <Feature
-                  title="Interactive Content"
-                  description="Engage with dynamic content and real-time feedback"
-                  icon="💡"
+                    title={t('HomePage.features.2.title')}
+                    description={t("HomePage.features.2.description")}
+                    icon={t("HomePage.features.2.icon")}
                 />
               </SimpleGrid>
             </VStack>
@@ -101,20 +101,20 @@ const HomePage: React.FC = () => {
           <Container maxW="container.xl">
             <VStack spacing={12}>
               <Heading textAlign="center" color="blue.500">
-                Meet Our Founders
+                {t("HomePage.founder")}
               </Heading>
               <SimpleGrid columns={{ base: 1, md: 3 }} spacing={10}>
                 <FounderCard
-                  name="Jiace Zhao"
-                  role="CEO & AI Research Lead"
-                  bio="Highschool student, interested in AI and machine learning. Built multiple AI projects and won multiple hackathons."
-                  image=""
+                  name={t("HomePage.founders.0.name")}
+                  role={t("HomePage.founders.0.role")}
+                  bio={t("HomePage.founders.0.bio")}
+                  image={t("HomePage.founders.0.image")}
                 />
                 <FounderCard
-                  name="Di Huang"
-                  role = "CTO & Backend Platform Architect"
-                  bio="Ph.D. in Computer Science from MIT, holding Bachelor from University of Oxford."
-                  image=""
+                    name={t("HomePage.founders.1.name")}
+                    role={t("HomePage.founders.1.role")}
+                    bio={t("HomePage.founders.1.bio")}
+                    image={t("HomePage.founders.1.image")}
                 />
               </SimpleGrid>
             </VStack>
@@ -125,14 +125,12 @@ const HomePage: React.FC = () => {
         <Box bg={cardBg} py={20}>
           <Container maxW="container.xl">
             <VStack align="center">
-            <Heading color="blue.500" textAlign="center">Vision</Heading>
+            <Heading color="blue.500" textAlign="center">{t('HomePage.vision')}</Heading>
             <Text fontSize="lg" maxW="2xl" textAlign="center">
-             When I want to learn about something, I often start with searching it on the internet. However, the lack of organized results, making me shattered; jagged quality of tutorial videos; and etc. make it hard to learn things.
-             So, if we can utilize AI to generate, collect, and teach students whatever they want to learn in a systematic way will a be great boost. Attending extra-curricular classes can be expensive, but by using this platform the cost will be reduced to $20 a month with infinite teachers and courses.
-
+              {t('HomePage.visions.0')}
             </Text>
               <Text color="red" fontSize="lg" maxW="2xl" textAlign="center">
-                Education should be affordable and accessible to everyone !!! We will provide free online school that has the quality align and beyond with the top-tier education organizations to those who need it.
+                {t('HomePage.visions.1')}
               </Text>
             </VStack>
           </Container>
@@ -142,16 +140,16 @@ const HomePage: React.FC = () => {
         <Box py={20}>
           <Container maxW="container.xl" textAlign="center">
             <VStack spacing={6}>
-              <Heading color="blue.500">Start Your Learning Journey Today</Heading>
+              <Heading color="blue.500">{t("HomePage.journey")}</Heading>
               <Text fontSize="lg" maxW="2xl">
-               Join Our Community.
+                {t("HomePage.join")}
               </Text>
               <Button
                 size="lg"
                 colorScheme="blue"
                 onClick={() => navigate('/register')}
               >
-                Begin Your Journey
+                {t('HomePage.start')}
               </Button>
             </VStack>
           </Container>
