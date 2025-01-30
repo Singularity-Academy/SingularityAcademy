@@ -20,7 +20,6 @@ import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import {getUserData} from "@utils/axios";
 import {useTranslation} from "react-i18next";
-import {PiTextAaBold} from "react-icons/pi";
 
 const Navbar: React.FC = () => {
     const [user, setUser] = useState<{ id: number; name: string; email: string } | null>(null);
