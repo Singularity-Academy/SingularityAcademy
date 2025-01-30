@@ -4,10 +4,10 @@ import (
 	"backend/auth"
 	"backend/config"
 	"backend/info"
-	"backend/internal/handlers"
 	"backend/me"
 	"backend/middlewares"
 	"backend/models"
+	"backend/ws"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -44,7 +44,7 @@ func main() {
 	r.POST("/api/auth/verify", middlewares.JsonMiddleware(&auth.VerifyRequest{}), auth.Verify)
 	r.GET("/api/me", middlewares.JwtMiddleware(), me.Me)
 	r.GET("/api/info/:id", info.Info)
-	r.GET("/api/ws/stream", middlewares.WebSocketMiddleware(handlers.VideoHandler))
+	r.GET("/api/ws/stream", middlewares.WebSocketMiddleware(ws.VideoHandler))
 	if err := r.Run(":8080"); err != nil {
 		log.Fatal("Server failed to start: ", err)
 	}

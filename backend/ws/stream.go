@@ -1,4 +1,4 @@
-package handlers
+package ws
 
 import (
 	"backend/models"
@@ -9,7 +9,12 @@ import (
 
 // VideoHandler 处理 WebSocket 请求
 func VideoHandler(conn *websocket.Conn, user models.User) {
-	defer conn.Close()
+	defer func(conn *websocket.Conn) {
+		err := conn.Close()
+		if err != nil {
+			fmt.Println("WebSocket failed to disconnected:" + err.Error())
+		}
+	}(conn)
 
 	fmt.Println("WebSocket connected!")
 
