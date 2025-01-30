@@ -13,14 +13,10 @@ require (
 	gorm.io/gorm v1.25.12
 )
 
-require (
-	github.com/gofrs/uuid v4.0.0+incompatible // indirect
-	github.com/gomodule/redigo v1.8.4 // indirect
-	github.com/gorilla/websocket v1.5.3
-)
+require github.com/gorilla/websocket v1.5.3 // indirect
 
 require (
-	filippo.io/edwards25519 v1.1.0 // indirect; indirect3
+	filippo.io/edwards25519 v1.1.0 // indirect3
 	github.com/bytedance/sonic v1.12.7 // indirect
 	github.com/bytedance/sonic/loader v0.2.3 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect

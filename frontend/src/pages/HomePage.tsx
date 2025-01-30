@@ -124,12 +124,17 @@ const HomePage: React.FC = () => {
         {/* Statistics Section */}
         <Box bg={cardBg} py={20}>
           <Container maxW="container.xl">
-            <SimpleGrid columns={{ base: 1, md: 4 }} spacing={10}>
-              <Stat number="50,000+" label="Active Students" />
-              <Stat number="200+" label="Expert Instructors" />
-              <Stat number="1,000+" label="Courses" />
-              <Stat number="98%" label="Student Satisfaction" />
-            </SimpleGrid>
+            <VStack align="center">
+            <Heading color="blue.500" textAlign="center">Vision</Heading>
+            <Text fontSize="lg" maxW="2xl" textAlign="center">
+             When I want to learn about something, I often start with searching it on the internet. However, the lack of organized results, making me shattered; jagged quality of tutorial videos; and etc. make it hard to learn things.
+             So, if we can utilize AI to generate, collect, and teach students whatever they want to learn in a systematic way will a be great boost. Attending extra-curricular classes can be expensive, but by using this platform the cost will be reduced to $20 a month with infinite teachers and courses.
+
+            </Text>
+              <Text color="red" fontSize="lg" maxW="2xl" textAlign="center">
+                Education should be affordable and accessible to everyone !!! We will provide free online school that has the quality align and beyond with the top-tier education organizations to those who need it.
+              </Text>
+            </VStack>
           </Container>
         </Box>
 
