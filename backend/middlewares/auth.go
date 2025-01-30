@@ -4,6 +4,8 @@ import (
 	"backend/models"
 	"backend/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -78,5 +80,45 @@ func JsonMiddleware(requestTemplate interface{}) gin.HandlerFunc {
 		}
 		c.Set("json", requestTemplate)
 		c.Next()
+	}
+}
+
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true // 允许所有跨域 WebSocket 连接
+	},
+}
+
+// WebSocketMiddleware WebSocket 认证中间件（可以传入不同的 WebSocket 业务处理函数）
+func WebSocketMiddleware(handlerFunc func(*websocket.Conn, models.User)) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authHeader := c.Query("token")
+
+		if authHeader == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token is required"})
+			return
+		}
+
+		claims, err := utils.ParseToken(authHeader)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+			return
+		}
+
+		users, err := utils.FindUsersByID(claims.ID)
+		if err != nil || len(users) == 0 {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+			return
+		}
+
+		user := users[0]
+
+		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+		if err != nil {
+			log.Println("failed to upgrade the connection:", err)
+			return
+		}
+
+		go handlerFunc(conn, user)
 	}
 }

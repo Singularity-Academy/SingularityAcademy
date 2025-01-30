@@ -18,6 +18,13 @@ import axiosInstance from '@utils/axios';
 import { API_ENDPOINTS } from '@/config/api';
 import Cookies from "js-cookie";
 import Navbar from "@components/Navbar";
+import {useNavigate} from "react-router-dom";
+
+declare class ImageCapture {
+  constructor(track: MediaStreamTrack);
+  grabFrame(): Promise<ImageBitmap>;
+  takePhoto(): Promise<Blob>;
+}
 
 const CourseInteractionPage: React.FC = () => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([]);
@@ -25,22 +32,160 @@ const CourseInteractionPage: React.FC = () => {
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
-  const [isStreaming, setIsStreaming] = useState(false);
-  // const [cookies, setCookie] = useCookies(['auth']);
+  const [connecting, setConnecting] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
+  const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
+  const websocketRef = useRef<WebSocket | null>(null);
+  const sendingVideoTask = useRef<any | null>(null);
 
   const studentVideoRef = useRef<HTMLVideoElement>(null);
   const videoAreaRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const toast = useToast();
+  const navigate = useNavigate();
   const wsRef = useRef<WebSocket | null>(null);
 
   const bgColor = useColorModeValue('gray.50', 'gray.900');
   const cardBg = useColorModeValue('white', 'gray.700');
 
+  const startAudio = () => {
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then((stream) => {
+          setAudioStream(stream);
+          const mediaRecorder = new MediaRecorder(stream);
+          mediaRecorder.ondataavailable = (event) => {
+            if (websocketRef.current?.readyState !== WebSocket.OPEN) return;
+            const audioBlob = event.data;
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              const buffer = reader.result;
+              // Send the audio buffer via WebSocket
+              websocketRef.current?.send(buffer || "")
+            };
+            reader.readAsArrayBuffer(audioBlob);
+          };
+          mediaRecorder.start(500);  // Capture every 1 second of audio
+        })
+        .catch((error) => console.error("Error accessing media devices.", error));
+  };
+
+  const startVideo = () => {
+    try {
+      navigator.mediaDevices.getUserMedia({ video: true })
+          .then((stream) => {
+            if (studentVideoRef.current) {
+              studentVideoRef.current.srcObject = stream;
+            }
+            setVideoStream(stream);
+          });
+    } catch (error) {
+      console.error("can't get camera:", error);
+    }
+  };
+
+  const connectWebSocket = () => {
+    if (websocketRef.current) return; // 如果已经连接了，就不重复连接
+    startVideo();
+    startAudio();
+    setConnecting(true);
+    const ws = new WebSocket(`${API_ENDPOINTS.WS.STREAM}?token=${Cookies.get('token') || ''}`);
+
+    ws.onopen = () => {
+      toast({
+        title: 'connect successful',
+        status: 'success',
+        duration: 3000,
+      });
+      setConnecting(false);
+      setRecording(true);
+    };
+
+    ws.onclose = (closeEvent) => {
+      if (closeEvent.code != 1000){
+        toast({
+          title: 'connection closed',
+          description: closeEvent.reason,
+          status: 'error',
+          duration: 3000,
+        });
+      }
+      else {
+        toast({
+          title: 'close successful',
+          status: 'success',
+          duration: 3000,
+        });
+      }
+      setRecording(false);
+      setConnecting(false);
+      websocketRef.current = null; // 清空 WebSocket 实例
+    };
+
+    websocketRef.current = ws;
+  };
+
+  // 断开 WebSocket
+  const disconnectWebSocket = () => {
+    if (websocketRef.current) {
+      stopVideo()
+      stopAudio();
+      websocketRef.current.close(1000);
+      websocketRef.current = null;
+      setRecording(false);
+      setConnecting(false);
+    }
+  };
+
+  const stopAudio = () => {
+    if (audioStream) {
+      // 停止所有的视频流轨道
+      audioStream.getTracks().forEach(track => track.stop());
+      setAudioStream(null);
+    }
+    if (mediaRecorder) {
+      mediaRecorder.stop();
+    }
+  };
+
+  const stopVideo = () => {
+    if (videoStream) {
+      // 停止所有的视频流轨道
+      videoStream.getTracks().forEach(track => track.stop());
+      setVideoStream(null);
+    }
+    // 清除视频元素的 srcObject
+    if (studentVideoRef.current) {
+      studentVideoRef.current.srcObject = null;
+    }
+    if (!sendingVideoTask.current) return;
+    clearInterval(sendingVideoTask.current)
+    sendingVideoTask.current = null
+  };
+
+
+  // 切换连接状态
+  const toggleConnect = () => {
+    if (recording) {
+      disconnectWebSocket();
+    } else {
+      connectWebSocket();
+    }
+  };
+
+  // 组件卸载时清理 WebSocket 连接
+  useEffect(() => {
+    return () => {
+      stopVideo()
+      stopAudio()
+      disconnectWebSocket();
+    };
+  }, []);
+
  useEffect(() => {
    // Check if user is authenticated
    if (!Cookies.get('token')) {
-     window.location.href = '/login'; // Redirect to login page if not authenticated
+     navigate('/login'); // Redirect to login page if not authenticated
    }
  }, [Cookies.get('token')]);
 
@@ -50,102 +195,6 @@ const CourseInteractionPage: React.FC = () => {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
   }, [messages]);
-
-  // Add WebSocket connection setup
-  useEffect(() => {
-    // Create WebSocket connection for video streaming
-    const ws = new WebSocket('ws://localhost:1298/ws/video');
-    wsRef.current = ws;
-
-    ws.onopen = () => {
-      console.log('WebSocket connection established');
-    };
-
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-      toast({
-        title: 'Connection Error',
-        description: 'Failed to establish video connection',
-        status: 'error',
-        duration: 3000,
-      });
-    };
-
-    return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
-    };
-  }, []);
-
-  // Update toggleCamera function
-  const toggleCamera = async () => {
-    try {
-      if (!isCameraOn) {
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-          video: true, 
-          audio: false 
-        });
-        
-        if (studentVideoRef.current) {
-          studentVideoRef.current.srcObject = stream;
-        }
-        
-        // Set up MediaRecorder
-        const recorder = new MediaRecorder(stream, {
-          mimeType: 'video/webm;codecs=vp8,opus'
-        });
-        
-        recorder.ondataavailable = (event) => {
-          if (event.data.size > 0 && wsRef.current?.readyState === WebSocket.OPEN) {
-            wsRef.current.send(event.data);
-          }
-        };
-
-        recorder.onstop = () => {
-          setIsStreaming(false);
-        };
-
-        setMediaRecorder(recorder);
-        setIsCameraOn(true);
-        
-        // Start recording
-        recorder.start(1000); // Send video data every 1 second
-        setIsStreaming(true);
-
-        toast({
-          title: 'Camera activated',
-          description: 'Video stream started',
-          status: 'success',
-          duration: 2000,
-        });
-      } else {
-        // Stop recording and streaming
-        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-          mediaRecorder.stop();
-        }
-
-        const stream = studentVideoRef.current?.srcObject as MediaStream;
-        stream?.getTracks().forEach(track => track.stop());
-        
-        if (studentVideoRef.current) {
-          studentVideoRef.current.srcObject = null;
-        }
-
-        setIsCameraOn(false);
-        setIsStreaming(false);
-        setMediaRecorder(null);
-      }
-    } catch (error) {
-      console.error('Camera error:', error);
-      toast({
-        title: 'Camera error',
-        description: 'Unable to access camera. Please check permissions.',
-        status: 'error',
-        duration: 3000,
-      });
-    }
-  };
 
   // Fullscreen toggle function
   const toggleFullscreen = () => {
@@ -201,6 +250,38 @@ const CourseInteractionPage: React.FC = () => {
     };
   }, [mediaRecorder]);
 
+  useEffect(() => {
+    const intervalId = setInterval(async () => {
+      if (!videoStream) return;
+
+      const videoTrack = videoStream.getVideoTracks()[0];
+
+      // Check if the video track is still active and enabled
+      if (!videoTrack || videoTrack.readyState !== 'live' || !videoTrack.enabled) {
+        console.warn("Video track is not in a valid state");
+        return;
+      }
+
+      const imageCapture = new ImageCapture(videoTrack);
+
+      // Check WebSocket connection
+      if (websocketRef.current?.readyState !== WebSocket.OPEN) return;
+
+      // Capture image and send it
+      try {
+        const blob = await imageCapture.takePhoto();
+        websocketRef.current?.send(await blob.arrayBuffer());
+      } catch (error) {
+        console.error("Error capturing photo:", error);
+      }
+    }, 1000 / 2);
+
+    // Clean up the interval on component unmount
+    return () => clearInterval(intervalId);
+  }, [videoStream]);
+
+
+
   return (
       <><Navbar/><Box bg={bgColor} minH="100vh" p={4} mt={16}>
         <Container maxW="container.xl">
@@ -234,12 +315,12 @@ const CourseInteractionPage: React.FC = () => {
                   <Heading size="sm">Your Camera</Heading>
                   <Button
                       size="sm"
-                      colorScheme={isCameraOn ? 'red' : 'green'}
-                      onClick={toggleCamera}
-                      isLoading={isStreaming}
-                      loadingText="Streaming"
+                      colorScheme={recording ? 'red' : 'green'}
+                      onClick={toggleConnect}
+                      isLoading={connecting}
+                      loadingText="Connetcing"
                   >
-                    {isCameraOn ? 'Turn Off' : 'Turn On'}
+                    {recording ? 'Turn Off' : 'Turn On'}
                   </Button>
                 </Flex>
                 <Box

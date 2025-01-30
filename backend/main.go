@@ -4,13 +4,13 @@ import (
 	"backend/auth"
 	"backend/config"
 	"backend/info"
+	"backend/internal/handlers"
 	"backend/me"
 	"backend/middlewares"
 	"backend/models"
-	"log"
-
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"log"
 )
 
 func main() {
@@ -37,17 +37,15 @@ func main() {
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "X-Real-IP"},
 		AllowCredentials: true,
+		AllowWebSockets:  true,
 	}))
 	r.POST("/api/auth/register", middlewares.JsonMiddleware(&auth.RegisterRequest{}), auth.Register)
 	r.POST("/api/auth/login", middlewares.JsonMiddleware(&auth.LoginRequest{}), auth.Login)
 	r.POST("/api/auth/verify", middlewares.JsonMiddleware(&auth.VerifyRequest{}), auth.Verify)
 	r.GET("/api/me", middlewares.JwtMiddleware(), me.Me)
 	r.GET("/api/info/:id", info.Info)
-
-	// 启动服务器
-	err = r.Run("0.0.0.0:8080")
-	if err != nil {
-		log.Fatal("Server failed to start: ", err) // 打印错误日志
-		return
+	r.GET("/api/ws/stream", middlewares.WebSocketMiddleware(handlers.VideoHandler))
+	if err := r.Run(":8080"); err != nil {
+		log.Fatal("Server failed to start: ", err)
 	}
 }

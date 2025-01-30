@@ -5,10 +5,17 @@
     # 其他路由反向代理到 3000 端口
     reverse_proxy /* 127.0.0.1:3000
 
+    # CORS 设置
     header {
         Access-Control-Allow-Origin: *
         Access-Control-Allow-Methods: GET, POST, PUT, DELETE
-        Access-Control-Allow-Headers: Content-Type
-        header_up X-Real-IP {remote_host}
+        Access-Control-Allow-Headers: Content-Type, X-Real-IP, Authorization
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        Access-Control-Allow-Credentials true
+        Access-Control-Allow-WebSockets true
+        # 为 WebSocket 连接添加必要的头部
+        header_up Connection Upgrade
+        header_up Upgrade websocket
     }
 }
