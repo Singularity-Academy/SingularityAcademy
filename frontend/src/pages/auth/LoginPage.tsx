@@ -20,6 +20,7 @@ import {API_ENDPOINTS, ErrorResponse} from '@/config/api';
 import axiosInstance, {getToastMessage} from '@utils/axios';
 import {AxiosError} from "axios";
 import Navbar from "@components/Navbar";
+import {useTranslation} from "react-i18next";
 
 interface LoginFormInputs {
   email: string;
@@ -30,6 +31,7 @@ const LoginPage: React.FC = () => {
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormInputs>();
   const navigate = useNavigate();
   const toast = useToast();
+  const { t } = useTranslation();
 
   const onSubmit = async (data: LoginFormInputs) => {
     try {
@@ -37,7 +39,7 @@ const LoginPage: React.FC = () => {
       const { token } = response.data;
       Cookies.set('token', token, { expires: 30, secure: true, sameSite: 'strict' });
       toast({
-        title: 'Login successful',
+        title: t('api.auth.loginSuccessful'),
         status: 'success',
         duration: 3000,
       });
@@ -51,33 +53,33 @@ const LoginPage: React.FC = () => {
   return (
       <><Navbar/><Container maxW="container.sm" py={10} mt={16}>
         <VStack spacing={8}>
-          <Heading>Welcome Back</Heading>
+          <Heading>{t("LoginPage.wellcomeBack")}</Heading>
           <Box w="100%" p={8} borderWidth={1} borderRadius="lg" boxShadow="lg">
             <form onSubmit={handleSubmit(onSubmit)}>
               <VStack spacing={4}>
                 <FormControl isInvalid={!!errors.email}>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>{t("common.email")}</FormLabel>
                   <Input
                       type="email"
                       {...register('email', {
-                        required: 'Email is required',
+                        required: t('auth.emailIsRequired'),
                         pattern: {
                           value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                          message: 'Invalid email address',
+                          message: t('auth.invalidEmailAddress'),
                         },
                       })} />
                   {errors.email && <Text color="red.500" fontSize="sm">{errors.email.message}</Text>}
                 </FormControl>
 
                 <FormControl isInvalid={!!errors.password}>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>{t("common.password")}</FormLabel>
                   <Input
                       type="password"
                       {...register('password', {
-                        required: 'Password is required',
+                        required:  t('auth.passwordIsRequired'),
                         minLength: {
                           value: 6,
-                          message: 'Password must be at least 6 characters',
+                          message:  t('auth.password6Characters'),
                         },
                       })} />
                   {errors.password && <Text color="red.500" fontSize="sm">{errors.password.message}</Text>}
@@ -91,15 +93,15 @@ const LoginPage: React.FC = () => {
                     mt={4}
                     isLoading={isSubmitting} // loading indicator
                 >
-                  Sign In
+                  { t('common.signIn') }
                 </Button>
               </VStack>
             </form>
           </Box>
           <Text>
-            Don't have an account?{' '}
+            { t('LoginPage.doNotHaveAnAccount') }{' '}
             <Link color="blue.500" onClick={() => navigate('/register')}>
-              Sign up
+              { t("common.signUp") }
             </Link>
           </Text>
         </VStack>

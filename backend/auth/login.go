@@ -15,8 +15,7 @@ type LoginRequest struct {
 // 错误响应函数
 func loginError(c *gin.Context, message string) {
 	c.JSON(http.StatusUnauthorized, gin.H{
-		"error":  message,
-		"detail": message,
+		"error": message,
 	})
 }
 
@@ -27,8 +26,7 @@ func Login(context *gin.Context) {
 	// 查找用户
 	users, err := utils.FindUsersByEmail(request.Email)
 	if err != nil || len(users) == 0 {
-		// 用户不存在或者查询出错，统一返回 "email or password is wrong"
-		loginError(context, "email or password is wrong")
+		loginError(context, "incorrectEmailOrPassword")
 		return
 	}
 
@@ -36,7 +34,7 @@ func Login(context *gin.Context) {
 
 	// 检查密码
 	if !utils.CheckPassword(request.Password, user.Password) {
-		loginError(context, "email or password is wrong")
+		loginError(context, "incorrectEmailOrPassword")
 		return
 	}
 
@@ -44,7 +42,7 @@ func Login(context *gin.Context) {
 	token, err := utils.GenerateToken(user.ID)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
-			"error":  "Failed to generate token",
+			"error":  "failedToGenerateToken",
 			"detail": err.Error(),
 		})
 		return

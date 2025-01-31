@@ -1,6 +1,31 @@
 {
+  "api": {
+    "auth": {
+      "authorizationHeaderIsRequired": "Authorization header is required",
+      "tokenIsRequired": "Token is required",
+      "invalidToken": "Invalid token",
+      "loginSuccessful": "Login successful",
+      "loginFailed": "Login failed",
+      "incorrectEmailOrPassword": "Incorrect email or password",
+      "failedToGenerateToken": "Failed to generate token"
+    }
+  },
+  "auth": {
+    "nameIsRequired": "Name is required",
+    "name2Characters": "Name must be at least 2 characters",
+    "emailIsRequired": "Email is required",
+    "invalidEmailAddress": "Invalid email address",
+    "passwordIsRequired": "Password is required",
+    "password6Characters": "Password must be at least 6 characters",
+    "passwordsDoNotMatch": "Passwords do not match"
+  },
   "common": {
-    "signIn": "Sign In"
+    "signUp": "Sign Up",
+    "signIn": "Sign In",
+    "fullName": "Full Name",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password"
   },
   "Navbar": {
     "dashboard": "Dashboard",
@@ -54,5 +79,14 @@
     "journey": "Start Your Learning Journey Today",
     "join": "Join Our Community",
     "start": "Begin Your Journey"
-  }
+  },
+  "RegisterPage": {
+    "createAccount": "Create Account",
+    "alreadyHaveAnAccount": "Already have an account?"
+  },
+  "LoginPage": {
+    "wellcomeBack": "Welcome Back",
+    "doNotHaveAnAccount": "Don't have an account?"
+  },
+  "loginFailed": "loginFailed"
 }

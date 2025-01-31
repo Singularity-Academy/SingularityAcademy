@@ -12,6 +12,12 @@ import (
 
 // 提取错误响应函数
 func unauthorizedError(c *gin.Context, message, detail string) {
+	if detail == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": message,
+		})
+		return
+	}
 	c.JSON(http.StatusUnauthorized, gin.H{
 		"error":  message,
 		"detail": detail,
@@ -24,21 +30,21 @@ func JwtMiddleware() gin.HandlerFunc {
 		// 获取 Authorization 头部中的 Token
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			unauthorizedError(c, "Authorization header is required", "Authorization header is required")
+			unauthorizedError(c, "authorizationHeaderIsRequired", "")
 			return
 		}
 
 		// 去掉 "Bearer " 前缀
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 		if tokenString == "" {
-			unauthorizedError(c, "Token is required", "Token is required")
+			unauthorizedError(c, "tokenIsRequired", "")
 			return
 		}
 
 		// 解析 Token 并验证
 		claims, err := utils.ParseToken(tokenString)
 		if err != nil {
-			unauthorizedError(c, "Invalid token", "Invalid token")
+			unauthorizedError(c, "invalidToken", "")
 			return
 		}
 
@@ -46,7 +52,7 @@ func JwtMiddleware() gin.HandlerFunc {
 		// 查找id所对应的用户
 		users, err = utils.FindUsersByID(claims.ID)
 		if err != nil || len(users) == 0 {
-			unauthorizedError(c, "Invalid token", "Invalid token")
+			unauthorizedError(c, "invalidToken", "")
 			return
 		}
 

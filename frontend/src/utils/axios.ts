@@ -1,8 +1,7 @@
 import axios, {AxiosError} from 'axios';
-import {API_ENDPOINTS, axiosConfig, ErrorResponse} from '../config/api';
+import {API_ENDPOINTS, axiosConfig, ErrorResponse} from '@/config/api';
 import Cookies from "js-cookie";
-import {useToast} from "@chakra-ui/react";
-import {useNavigate} from "react-router-dom";
+import {t} from "i18next";
 
 const axiosInstance = axios.create(axiosConfig);
 
@@ -36,13 +35,13 @@ export default axiosInstance;
 
 export function getToastMessage(error: AxiosError<ErrorResponse>) {
     const message: { title: string; description: string; status: 'info' | 'warning' | 'success' | 'error' | 'loading'; duration: number } = {
-        title: error.response?.data?.error || "Login failed",
+        title: t(`api.auth.${error.response?.data?.error || "loginFailed"}`),
         description: '',
         status: 'error',
         duration: 3000,
     }
-    if (error.response?.data?.error != error.response?.data?.detail){
-        message.description = error.response?.data?.detail || "Please try again later."
+    if (error.response?.data?.detail){
+        message.description = error.response?.data?.detail
     }
     return message;
 }

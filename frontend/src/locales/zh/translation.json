@@ -1,6 +1,31 @@
 {
+  "api": {
+    "auth": {
+      "authorizationHeaderIsRequired": "需要请求头Authorization",
+      "tokenIsRequired": "需要传入令牌",
+      "invalidToken": "不可用的令牌",
+      "loginSuccessful": "登陆成功",
+      "loginFailed": "登录失败",
+      "incorrectEmailOrPassword": "用户名或密码错误",
+      "failedToGenerateToken": "生成令牌失败"
+    }
+  },
+  "auth": {
+    "nameIsRequired": "需要输入名字",
+    "name2Characters": "名字至少需要2个字符",
+    "emailIsRequired": "需要输入邮箱",
+    "invalidEmailAddress": "不可用的邮箱地址",
+    "passwordIsRequired": "需要输入密码",
+    "password6Characters": "密码至少需要6个字符",
+    "passwordsDoNotMatch": "密码不匹配"
+  },
   "common": {
-    "signIn": "登录"
+    "signUp": "注册",
+    "signIn": "登录",
+    "fullName": "全名",
+    "email": "电子邮箱",
+    "password": "密码",
+    "confirmPassword": "确认密码"
   },
   "Navbar": {
     "dashboard": "仪表盘",
@@ -54,5 +79,13 @@
     "journey": "立即开始您的学习之旅",
     "join": "加入我们的社区",
     "start": "开始你的学习之旅"
+  },
+  "RegisterPage": {
+    "createAccount": "创建账号",
+    "alreadyHaveAnAccount": "已经有账号了?"
+  },
+  "LoginPage": {
+    "wellcomeBack": "欢迎回来",
+    "doNotHaveAnAccount": "没有账号?"
   }
 }

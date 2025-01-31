@@ -18,6 +18,7 @@ import {API_ENDPOINTS, ErrorResponse} from "@/config/api";
 import axiosInstance, {getToastMessage} from "@utils/axios";
 import {AxiosError} from "axios";
 import Navbar from "@components/Navbar";
+import {useTranslation} from "react-i18next";
 
 interface RegisterFormInputs {
   name: string;
@@ -30,6 +31,7 @@ const RegisterPage: React.FC = () => {
   const { register, handleSubmit, watch, formState: { errors } } = useForm<RegisterFormInputs>();
   const navigate = useNavigate();
   const toast = useToast();
+  const { t } = useTranslation();
 
   const onSubmit = async (data: RegisterFormInputs) => {
     try {
@@ -50,18 +52,18 @@ const RegisterPage: React.FC = () => {
   return (
       <><Navbar/><Container maxW="container.sm" py={10} mt={16}>
         <VStack spacing={8}>
-          <Heading>Create Account</Heading>
+          <Heading>{ t('RegisterPage.createAccount') }</Heading>
           <Box w="100%" p={8} borderWidth={1} borderRadius="lg" boxShadow="lg">
             <form onSubmit={handleSubmit(onSubmit)}>
               <VStack spacing={4}>
                 <FormControl isInvalid={!!errors.name}>
-                  <FormLabel>Full Name</FormLabel>
+                  <FormLabel>{ t('common.fullName') }</FormLabel>
                   <Input
                       {...register('name', {
-                        required: 'Name is required',
+                        required: t('auth.nameIsRequired'),
                         minLength: {
                           value: 2,
-                          message: 'Name must be at least 2 characters',
+                          message: t('auth.name2Characters'),
                         },
                       })} />
                   {errors.name && (
@@ -72,14 +74,14 @@ const RegisterPage: React.FC = () => {
                 </FormControl>
 
                 <FormControl isInvalid={!!errors.email}>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>{t('common.email')}</FormLabel>
                   <Input
                       type="email"
                       {...register('email', {
-                        required: 'Email is required',
+                        required: t('auth.emailIsRequired'),
                         pattern: {
                           value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                          message: 'Invalid email address',
+                          message: t('auth.invalidEmailAddress'),
                         },
                       })} />
                   {errors.email && (
@@ -90,14 +92,14 @@ const RegisterPage: React.FC = () => {
                 </FormControl>
 
                 <FormControl isInvalid={!!errors.password}>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>{t('common.password')}</FormLabel>
                   <Input
                       type="password"
                       {...register('password', {
-                        required: 'Password is required',
+                        required: t('auth.passwordIsRequired'),
                         minLength: {
                           value: 6,
-                          message: 'Password must be at least 6 characters',
+                          message: t('auth.password6Characters'),
                         },
                       })} />
                   {errors.password && (
@@ -108,11 +110,11 @@ const RegisterPage: React.FC = () => {
                 </FormControl>
 
                 <FormControl isInvalid={!!errors.confirmPassword}>
-                  <FormLabel>Confirm Password</FormLabel>
+                  <FormLabel>{ t('common.confirmPassword') }</FormLabel>
                   <Input
                       type="password"
                       {...register('confirmPassword', {
-                        validate: value => value === watch('password') || 'Passwords do not match',
+                        validate: value => value === watch('password') || t('auth.passwordsDoNotMatch'),
                       })} />
                   {errors.confirmPassword && (
                       <Text color="red.500" fontSize="sm">
@@ -128,15 +130,15 @@ const RegisterPage: React.FC = () => {
                     size="lg"
                     mt={4}
                 >
-                  Sign Up
+                  { t('common.signUp') }
                 </Button>
               </VStack>
             </form>
           </Box>
           <Text>
-            Already have an account?{' '}
+            { t("RegisterPage.alreadyHaveAnAccount") }{' '}
             <Link color="blue.500" onClick={() => navigate('/login')}>
-              Sign in
+              { t('common.signIn') }
             </Link>
           </Text>
         </VStack>
