@@ -4,11 +4,23 @@ import (
 	"backend/models"
 	"backend/utils"
 	"fmt"
+	"net/url"
+
 	"github.com/gorilla/websocket"
 )
 
 // VideoHandler 处理 WebSocket 请求
 func VideoHandler(conn *websocket.Conn, user models.User) {
+	// Connect to Python AI engine
+	u := url.URL{Scheme: "ws", Host: "localhost:8765", Path: "/"}
+	aiConn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+	if err != nil {
+		fmt.Println("Failed to connect to AI engine:", err)
+		return
+	}
+	defer aiConn.Close()
+
+	// Handle client connection closure
 	defer func(conn *websocket.Conn) {
 		err := conn.Close()
 		if err != nil {
@@ -18,23 +30,45 @@ func VideoHandler(conn *websocket.Conn, user models.User) {
 
 	fmt.Println("WebSocket connected!")
 
-	err := conn.WriteMessage(websocket.TextMessage, []byte("hello "+user.Username))
+	// Send welcome message
+	err = conn.WriteMessage(websocket.TextMessage, []byte("hello "+user.Username))
 	if err != nil {
 		return
 	}
 
+	// Start goroutine to handle AI engine responses
+	go func() {
+		for {
+			_, msg, err := aiConn.ReadMessage()
+			if err != nil {
+				fmt.Println("Error reading from AI engine:", err)
+				return
+			}
+			// Forward AI response to client
+			err = conn.WriteMessage(websocket.TextMessage, msg)
+			if err != nil {
+				fmt.Println("Error writing to client:", err)
+				return
+			}
+		}
+	}()
+
+	// Main loop to handle client messages
 	for {
-		// 监听并接收来自前端的消息
+		// Listen for messages from client
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
 			fmt.Println("Error reading message:", err)
 			return
 		}
-		if utils.IsImage(msg) {
-			fmt.Println("received image from client!")
-		}
-		if utils.IsAudio(msg) {
-			fmt.Println("received audio from client!")
+
+		// Forward video/audio data to AI engine
+		if utils.IsImage(msg) || utils.IsAudio(msg) {
+			err = aiConn.WriteMessage(websocket.BinaryMessage, msg)
+			if err != nil {
+				fmt.Println("Error forwarding to AI engine:", err)
+				return
+			}
 		}
 	}
 }
