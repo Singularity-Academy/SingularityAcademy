@@ -5,7 +5,9 @@
   "Navbar": {
     "dashboard": "Dashboard",
     "profile": "Profile",
-    "logout": "Logout"
+    "logout": "Logout",
+    "darkMode": "Dark mode",
+    "lightMode": "Light mode"
   },
   "HomePage": {
     "welcome": "Welcome to AI Online School",

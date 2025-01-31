@@ -5,7 +5,9 @@
   "Navbar": {
     "dashboard": "仪表盘",
     "profile": "主页",
-    "logout": "登出"
+    "logout": "登出",
+    "darkMode": "深色模式",
+    "lightMode": "亮色模式"
   },
   "HomePage": {
     "welcome": "欢迎来到 AI 在线学校",
