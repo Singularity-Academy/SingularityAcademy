@@ -7,7 +7,13 @@
       "loginSuccessful": "登陆成功",
       "loginFailed": "登录失败",
       "incorrectEmailOrPassword": "用户名或密码错误",
-      "failedToGenerateToken": "生成令牌失败"
+      "failedToGenerateToken": "生成令牌失败",
+      "registrationSuccessful": "注册成功",
+      "loginWithCredentials": "请使用您的凭据登录",
+      "invalidEmailAddress": "不可用的邮箱地址",
+      "failedToCheckEmail": "检查邮箱地址错误",
+      "emailAlreadyRegistered": "邮箱已经被注册了",
+      "failedToEncryptPassword": "加密密码错误"
     }
   },
   "auth": {

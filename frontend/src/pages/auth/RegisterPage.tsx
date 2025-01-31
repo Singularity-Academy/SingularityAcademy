@@ -37,8 +37,8 @@ const RegisterPage: React.FC = () => {
     try {
       await axiosInstance.post(API_ENDPOINTS.AUTH.REGISTER, data);
       toast({
-        title: 'Registration successful',
-        description: 'Please login with your credentials',
+        title: t("api.auth.registrationSuccessful"),
+        description: t("api.auth.loginWithCredentials"),
         status: 'success',
         duration: 3000,
       });

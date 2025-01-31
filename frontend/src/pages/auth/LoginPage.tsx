@@ -37,7 +37,7 @@ const LoginPage: React.FC = () => {
     try {
       const response = await axiosInstance.post(API_ENDPOINTS.AUTH.LOGIN, data);
       const { token } = response.data;
-      Cookies.set('token', token, { expires: 30, secure: true, sameSite: 'strict' });
+      Cookies.set('token', token, { expires: 30, secure: false, sameSite: 'strict' });
       toast({
         title: t('api.auth.loginSuccessful'),
         status: 'success',

@@ -7,7 +7,13 @@
       "loginSuccessful": "Login successful",
       "loginFailed": "Login failed",
       "incorrectEmailOrPassword": "Incorrect email or password",
-      "failedToGenerateToken": "Failed to generate token"
+      "failedToGenerateToken": "Failed to generate token",
+      "registrationSuccessful": "Registration successful",
+      "loginWithCredentials": "Please login with your credentials",
+      "invalidEmailAddress": "Invalid email address",
+      "failedToCheckEmail": "Failed to check email",
+      "emailAlreadyRegistered": "Email already registered",
+      "failedToEncryptPassword": "Failed to encrypt password"
     }
   },
   "auth": {

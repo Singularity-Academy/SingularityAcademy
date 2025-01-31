@@ -17,6 +17,12 @@ type RegisterRequest struct {
 
 // 错误响应函数
 func registerError(c *gin.Context, errorMessage, detailMessage string) {
+	if detailMessage == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errorMessage,
+		})
+		return
+	}
 	c.JSON(http.StatusBadRequest, gin.H{
 		"error":  errorMessage,
 		"detail": detailMessage,
@@ -29,7 +35,7 @@ func Register(context *gin.Context) {
 
 	// 验证邮箱格式
 	if !utils.IsValidEmail(request.Email) {
-		registerError(context, "Invalid email address", "Invalid email address")
+		registerError(context, "invalidEmailAddress", "")
 		return
 	}
 
@@ -37,14 +43,14 @@ func Register(context *gin.Context) {
 	users, err := utils.FindUsersByEmail(request.Email)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
-			"error":  "Failed to check email",
+			"error":  "failedToCheckEmail",
 			"detail": err.Error(),
 		})
 		return
 	}
 
 	if len(users) != 0 {
-		registerError(context, "Email already registered", "This email is already registered")
+		registerError(context, "emailAlreadyRegistered", "")
 		return
 	}
 
@@ -57,7 +63,7 @@ func Register(context *gin.Context) {
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
-			"error":  "Failed to encrypt password",
+			"error":  "failedToEncryptPassword",
 			"detail": err.Error(),
 		})
 		return
@@ -69,7 +75,7 @@ func Register(context *gin.Context) {
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
-			"error":  "Failed to generate verification token",
+			"error":  "failedToGenerateVerificationToken",
 			"detail": err.Error(),
 		})
 		return
