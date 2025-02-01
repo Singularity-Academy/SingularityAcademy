@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Box,
   Button,
@@ -13,7 +13,6 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
-// import { useCookies } from 'react-cookie';
 import axiosInstance from '@utils/axios';
 import { API_ENDPOINTS } from '@/config/api';
 import Cookies from "js-cookie";
@@ -22,16 +21,14 @@ import {useNavigate} from "react-router-dom";
 
 declare class ImageCapture {
   constructor(track: MediaStreamTrack);
-  grabFrame(): Promise<ImageBitmap>;
   takePhoto(): Promise<Blob>;
 }
 
 const CourseInteractionPage: React.FC = () => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([]);
   const [inputValue, setInputValue] = useState('');
-  const [isCameraOn, setIsCameraOn] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [mediaRecorder] = useState<MediaRecorder | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [recording, setRecording] = useState(false);
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
@@ -207,7 +204,7 @@ const CourseInteractionPage: React.FC = () => {
   // Fullscreen toggle function
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
-      videoAreaRef.current?.requestFullscreen();
+      videoAreaRef.current?.requestFullscreen()
       setIsFullscreen(true);
     } else {
       document.exitFullscreen();
@@ -382,7 +379,7 @@ const CourseInteractionPage: React.FC = () => {
                     onChange={(e) => setInputValue(e.target.value)}
                     placeholder="Ask your question..."
                     mr={2}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}/>
+                    onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}/>
                 <Button colorScheme="blue" onClick={handleSubmit}>
                   Send
                 </Button>

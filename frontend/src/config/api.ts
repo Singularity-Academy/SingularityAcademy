@@ -16,7 +16,7 @@ export const API_ENDPOINTS = {
     INTERACT: `/courses/interact`,
   },
   WS: {
-    STREAM: `/ws/stream`
+    STREAM: `${API_BASE_URL}/ws/stream`
   }
 };
 

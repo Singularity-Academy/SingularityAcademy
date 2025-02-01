@@ -14,21 +14,36 @@ import {
   Avatar,
 } from '@chakra-ui/react';
 import Navbar from '@components/Navbar';
-import Cookies from 'js-cookie';
-import { useTranslation, Trans } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
+
+interface Feature {
+  title: string;
+  description: string;
+  icon: string;
+}
+
+interface Founder {
+  name: string;
+  role: string;
+  bio: string;
+  image: string;
+}
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const bgColor = useColorModeValue('gray.50', 'gray.900');
   const buttonBg = useColorModeValue('blue.500', 'blue.200');
   const cardBg = useColorModeValue('white', 'gray.700');
-  const isLoggedIn = !!Cookies.get('token');
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const features: Feature[] = i18n.getResource(i18n.language, 'translation', 'HomePage.features');
+  const founders: Founder[] = i18n.getResource(i18n.language, 'translation', 'HomePage.founders');
+  const visions: String[] = i18n.getResource(i18n.language, 'translation', 'HomePage.visions');
+
 
   return (
     <Box bg={bgColor} minH="100vh">
       <Navbar />
-      <Box pt={isLoggedIn ? '64px' : 0}>
+      <Box pt='64px'>
         {/* Hero Section */}
         <Container maxW="container.xl" py={20}>
           <VStack spacing={10} align="center">
@@ -75,22 +90,15 @@ const HomePage: React.FC = () => {
               <Heading textAlign="center" color="blue.500">
                 {t("HomePage.feature")}
               </Heading>
-              <SimpleGrid columns={{ base: 1, md: 3 }} spacing={10}>
-                <Feature
-                    title={t('HomePage.features.0.title')}
-                    description={t("HomePage.features.0.description")}
-                    icon={t("HomePage.features.0.icon")}
-                />
-                <Feature
-                    title={t('HomePage.features.1.title')}
-                    description={t("HomePage.features.1.description")}
-                    icon={t("HomePage.features.1.icon")}
-                />
-                <Feature
-                    title={t('HomePage.features.2.title')}
-                    description={t("HomePage.features.2.description")}
-                    icon={t("HomePage.features.2.icon")}
-                />
+              <SimpleGrid columns={{ base: 1, md: features.length }} spacing={10}>
+                {features.map((feature) => {
+                      return (<Feature
+                          title={feature.title}
+                          description={feature.description}
+                          icon={feature.icon}
+                      />)
+                    }
+                )}
               </SimpleGrid>
             </VStack>
           </Container>
@@ -103,19 +111,16 @@ const HomePage: React.FC = () => {
               <Heading textAlign="center" color="blue.500">
                 {t("HomePage.founder")}
               </Heading>
-              <SimpleGrid columns={{ base: 1, md: 3 }} spacing={10}>
-                <FounderCard
-                  name={t("HomePage.founders.0.name")}
-                  role={t("HomePage.founders.0.role")}
-                  bio={t("HomePage.founders.0.bio")}
-                  image={t("HomePage.founders.0.image")}
-                />
-                <FounderCard
-                    name={t("HomePage.founders.1.name")}
-                    role={t("HomePage.founders.1.role")}
-                    bio={t("HomePage.founders.1.bio")}
-                    image={t("HomePage.founders.1.image")}
-                />
+              <SimpleGrid columns={{ base: 1, md: founders.length }} spacing={10}>
+                {founders.map((founder) => {
+                      return (<FounderCard
+                          name={founder.name}
+                          role={founder.role}
+                          bio={founder.bio}
+                          image={founder.image}
+                      />)
+                    }
+                )}
               </SimpleGrid>
             </VStack>
           </Container>
@@ -126,12 +131,11 @@ const HomePage: React.FC = () => {
           <Container maxW="container.xl">
             <VStack align="center">
             <Heading color="blue.500" textAlign="center">{t('HomePage.vision')}</Heading>
-            <Text fontSize="lg" maxW="2xl" textAlign="center">
-              {t('HomePage.visions.0')}
-            </Text>
-              <Text color="red" fontSize="lg" maxW="2xl" textAlign="center">
-                {t('HomePage.visions.1')}
-              </Text>
+              {visions.map((vision) => {
+                    return (<Text fontSize="lg" maxW="2xl" textAlign="center">
+                      {vision}</Text>)
+                  }
+              )}
             </VStack>
           </Container>
         </Box>
@@ -218,23 +222,4 @@ const FounderCard: React.FC<FounderCardProps> = ({ name, role, bio, image }) => 
       </VStack>
     );
   };
-
-interface StatProps {
-  number: string;
-  label: string;
-}
-
-const Stat: React.FC<StatProps> = ({ number, label }) => {
-  return (
-    <VStack spacing={2} textAlign="center">
-      <Heading size="2xl" color="blue.500">
-        {number}
-      </Heading>
-      <Text fontSize="lg" color="gray.600">
-        {label}
-      </Text>
-    </VStack>
-  );
-};
-
-export default HomePage; 
+export default HomePage;
