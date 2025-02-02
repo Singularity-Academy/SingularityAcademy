@@ -29,6 +29,11 @@ interface Founder {
   image: string;
 }
 
+interface Vision {
+  content: string;
+  color: string;
+}
+
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const bgColor = useColorModeValue('gray.50', 'gray.900');
@@ -37,7 +42,7 @@ const HomePage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const features: Feature[] = i18n.getResource(i18n.language, 'translation', 'HomePage.features');
   const founders: Founder[] = i18n.getResource(i18n.language, 'translation', 'HomePage.founders');
-  const visions: String[] = i18n.getResource(i18n.language, 'translation', 'HomePage.visions');
+  const visions: Vision[] = i18n.getResource(i18n.language, 'translation', 'HomePage.visions');
 
 
   return (
@@ -132,8 +137,12 @@ const HomePage: React.FC = () => {
             <VStack align="center">
             <Heading color="blue.500" textAlign="center">{t('HomePage.vision')}</Heading>
               {visions.map((vision) => {
-                    return (<Text fontSize="lg" maxW="2xl" textAlign="center">
-                      {vision}</Text>)
+                    return (vision.color ? (<Text fontSize="lg" maxW="2xl" textAlign="center"
+                                                  color={vision.color}>{
+                      vision.content}</Text>) : (
+                        <Text fontSize="lg" maxW="2xl" textAlign="center">
+                          {vision.content}</Text>)
+                        )
                   }
               )}
             </VStack>
