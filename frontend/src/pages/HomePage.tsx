@@ -96,8 +96,9 @@ const HomePage: React.FC = () => {
                 {t("HomePage.feature")}
               </Heading>
               <SimpleGrid columns={{ base: 1, md: features.length }} spacing={10}>
-                {features.map((feature) => {
+                {features.map((feature, index) => {
                       return (<Feature
+                          key={index}
                           title={feature.title}
                           description={feature.description}
                           icon={feature.icon}
@@ -117,8 +118,9 @@ const HomePage: React.FC = () => {
                 {t("HomePage.founder")}
               </Heading>
               <SimpleGrid columns={{ base: 1, md: founders.length }} spacing={10}>
-                {founders.map((founder) => {
+                {founders.map((founder, index) => {
                       return (<FounderCard
+                          key={index}
                           name={founder.name}
                           role={founder.role}
                           bio={founder.bio}
@@ -135,19 +137,24 @@ const HomePage: React.FC = () => {
         <Box bg={cardBg} py={20}>
           <Container maxW="container.xl">
             <VStack align="center">
-            <Heading color="blue.500" textAlign="center">{t('HomePage.vision')}</Heading>
-              {visions.map((vision) => {
-                    return (vision.color ? (<Text fontSize="lg" maxW="2xl" textAlign="center"
-                                                  color={vision.color}>{
-                      vision.content}</Text>) : (
-                        <Text fontSize="lg" maxW="2xl" textAlign="center">
-                          {vision.content}</Text>)
-                        )
-                  }
-              )}
+              <Heading color="blue.500" textAlign="center">
+                {t('HomePage.vision')}
+              </Heading>
+              {visions.map((vision, index) => (
+                  <Text
+                      key={index}
+                      fontSize="lg"
+                      maxW="2xl"
+                      textAlign="center"
+                      color={vision.color || undefined}
+                  >
+                    {vision.content}
+                  </Text>
+              ))}
             </VStack>
           </Container>
         </Box>
+
 
         {/* Contact Section */}
         <Box py={20}>
