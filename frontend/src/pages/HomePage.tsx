@@ -39,11 +39,16 @@ const HomePage: React.FC = () => {
   const bgColor = useColorModeValue('gray.50', 'gray.900');
   const buttonBg = useColorModeValue('blue.500', 'blue.200');
   const cardBg = useColorModeValue('white', 'gray.700');
-  const { t, i18n } = useTranslation();
-  const features: Feature[] = i18n.getResource(i18n.language, 'translation', 'HomePage.features');
-  const founders: Founder[] = i18n.getResource(i18n.language, 'translation', 'HomePage.founders');
-  const visions: Vision[] = i18n.getResource(i18n.language, 'translation', 'HomePage.visions');
+  const { t, i18n, ready } = useTranslation();
 
+  // Safely get translated resources with fallbacks
+  const features: Feature[] = t('HomePage.features', { returnObjects: true }) || [];
+  const founders: Founder[] = t('HomePage.founders', { returnObjects: true }) || [];
+  const visions: Vision[] = t('HomePage.visions', { returnObjects: true }) || [];
+
+  if (!ready) {
+    return <div>Loading translations...</div>;
+  }
 
   return (
     <Box bg={bgColor} minH="100vh">
@@ -89,72 +94,19 @@ const HomePage: React.FC = () => {
         </Container>
 
         {/* Features Section */}
-        <Box bg={cardBg} py={20}>
-          <Container maxW="container.xl">
-            <VStack spacing={12}>
-              <Heading textAlign="center" color="blue.500">
-                {t("HomePage.feature")}
-              </Heading>
-              <SimpleGrid columns={{ base: 1, md: features.length }} spacing={10}>
-                {features.map((feature, index) => {
-                      return (<Feature
-                          key={index}
-                          title={feature.title}
-                          description={feature.description}
-                          icon={feature.icon}
-                      />)
-                    }
-                )}
-              </SimpleGrid>
-            </VStack>
-          </Container>
-        </Box>
+        {features?.length > 0 && (
+          <FeatureSection features={features} />
+        )}
 
         {/* Founders Section */}
-        <Box py={20}>
-          <Container maxW="container.xl">
-            <VStack spacing={12}>
-              <Heading textAlign="center" color="blue.500">
-                {t("HomePage.founder")}
-              </Heading>
-              <SimpleGrid columns={{ base: 1, md: founders.length }} spacing={10}>
-                {founders.map((founder, index) => {
-                      return (<FounderCard
-                          key={index}
-                          name={founder.name}
-                          role={founder.role}
-                          bio={founder.bio}
-                          image={founder.image}
-                      />)
-                    }
-                )}
-              </SimpleGrid>
-            </VStack>
-          </Container>
-        </Box>
+        {founders?.length > 0 && (
+          <FounderSection founders={founders} />
+        )}
 
         {/* Statistics Section */}
-        <Box bg={cardBg} py={20}>
-          <Container maxW="container.xl">
-            <VStack align="center">
-              <Heading color="blue.500" textAlign="center">
-                {t('HomePage.vision')}
-              </Heading>
-              {visions.map((vision, index) => (
-                  <Text
-                      key={index}
-                      fontSize="lg"
-                      maxW="2xl"
-                      textAlign="center"
-                      color={vision.color || undefined}
-                  >
-                    {vision.content}
-                  </Text>
-              ))}
-            </VStack>
-          </Container>
-        </Box>
-
+        {visions?.length > 0 && (
+          <VisionSection visions={visions} />
+        )}
 
         {/* Contact Section */}
         <Box py={20}>
@@ -185,7 +137,80 @@ interface FeatureProps {
   icon: string;
 }
 
-const Feature: React.FC<FeatureProps> = ({ title, description, icon }) => {
+const FeatureSection = ({ features }: { features: Feature[] }) => {
+  const { t } = useTranslation();
+  return (
+    <Box bg={useColorModeValue('white', 'gray.700')} py={20}>
+      <Container maxW="container.xl">
+        <VStack spacing={12}>
+          <Heading textAlign="center" color="blue.500">
+            {t("HomePage.feature")}
+          </Heading>
+          <SimpleGrid columns={{ base: 1, md: features.length }} spacing={10}>
+            {features.map((feature, index) => (
+              <FeatureCard key={index} {...feature} />
+            ))}
+          </SimpleGrid>
+        </VStack>
+      </Container>
+    </Box>
+  );
+};
+
+interface FounderCardProps {
+  name: string;
+  role: string;
+  bio: string;
+  image: string;
+}
+
+const FounderSection = ({ founders }: { founders: Founder[] }) => {
+  const { t } = useTranslation();
+  return (
+    <Box py={20}>
+      <Container maxW="container.xl">
+        <VStack spacing={12}>
+          <Heading textAlign="center" color="blue.500">
+            {t("HomePage.founder")}
+          </Heading>
+          <SimpleGrid columns={{ base: 1, md: founders.length }} spacing={10}>
+            {founders.map((founder, index) => (
+              <FounderCard key={index} {...founder} />
+            ))}
+          </SimpleGrid>
+        </VStack>
+      </Container>
+    </Box>
+  );
+};
+
+const VisionSection = ({ visions }: { visions: Vision[] }) => {
+  const { t } = useTranslation();
+  return (
+    <Box bg={useColorModeValue('white', 'gray.700')} py={20}>
+      <Container maxW="container.xl">
+        <VStack align="center">
+          <Heading color="blue.500" textAlign="center">
+            {t('HomePage.vision')}
+          </Heading>
+          {visions.map((vision, index) => (
+            <Text
+              key={index}
+              fontSize="lg"
+              maxW="2xl"
+              textAlign="center"
+              color={vision.color || undefined}
+            >
+              {vision.content}
+            </Text>
+          ))}
+        </VStack>
+      </Container>
+    </Box>
+  );
+};
+
+const FeatureCard: React.FC<FeatureProps> = ({ title, description, icon }) => {
   return (
     <VStack
       p={8}
@@ -203,39 +228,33 @@ const Feature: React.FC<FeatureProps> = ({ title, description, icon }) => {
   );
 };
 
-interface FounderCardProps {
-  name: string;
-  role: string;
-  bio: string;
-  image: string;
-}
-
 const FounderCard: React.FC<FounderCardProps> = ({ name, role, bio, image }) => {
-    return (
-      <VStack
-        p={8}
-        bg={useColorModeValue('white', 'gray.800')}
-        borderRadius="lg"
-        boxShadow="xl"
-        spacing={4}
-        align="center"
-        _hover={{ transform: 'translateY(-5px)', transition: '0.3s' }}
-      >
-        {image ? (
-          <Image
-            src={image}
-            alt={name}
-            borderRadius="full"
-            boxSize="150px"
-            objectFit="cover"
-          />
-        ) : (
-          <Avatar size="2xl" name={name} bg="blue.500" color="white" />
-        )}
-        <Heading size="md">{name}</Heading>
-        <Text color="blue.500" fontWeight="bold">{role}</Text>
-        <Text color="gray.600" textAlign="center">{bio}</Text>
-      </VStack>
-    );
-  };
+  return (
+    <VStack
+      p={8}
+      bg={useColorModeValue('white', 'gray.800')}
+      borderRadius="lg"
+      boxShadow="xl"
+      spacing={4}
+      align="center"
+      _hover={{ transform: 'translateY(-5px)', transition: '0.3s' }}
+    >
+      {image ? (
+        <Image
+          src={image}
+          alt={name}
+          borderRadius="full"
+          boxSize="150px"
+          objectFit="cover"
+        />
+      ) : (
+        <Avatar size="2xl" name={name} bg="blue.500" color="white" />
+      )}
+      <Heading size="md">{name}</Heading>
+      <Text color="blue.500" fontWeight="bold">{role}</Text>
+      <Text color="gray.600" textAlign="center">{bio}</Text>
+    </VStack>
+  );
+};
+
 export default HomePage;

@@ -11,13 +11,16 @@ import {
   IconButton,
   Heading,
   useToast,
+  Progress,
 } from '@chakra-ui/react';
-import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
+import { ViewIcon, ViewOffIcon, SmallCloseIcon } from '@chakra-ui/icons';
 import axiosInstance from '@utils/axios';
 import { API_ENDPOINTS } from '@/config/api';
 import Cookies from "js-cookie";
 import Navbar from "@components/Navbar";
 import {useNavigate} from "react-router-dom";
+import { FaFileUpload, FaLink } from 'react-icons/fa';
+import { useDropzone } from 'react-dropzone';
 
 declare class ImageCapture {
   constructor(track: MediaStreamTrack);
@@ -45,6 +48,23 @@ const CourseInteractionPage: React.FC = () => {
 
   const bgColor = useColorModeValue('gray.50', 'gray.900');
   const cardBg = useColorModeValue('white', 'gray.700');
+
+  const [uploadingFiles, setUploadingFiles] = useState<File[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
+  const [resourceLinks, setResourceLinks] = useState<string[]>([]);
+
+  const ALLOWED_FILE_TYPES = {
+    'application/pdf': ['.pdf'],
+    'application/msword': ['.doc'],
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+    'application/vnd.ms-powerpoint': ['.ppt'],
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['.pptx'],
+    'application/vnd.apple.pages': ['.pages'],
+    'application/vnd.apple.numbers': ['.numbers'],
+    'text/csv': ['.csv'],
+    'video/*': ['.mp4', '.mov', '.avi'],
+    'image/*': ['.png', '.jpg', '.jpeg']
+  };
 
   const startAudio = () => {
     navigator.mediaDevices.getUserMedia({ audio: true })
@@ -285,7 +305,67 @@ const CourseInteractionPage: React.FC = () => {
     return () => clearInterval(intervalId);
   }, [videoStream]);
 
+  const handleFileUpload = async (acceptedFiles: File[]) => {
+    const formData = new FormData();
+    
+    acceptedFiles.forEach(file => {
+      formData.append('materials', file);
+      setUploadingFiles(prev => [...prev, file]);
+    });
 
+    try {
+      const response = await axiosInstance.post(API_ENDPOINTS.COURSE.MATERIALS, formData, {
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / (progressEvent.total || 1)
+          );
+          setUploadProgress(prev => ({
+            ...prev,
+            [acceptedFiles[0].name]: percentCompleted
+          }));
+        }
+      });
+
+      toast({
+        title: 'Upload successful',
+        description: `${acceptedFiles.length} files uploaded successfully`,
+        status: 'success',
+        duration: 3000,
+      });
+    } catch (error) {
+      toast({
+        title: 'Upload failed',
+        description: 'Error uploading materials',
+        status: 'error',
+        duration: 3000,
+      });
+    } finally {
+      setUploadingFiles([]);
+      setUploadProgress({});
+    }
+  };
+
+  const handleAddLink = () => {
+    const url = prompt('Enter resource URL:');
+    if (url && isValidUrl(url)) {
+      setResourceLinks(prev => [...prev, url]);
+    }
+  };
+
+  const isValidUrl = (urlString: string) => {
+    try {
+      return Boolean(new URL(urlString));
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop: handleFileUpload,
+    accept: ALLOWED_FILE_TYPES,
+    multiple: true,
+    maxSize: 100 * 1024 * 1024 // 100MB
+  });
 
   return (
       <><Navbar/><Box bg={bgColor} minH="100vh" p={4} mt={16}>
@@ -314,6 +394,77 @@ const CourseInteractionPage: React.FC = () => {
 
             {/* Side Panel */}
             <VStack flex="1" spacing={4}>
+              {/* Upload Section */}
+              <Box w="100%" bg={cardBg} borderRadius="lg" p={4}>
+                <Heading size="sm" mb={4}>Upload Learning Materials</Heading>
+                
+                {/* Drag & Drop Zone */}
+                <Box
+                  {...getRootProps()}
+                  border="2px dashed"
+                  borderColor={isDragActive ? 'blue.500' : 'gray.300'}
+                  borderRadius="md"
+                  p={6}
+                  textAlign="center"
+                  cursor="pointer"
+                  _hover={{ borderColor: 'blue.300' }}
+                  mb={4}
+                >
+                  <input {...getInputProps()} />
+                  <VStack spacing={3}>
+                    <FaFileUpload size={40} color={isDragActive ? '#3182ce' : '#718096'} />
+                    <Text>
+                      {isDragActive 
+                        ? 'Drop files here' 
+                        : 'Drag & drop files or click to select'}
+                    </Text>
+                    <Text fontSize="sm" color="gray.500">
+                      Supported formats: PDF, DOC, PPT, CSV, Images, Videos (max 100MB)
+                    </Text>
+                  </VStack>
+                </Box>
+
+                {/* Upload Progress */}
+                {uploadingFiles.map((file, index) => (
+                  <Box key={index} mb={2}>
+                    <Flex justify="space-between" mb={1}>
+                      <Text fontSize="sm">{file.name}</Text>
+                      <Text fontSize="sm">{uploadProgress[file.name] || 0}%</Text>
+                    </Flex>
+                    <Progress 
+                      value={uploadProgress[file.name] || 0}
+                      size="xs"
+                      colorScheme="blue"
+                      borderRadius="full"
+                    />
+                  </Box>
+                ))}
+
+                {/* Resource Links Section */}
+                <VStack mt={4} align="stretch">
+                  <Button 
+                    leftIcon={<FaLink />}
+                    colorScheme="blue"
+                    variant="outline"
+                    onClick={handleAddLink}
+                  >
+                    Add Resource Link
+                  </Button>
+                  
+                  {resourceLinks.map((link, index) => (
+                    <Flex key={index} align="center" p={2} bg="gray.50" borderRadius="md">
+                      <Text fontSize="sm" isTruncated flex={1}>{link}</Text>
+                      <IconButton
+                        aria-label="Remove link"
+                        icon={<SmallCloseIcon />}
+                        size="xs"
+                        onClick={() => setResourceLinks(prev => prev.filter((_, i) => i !== index))}
+                      />
+                    </Flex>
+                  ))}
+                </VStack>
+              </Box>
+
               {/* Student Camera */}
               <Box w="100%" bg={cardBg} borderRadius="lg" p={4}>
                 <Flex justify="space-between" mb={2}>

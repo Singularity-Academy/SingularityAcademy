@@ -14,6 +14,7 @@ export const API_ENDPOINTS = {
     LIST: `/courses`,
     DETAIL: (id: string) => `/courses/${id}`,
     INTERACT: `/courses/interact`,
+    MATERIALS: `/courses/materials`
   },
   WS: {
     STREAM: `${API_BASE_URL}/ws/stream`
