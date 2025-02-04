@@ -10,6 +10,7 @@ import LearningPage from './pages/LearningPage';
 import CourseInteractionPage from './pages/course/CourseInteractionPage';
 import VerifyPage from './pages/auth/VerifyPage';
 import { useTranslation } from 'react-i18next';
+import Footer from './components/Footer';
 
 const App: React.FC = () => {
   const { i18n } = useTranslation();
@@ -20,7 +21,10 @@ const App: React.FC = () => {
       <div 
         dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}
         style={{
-          fontFamily: i18n.language === 'ar' ? "'Noto Sans Arabic', sans-serif" : "inherit"
+          fontFamily: i18n.language === 'ar' ? "'Noto Sans Arabic', sans-serif" : "inherit",
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column'
         }}
       >
         <Router>
@@ -34,6 +38,7 @@ const App: React.FC = () => {
             <Route path="/course/interaction" element={<CourseInteractionPage />} />
             <Route path="/auth/verify" element={<VerifyPage />} />
           </Routes>
+          <Footer />
         </Router>
       </div>
     </ChakraProvider>
