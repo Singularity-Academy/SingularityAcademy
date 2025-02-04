@@ -1,0 +1,102 @@
+{
+  "api": {
+    "auth": {
+      "authorizationHeaderIsRequired": "Authorization-Header ist erforderlich",
+      "tokenIsRequired": "Token ist erforderlich",
+      "invalidToken": "Ungültiger Token",
+      "loginSuccessful": "Anmeldung erfolgreich",
+      "loginFailed": "Anmeldung fehlgeschlagen",
+      "incorrectEmailOrPassword": "Falsche E-Mail oder Passwort",
+      "failedToGenerateToken": "Token konnte nicht generiert werden",
+      "registrationSuccessful": "Registrierung erfolgreich",
+      "loginWithCredentials": "Bitte melden Sie sich mit Ihren Zugangsdaten an",
+      "invalidEmailAddress": "Ungültige E-Mail-Adresse",
+      "failedToCheckEmail": "E-Mail-Überprüfung fehlgeschlagen",
+      "emailAlreadyRegistered": "E-Mail-Adresse ist bereits registriert",
+      "failedToEncryptPassword": "Passwort konnte nicht verschlüsselt werden"
+    }
+  },
+  "auth": {
+    "nameIsRequired": "Name ist erforderlich",
+    "name2Characters": "Name muss mindestens 2 Zeichen lang sein",
+    "emailIsRequired": "E-Mail ist erforderlich",
+    "invalidEmailAddress": "Ungültige E-Mail-Adresse",
+    "passwordIsRequired": "Passwort ist erforderlich",
+    "password6Characters": "Passwort muss mindestens 6 Zeichen lang sein",
+    "passwordsDoNotMatch": "Passwörter stimmen nicht überein"
+  },
+  "common": {
+    "signUp": "Registrieren",
+    "signIn": "Anmelden",
+    "fullName": "Vollständiger Name",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "confirmPassword": "Passwort bestätigen"
+  },
+  "Navbar": {
+    "dashboard": "Dashboard",
+    "profile": "Profil",
+    "logout": "Abmelden",
+    "darkMode": "Dunkelmodus",
+    "lightMode": "Hellmodus"
+  },
+  "HomePage": {
+    "welcome": "Willkommen bei der KI-Online-Schule",
+    "description": "Transformieren Sie Ihre Lernerfahrung mit KI-gestützter Bildung. Treten Sie unserer Plattform bei für personalisierte Lernpfade und interaktive Inhalte.",
+    "getStarted": "Jetzt starten",
+    "feature": "Hauptfunktionen",
+    "features": [
+      {
+        "title": "KI-gestütztes Lernen",
+        "description": "Personalisierte Lernpfade, angepasst an Ihr Tempo und Ihren Lernstil",
+        "icon": "🤖"
+      },
+      {
+        "title": "Persönliche virtuelle Schule",
+        "description": "Dediziertes Bildungsteam mit Schulleiter, Konrektor und Lehrern für jeden Schüler",
+        "icon": "👨🏫"
+      },
+      {
+        "title": "Intelligente Interaktion",
+        "description": "Intensive Auseinandersetzung mit dynamischen Inhalten und Echtzeit-Feedback-System",
+        "icon": "💡"
+      }
+    ],
+    "founder": "Gründerteam",
+    "founders": [
+      {
+        "name": "Zhao Jiace",
+        "role": "CEO und KI-Forschungsleiter",
+        "bio": "Gymnasiast, KI- und Machine-Learning-Enthusiast, USACO-Platin-Medaillengewinner",
+        "image": ""
+      },
+      {
+        "name": "Huang Di",
+        "role": "CTO und Plattform-Architekt",
+        "bio": "Full-Stack-Entwicklungsexperte, Leiter mehrerer Open-Source-Projekte",
+        "image": ""
+      }
+    ],
+    "vision": "Unsere Vision",
+    "visions": [
+      {
+        "content": "Wir setzen uns dafür ein, durch KI-Technologie Bildungsbarrieren abzubauen und qualitativ hochwertige Bildung für alle zugänglich zu machen"
+      },
+      {
+        "color": "red",
+        "content": "Bildung darf kein Luxus sein! Wir bieten erstklassige Bildungsressourcen kostenlos für bedürftige Lernende an"
+      }
+    ],
+    "journey": "Starten Sie Ihre Lernreise",
+    "join": "Werden Sie Teil der intelligenten Bildungsgemeinschaft",
+    "start": "Jetzt erleben"
+  },
+  "RegisterPage": {
+    "createAccount": "Konto erstellen",
+    "alreadyHaveAnAccount": "Haben Sie bereits ein Konto?"
+  },
+  "LoginPage": {
+    "wellcomeBack": "Willkommen zurück",
+    "doNotHaveAnAccount": "Noch kein Konto?"
+  }
+} 

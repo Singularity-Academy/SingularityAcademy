@@ -21,6 +21,7 @@ import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import { getUserData } from "@utils/axios";
 import { useTranslation } from "react-i18next";
+import { ChevronDownIcon } from '@chakra-ui/icons';
 
 const Navbar: React.FC = () => {
     const [user, setUser] = useState<{ id: number; name: string; email: string } | null>(null);
@@ -57,8 +58,21 @@ const Navbar: React.FC = () => {
     };
 
     const toggleLanguage = () => {
-        const newLanguage = i18n.language === 'en' ? 'zh' : 'en';
-        i18n.changeLanguage(newLanguage);
+        const languages = ['en', 'es', 'fr', 'de', 'ja', 'ar', 'zh', 'zh_CN'];
+        const currentIndex = languages.indexOf(i18n.language);
+        const nextLanguage = currentIndex === -1 ? 'en' : languages[(currentIndex + 1) % languages.length];
+        i18n.changeLanguage(nextLanguage);
+    };
+
+    const LANGUAGE_NAMES = {
+        en: 'English',
+        es: 'Español',
+        fr: 'Français',
+        de: 'Deutsch',
+        ja: '日本語',
+        ar: 'العربية',
+        zh: '中文(简体)',
+        zh_CN: '中文(繁體)'
     };
 
     return (
@@ -103,9 +117,18 @@ const Navbar: React.FC = () => {
                             <MenuItem onClick={toggleColorMode} icon={colorMode === 'light' ? <FaMoon /> : <FaSun />}>
                                 {colorMode === 'light' ? t('Navbar.darkMode') : t('Navbar.lightMode')}
                             </MenuItem>
-                            <MenuItem onClick={toggleLanguage} icon={<FaGlobe />}>
-                                {i18n.language === 'en' ? '中文' : 'English'}
-                            </MenuItem>
+                            <Menu>
+                                <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+                                    {LANGUAGE_NAMES[i18n.language as keyof typeof LANGUAGE_NAMES]}
+                                </MenuButton>
+                                <MenuList>
+                                    {['en', 'es', 'fr', 'de', 'ja', 'ar', 'zh', 'zh_CN'].map((lang) => (
+                                        <MenuItem key={lang} onClick={() => i18n.changeLanguage(lang)}>
+                                            {LANGUAGE_NAMES[lang as keyof typeof LANGUAGE_NAMES]}
+                                        </MenuItem>
+                                    ))}
+                                </MenuList>
+                            </Menu>
                         </MenuList>
                     </Menu>
                 )
@@ -147,9 +170,18 @@ const Navbar: React.FC = () => {
                         />
 
                         {/* 语言切换按钮 */}
-                        <Button variant="ghost" onClick={toggleLanguage}>
-                            {i18n.language === 'en' ? '中' : 'EN'}
-                        </Button>
+                        <Menu>
+                            <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+                                {LANGUAGE_NAMES[i18n.language as keyof typeof LANGUAGE_NAMES]}
+                            </MenuButton>
+                            <MenuList>
+                                {['en', 'es', 'fr', 'de', 'ja', 'ar', 'zh', 'zh_CN'].map((lang) => (
+                                    <MenuItem key={lang} onClick={() => i18n.changeLanguage(lang)}>
+                                        {LANGUAGE_NAMES[lang as keyof typeof LANGUAGE_NAMES]}
+                                    </MenuItem>
+                                ))}
+                            </MenuList>
+                        </Menu>
                     </HStack>
                 )}
             </Flex>

@@ -9,23 +9,28 @@ import PersonalHomePage from './pages/PersonalHomePage';
 import LearningPage from './pages/LearningPage';
 import CourseInteractionPage from './pages/course/CourseInteractionPage';
 import VerifyPage from './pages/auth/VerifyPage';
+import { useTranslation } from 'react-i18next';
 
 const App: React.FC = () => {
+  const { i18n } = useTranslation();
+
   return (
     <ChakraProvider theme={theme}>
       <CSSReset />
-      <Router>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path='/homepage' element={<PersonalHomePage />} />
-          <Route path='/me/homepage' element={<LearningPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-          <Route path="/course/interaction" element={<CourseInteractionPage />} />
-          <Route path="/auth/verify" element={<VerifyPage />} />
-        </Routes>
-      </Router>
+      <div dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}>
+        <Router>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path='/homepage' element={<PersonalHomePage />} />
+            <Route path='/me/homepage' element={<LearningPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="/course/interaction" element={<CourseInteractionPage />} />
+            <Route path="/auth/verify" element={<VerifyPage />} />
+          </Routes>
+        </Router>
+      </div>
     </ChakraProvider>
   );
 };
