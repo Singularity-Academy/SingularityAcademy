@@ -17,7 +17,12 @@ const App: React.FC = () => {
   return (
     <ChakraProvider theme={theme}>
       <CSSReset />
-      <div dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}>
+      <div 
+        dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}
+        style={{
+          fontFamily: i18n.language === 'ar' ? "'Noto Sans Arabic', sans-serif" : "inherit"
+        }}
+      >
         <Router>
           <Routes>
             <Route path="/" element={<HomePage />} />
