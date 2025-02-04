@@ -19,7 +19,12 @@ A modern AI-driven online learning platform built with React, Go, and MySQL.
 - Gin web framework
 - GORM for database operations
 - MySQL database
-
+  
+### Backend
+- langchain for multi-agents
+- pyTorch for new AI
+- Manim for Pics/Videos
+  
 ## Getting Started
 
 ### Prerequisites
