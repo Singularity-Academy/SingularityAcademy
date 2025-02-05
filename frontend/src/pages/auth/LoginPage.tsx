@@ -50,8 +50,7 @@ const LoginPage: React.FC = () => {
     }
   };
 
-  return (
-      <><Navbar/><Container maxW="container.sm" py={10} mt={16}>
+  return (<Container maxW="container.sm" py={10} mt={16}>
         <VStack spacing={8}>
           <Heading>{t("LoginPage.wellcomeBack")}</Heading>
           <Box w="100%" p={8} borderWidth={1} borderRadius="lg" boxShadow="lg">
@@ -105,7 +104,7 @@ const LoginPage: React.FC = () => {
             </Link>
           </Text>
         </VStack>
-      </Container></>
+      </Container>
   );
 };
 

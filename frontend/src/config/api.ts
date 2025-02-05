@@ -25,7 +25,6 @@ export const API_ENDPOINTS = {
 export const axiosConfig = {
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
   },
 };
 

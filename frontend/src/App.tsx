@@ -11,6 +11,7 @@ import CourseInteractionPage from './pages/course/CourseInteractionPage';
 import VerifyPage from './pages/auth/VerifyPage';
 import { useTranslation } from 'react-i18next';
 import Footer from './components/Footer';
+import Navbar from "@components/Navbar";
 
 const App: React.FC = () => {
   const { i18n } = useTranslation();
@@ -28,6 +29,7 @@ const App: React.FC = () => {
         }}
       >
         <Router>
+          <Navbar />
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />

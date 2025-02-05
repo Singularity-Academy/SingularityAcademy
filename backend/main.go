@@ -3,6 +3,7 @@ package main
 import (
 	"backend/auth"
 	"backend/config"
+	"backend/courses"
 	"backend/info"
 	"backend/me"
 	"backend/middlewares"
@@ -44,6 +45,7 @@ func main() {
 	r.POST("/api/auth/verify", middlewares.JsonMiddleware(&auth.VerifyRequest{}), auth.Verify)
 	r.GET("/api/me", middlewares.JwtMiddleware(), me.Me)
 	r.GET("/api/info/:id", info.Info)
+	r.POST("/api/courses/materials", middlewares.JwtMiddleware(), courses.Materials)
 	r.GET("/api/ws/stream", middlewares.WebSocketMiddleware(ws.VideoHandler))
 	if err := r.Run(":8080"); err != nil {
 		log.Fatal("Server failed to start: ", err)

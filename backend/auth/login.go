@@ -53,7 +53,7 @@ func Login(context *gin.Context) {
 
 	// 返回成功响应
 	context.JSON(http.StatusOK, gin.H{
-		"message": "login success",
+		"message": "loginSuccessfully",
 		"token":   token,
 	})
 }

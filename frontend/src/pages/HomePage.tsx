@@ -52,7 +52,6 @@ const HomePage: React.FC = () => {
 
   return (
     <Box bg={bgColor} minH="100vh">
-      <Navbar />
       <Box pt='64px'>
         {/* Hero Section */}
         <Container maxW="container.xl" py={20}>
