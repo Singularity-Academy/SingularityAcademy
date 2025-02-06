@@ -30,21 +30,21 @@ func JwtMiddleware() gin.HandlerFunc {
 		// 获取 Authorization 头部中的 Token
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			unauthorizedError(c, "authorizationHeaderIsRequired", "")
+			unauthorizedError(c, "api.auth.authorizationHeaderIsRequired", "")
 			return
 		}
 
 		// 去掉 "Bearer " 前缀
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 		if tokenString == "" {
-			unauthorizedError(c, "tokenIsRequired", "")
+			unauthorizedError(c, "api.auth.tokenIsRequired", "")
 			return
 		}
 
 		// 解析 Token 并验证
 		claims, err := utils.ParseToken(tokenString)
 		if err != nil {
-			unauthorizedError(c, "invalidToken", "")
+			unauthorizedError(c, "api.auth.invalidToken", "")
 			return
 		}
 
@@ -52,7 +52,7 @@ func JwtMiddleware() gin.HandlerFunc {
 		// 查找id所对应的用户
 		users, err = utils.FindUsersByID(claims.ID)
 		if err != nil || len(users) == 0 {
-			unauthorizedError(c, "invalidToken", "")
+			unauthorizedError(c, "api.auth.invalidToken", "")
 			return
 		}
 
@@ -68,7 +68,7 @@ func JsonMiddleware(requestTemplate interface{}) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if !strings.Contains(c.GetHeader("Content-Type"), "application/json") {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error":  "Invalid Content-Type header",
+				"error":  "api.auth.invalidContentTypeHeader",
 				"detail": "Unsupported content type, expected 'application/json'",
 			})
 			c.Abort()
@@ -78,7 +78,7 @@ func JsonMiddleware(requestTemplate interface{}) gin.HandlerFunc {
 		// 绑定 JSON 数据
 		if err := c.ShouldBindJSON(&requestTemplate); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error":  "Invalid request data",
+				"error":  "api.auth.invalidRequestData",
 				"detail": "Failed to bind JSON: " + err.Error(),
 			})
 			c.Abort()
@@ -101,19 +101,19 @@ func WebSocketMiddleware(handlerFunc func(*websocket.Conn, models.User)) gin.Han
 		authHeader := c.Query("token")
 
 		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token is required"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "api.auth.tokenIsRequired"})
 			return
 		}
 
 		claims, err := utils.ParseToken(authHeader)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "api.auth.invalidToken"})
 			return
 		}
 
 		users, err := utils.FindUsersByID(claims.ID)
 		if err != nil || len(users) == 0 {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "api.auth.userNotFound"})
 			return
 		}
 

@@ -26,7 +26,7 @@ func Login(context *gin.Context) {
 	// 查找用户
 	users, err := utils.FindUsersByEmail(request.Email)
 	if err != nil || len(users) == 0 {
-		loginError(context, "incorrectEmailOrPassword")
+		loginError(context, "api.courses.incorrectEmailOrPassword")
 		return
 	}
 
@@ -34,7 +34,7 @@ func Login(context *gin.Context) {
 
 	// 检查密码
 	if !utils.CheckPassword(request.Password, user.Password) {
-		loginError(context, "incorrectEmailOrPassword")
+		loginError(context, "api.courses.incorrectEmailOrPassword")
 		return
 	}
 
@@ -42,7 +42,7 @@ func Login(context *gin.Context) {
 	token, err := utils.GenerateToken(user.ID)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
-			"error":  "failedToGenerateToken",
+			"error":  "api.courses.failedToGenerateToken",
 			"detail": err.Error(),
 		})
 		return
@@ -53,7 +53,7 @@ func Login(context *gin.Context) {
 
 	// 返回成功响应
 	context.JSON(http.StatusOK, gin.H{
-		"message": "loginSuccessfully",
+		"message": "api.courses.loginSuccessfully",
 		"token":   token,
 	})
 }

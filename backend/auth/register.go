@@ -35,7 +35,7 @@ func Register(context *gin.Context) {
 
 	// 验证邮箱格式
 	if !utils.IsValidEmail(request.Email) {
-		registerError(context, "invalidEmailAddress", "")
+		registerError(context, "api.auth.invalidEmailAddress", "")
 		return
 	}
 
@@ -43,14 +43,14 @@ func Register(context *gin.Context) {
 	users, err := utils.FindUsersByEmail(request.Email)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
-			"error":  "failedToCheckEmail",
+			"error":  "api.auth.failedToCheckEmail",
 			"detail": err.Error(),
 		})
 		return
 	}
 
 	if len(users) != 0 {
-		registerError(context, "emailAlreadyRegistered", "")
+		registerError(context, "api.auth.emailAlreadyRegistered", "")
 		return
 	}
 
@@ -63,7 +63,7 @@ func Register(context *gin.Context) {
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
-			"error":  "failedToEncryptPassword",
+			"error":  "api.auth.failedToEncryptPassword",
 			"detail": err.Error(),
 		})
 		return
@@ -75,7 +75,7 @@ func Register(context *gin.Context) {
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
-			"error":  "failedToGenerateVerificationToken",
+			"error":  "api.auth.failedToGenerateVerificationToken",
 			"detail": err.Error(),
 		})
 		return

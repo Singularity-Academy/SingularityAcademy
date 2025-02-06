@@ -15,7 +15,7 @@ func Materials(context *gin.Context) {
 	file, err := context.FormFile("materials")
 	if err != nil {
 		fmt.Println("upload")
-		context.JSON(http.StatusBadRequest, gin.H{"error": "failedToUploadFile", "detail": err.Error()})
+		context.JSON(http.StatusBadRequest, gin.H{"error": "api.courses.failedToUploadFile", "detail": err.Error()})
 		return
 	}
 
@@ -24,7 +24,7 @@ func Materials(context *gin.Context) {
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		err := os.MkdirAll(dir, os.ModePerm)
 		if err != nil {
-			context.JSON(http.StatusInternalServerError, gin.H{"error": "failedToCreateFolder", "detail": err.Error()})
+			context.JSON(http.StatusInternalServerError, gin.H{"error": "api.courses.failedToCreateFolder", "detail": err.Error()})
 			return
 		}
 	}
@@ -34,7 +34,7 @@ func Materials(context *gin.Context) {
 	// 保存文件到服务器
 	filePath := filepath.Join(dir, strconv.FormatUint(user.(models.User).ID, 10)+"$"+file.Filename)
 	if err := context.SaveUploadedFile(file, filePath); err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{"error": "failedToSaveFolder", "detail": err.Error()})
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "api.courses.failedToSaveFolder", "detail": err.Error()})
 		return
 	}
 

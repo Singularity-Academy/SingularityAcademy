@@ -35,7 +35,7 @@ export default axiosInstance;
 
 export function getToastMessage(error: AxiosError<ErrorResponse>) {
     const message: { title: string; description: string; status: 'info' | 'warning' | 'success' | 'error' | 'loading'; duration: number } = {
-        title: t(`api.auth.${error.response?.data?.error || "loginFailed"}`),
+        title: t(error.response?.data?.error || "api.common.requestFailed"),
         description: '',
         status: 'error',
         duration: 3000,
