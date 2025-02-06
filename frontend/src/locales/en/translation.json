@@ -90,5 +90,17 @@
     "wellcomeBack": "Welcome Back",
     "doNotHaveAnAccount": "Don't have an account?"
   },
-  "loginFailed": "loginFailed"
+  "loginFailed": "loginFailed",
+  "PrincipalAI": {
+    "title": "Principal AI Advisor",
+    "name": "Principal AI",
+    "you": "You",
+    "placeholder": "Describe your learning goals...",
+    "response": "Understood! Let's build your path to achieve: {goal}. Here's your customized study plan:",
+    "studyPlan": "Your Learning Path",
+    "physics": "Fundamental Physics",
+    "mathematics": "Advanced Mathematics",
+    "engineering": "Engineering Principles",
+    "computerScience": "Computer Science Basics"
+  }
 }

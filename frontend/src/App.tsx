@@ -11,6 +11,7 @@ import CourseInteractionPage from './pages/course/CourseInteractionPage';
 import VerifyPage from './pages/auth/VerifyPage';
 import { useTranslation } from 'react-i18next';
 import Footer from './components/Footer';
+import PrincipalAIPage from './pages/PrincipalAIPage';
 
 const App: React.FC = () => {
   const { i18n } = useTranslation();
@@ -37,6 +38,7 @@ const App: React.FC = () => {
             <Route path="*" element={<Navigate to="/" replace />} />
             <Route path="/course/interaction" element={<CourseInteractionPage />} />
             <Route path="/auth/verify" element={<VerifyPage />} />
+            <Route path="/principal-ai" element={<PrincipalAIPage />} />
           </Routes>
           <Footer />
         </Router>
