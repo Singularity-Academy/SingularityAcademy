@@ -50,7 +50,7 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
-      <><Navbar/><Container maxW="container.sm" py={10} mt={16}>
+      <Container maxW="container.sm" py={10} mt={16}>
         <VStack spacing={8}>
           <Heading>{ t('RegisterPage.createAccount') }</Heading>
           <Box w="100%" p={8} borderWidth={1} borderRadius="lg" boxShadow="lg">
@@ -142,7 +142,7 @@ const RegisterPage: React.FC = () => {
             </Link>
           </Text>
         </VStack>
-      </Container></>
+      </Container>
   );
 }; // End of RegisterPage component
 

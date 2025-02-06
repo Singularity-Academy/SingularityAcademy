@@ -46,7 +46,6 @@ useEffect(() => {
 
   return (
       <Box bg={bgColor} minH="100vh">
-        <Navbar />
         <Container maxW="container.xl" py={20} mt={16}>
           <VStack spacing={10} align="center">
             {loading ? (

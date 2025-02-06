@@ -307,7 +307,7 @@ const CourseInteractionPage: React.FC = () => {
 
   const handleFileUpload = async (acceptedFiles: File[]) => {
     const formData = new FormData();
-    
+
     acceptedFiles.forEach(file => {
       formData.append('materials', file);
       setUploadingFiles(prev => [...prev, file]);
@@ -317,7 +317,7 @@ const CourseInteractionPage: React.FC = () => {
       const response = await axiosInstance.post(API_ENDPOINTS.COURSE.MATERIALS, formData, {
         onUploadProgress: (progressEvent) => {
           const percentCompleted = Math.round(
-            (progressEvent.loaded * 100) / (progressEvent.total || 1)
+              (progressEvent.loaded * 100) / (progressEvent.total || 1)
           );
           setUploadProgress(prev => ({
             ...prev,
@@ -367,8 +367,7 @@ const CourseInteractionPage: React.FC = () => {
     maxSize: 100 * 1024 * 1024 // 100MB
   });
 
-  return (
-      <><Navbar/><Box bg={bgColor} minH="100vh" p={4} mt={16}>
+  return (<Box bg={bgColor} minH="100vh" p={4} mt={16}>
         <Container maxW="container.xl">
           <Flex direction={{base: 'column', lg: 'row'}} gap={6}>
             {/* Main Video Area */}
@@ -538,7 +537,7 @@ const CourseInteractionPage: React.FC = () => {
             </VStack>
           </Flex>
         </Container>
-      </Box></>
+      </Box>
   );
 };
 

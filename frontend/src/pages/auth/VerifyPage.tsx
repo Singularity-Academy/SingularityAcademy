@@ -79,7 +79,7 @@ const VerifyPage: React.FC = () => {
   }, [searchParams, toast]);
 
   return (
-      <><Navbar/><Container maxW="container.md" py={20} mt={16}>
+      <Container maxW="container.md" py={20} mt={16}>
         <motion.div initial="initial" animate="animate" variants={fadeIn}>
           <VStack spacing={12} align="center">
             <Box w="100%" p={8} borderWidth={1} borderRadius="lg" boxShadow="lg">
@@ -200,7 +200,7 @@ const VerifyPage: React.FC = () => {
             )}
           </VStack>
         </motion.div>
-      </Container></>
+      </Container>
   );
 };
 
