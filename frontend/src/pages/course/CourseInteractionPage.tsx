@@ -21,6 +21,7 @@ import Navbar from "@components/Navbar";
 import {useNavigate} from "react-router-dom";
 import { FaFileUpload, FaLink } from 'react-icons/fa';
 import { useDropzone } from 'react-dropzone';
+import { w3cwebsocket as W3CWebSocket } from "websocket";
 
 declare class ImageCapture {
   constructor(track: MediaStreamTrack);
@@ -232,27 +233,73 @@ const CourseInteractionPage: React.FC = () => {
     }
   };
 
-  // AI Chat function
-  const handleSubmit = async () => {
+  // Declare a new Ref for the Dean AI WebSocket
+  const deanAIWebSocketRef = useRef<WebSocket | null>(null);
+  const userId = Cookies.get('user_id');
+
+  // Establish WebSocket connection to Dean AI Agent
+  useEffect(() => {
+    deanAIWebSocketRef.current = new WebSocket(`ws://localhost:8000/ws/dean_ai/${userId}`);
+
+    deanAIWebSocketRef.current.onopen = () => {
+      console.log('Dean AI WebSocket connected');
+    };
+
+    deanAIWebSocketRef.current.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      const aiMessage = { role: 'assistant', content: data.message };
+      setMessages(prev => [...prev, aiMessage]);
+
+      // 如果有 manim_script，可以在前端显示或发送到后端处理
+      if (data.manim_script) {
+        // 处理 manim_script，例如发送到后端渲染
+      }
+
+      // 如果有 notes，可以显示给用户
+      if (data.notes) {
+        // 显示 notes，例如更新一个笔记区域
+      }
+
+      // Use Web Speech API to read the message aloud
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(data.message);
+        window.speechSynthesis.speak(utterance);
+      } else {
+        console.warn('Speech Synthesis not supported in this browser.');
+      }
+    };
+
+    deanAIWebSocketRef.current.onclose = () => {
+      console.log('Dean AI WebSocket disconnected');
+    };
+
+    deanAIWebSocketRef.current.onerror = (error) => {
+      console.log('Dean AI WebSocket error:', error);
+    };
+
+    // Clean up function
+    return () => {
+      if (deanAIWebSocketRef.current) {
+        deanAIWebSocketRef.current.close();
+      }
+    };
+  }, []);
+
+  // Modify the handleSubmit function to send messages via WebSocket
+  const handleSubmit = () => {
     if (!inputValue.trim()) return;
 
     const userMessage = { role: 'user', content: inputValue.trim() };
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
 
-    try {
-      const response = await axiosInstance.post(API_ENDPOINTS.COURSE.INTERACT, {
-        messages: [...messages, userMessage],
-      });
-
-      setMessages(prev => [
-        ...prev,
-        { role: 'assistant', content: response.data.content },
-      ]);
-    } catch (error) {
+    // Send the message via WebSocket
+    if (deanAIWebSocketRef.current && deanAIWebSocketRef.current.readyState === WebSocket.OPEN) {
+      deanAIWebSocketRef.current.send(inputValue.trim());
+    } else {
       toast({
         title: 'Error',
-        description: 'Failed to get AI response',
+        description: 'WebSocket is not connected.',
         status: 'error',
         duration: 3000,
       });

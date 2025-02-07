@@ -9,6 +9,7 @@ import (
 	"backend/middlewares"
 	"backend/models"
 	"backend/ws"
+	"backend/controllers"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -47,6 +48,7 @@ func main() {
 	r.GET("/api/info/:id", info.Info)
 	r.POST("/api/courses/materials", middlewares.JwtMiddleware(), courses.Materials)
 	r.GET("/api/ws/stream", middlewares.WebSocketMiddleware(ws.VideoHandler))
+	r.GET("/api/users/:userId/materials", controllers.GetUserMaterials)
 	if err := r.Run(":8080"); err != nil {
 		log.Fatal("Server failed to start: ", err)
 	}
