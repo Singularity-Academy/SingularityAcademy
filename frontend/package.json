@@ -29,6 +29,7 @@
     "tsparticles": "^3.8.1",
     "typescript": "^4.9.5",
     "web-vitals": "^3.0.0",
+    "websocket": "^1.0.35",
     "zustand": "^4.4.0"
   },
   "devDependencies": {
@@ -42,6 +43,7 @@
     "@types/react-dom": "^18.0.11",
     "@types/socket.io-client": "^1.4.36",
     "@types/testing-library__jest-dom": "^5.14.5",
+    "@types/websocket": "^1.0.10",
     "install": "^0.13.0"
   },
   "scripts": {

@@ -3,19 +3,24 @@ from agents.dean_ai_agent import DeanAIAgent
 import os
 import json
 
+from ai_engine.go_backend.user import User
+
 app = FastAPI()
 
 # Path where the Go backend saves uploaded files
-UPLOADS_FOLDER = '../uploads/'  # Adjust the path if necessary
+UPLOADS_FOLDER = '../materials/'  # Adjust the path if necessary
 
 @app.get("/")
 async def root():
     return {"message": "AI Engine is running."}
 
-@app.websocket("/ws/dean_ai/{user_id}")
-async def dean_ai_endpoint(websocket: WebSocket, user_id: int):
+@app.websocket("/ws/dean_ai/{token}")
+async def dean_ai_endpoint(websocket: WebSocket, token: str):
+    material = websocket.query_params.get("material", "")
+    if material == "":
+        return
     await websocket.accept()
-    agent = DeanAIAgent(user_id)
+    agent = DeanAIAgent(User(token).ID, material)
     try:
         while True:
             data = await websocket.receive_text()
@@ -23,4 +28,4 @@ async def dean_ai_endpoint(websocket: WebSocket, user_id: int):
             response = agent.handle_user_input(data)
             await websocket.send_text(json.dumps(response))
     except WebSocketDisconnect:
-        print("Client disconnected.") 
+        print("Client disconnected.")

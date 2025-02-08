@@ -68,7 +68,7 @@ const LearningPage: React.FC = () => {
   return (
     <Box bg={bgColor} minH="100vh" display="flex">
       {/* Sidebar */}
-      <Box width="250px" bg={cardBg} p={5} boxShadow="md" mt={16}>
+      <Box width="250px" bg={cardBg} p={5} boxShadow="md" >
         <VStack spacing={5} align="start">
           <Heading size="md" color="blue.500">Navigation</Heading>
           <Button

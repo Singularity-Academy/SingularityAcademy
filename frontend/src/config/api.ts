@@ -1,5 +1,6 @@
 // 配置 API 和 Websocket 的基本 URL
 const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+const WS_BASE_URL = process.env.REACT_APP_WS_URL || '/api/ws';
 
 // API 接口路径
 export const API_ENDPOINTS = {
@@ -17,7 +18,7 @@ export const API_ENDPOINTS = {
     MATERIALS: `/courses/materials`
   },
   WS: {
-    STREAM: `${API_BASE_URL}/ws/stream`
+    STREAM: `${WS_BASE_URL}/stream`
   }
 };
 

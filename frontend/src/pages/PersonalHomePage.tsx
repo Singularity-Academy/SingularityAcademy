@@ -46,7 +46,7 @@ useEffect(() => {
 
   return (
       <Box bg={bgColor} minH="100vh">
-        <Container maxW="container.xl" py={20} mt={16}>
+        <Container maxW="container.xl" py={20}>
           <VStack spacing={10} align="center">
             {loading ? (
                 <Spinner size="xl" />

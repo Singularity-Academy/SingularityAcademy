@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ChakraProvider, CSSReset } from '@chakra-ui/react';
+import {Box, ChakraProvider, CSSReset} from '@chakra-ui/react';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import HomePage from './pages/HomePage';
@@ -31,17 +31,19 @@ const App: React.FC = () => {
       >
         <Router>
           <Navbar />
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path='/homepage' element={<PersonalHomePage />} />
-            <Route path='/me/homepage' element={<LearningPage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-            <Route path="/course/interaction" element={<CourseInteractionPage />} />
-            <Route path="/auth/verify" element={<VerifyPage />} />
-            <Route path="/principal-ai" element={<PrincipalAIPage />} />
-          </Routes>
+            <Box mt={16}>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path='/homepage' element={<PersonalHomePage />} />
+                <Route path='/me/homepage' element={<LearningPage />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+                <Route path="/course/interaction" element={<CourseInteractionPage />} />
+                <Route path="/auth/verify" element={<VerifyPage />} />
+                <Route path="/principal-ai" element={<PrincipalAIPage />} />
+              </Routes>
+            </Box>
           <Footer />
         </Router>
       </div>

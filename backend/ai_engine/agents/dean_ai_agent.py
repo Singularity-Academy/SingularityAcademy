@@ -1,30 +1,33 @@
 import os
 import requests  # 新增导入
 import json      # 新增导入
-from langchain.llms import OpenAI
+from langchain_community.llms import OpenAI
 from langchain.chains import ConversationChain
 from typing import List, Dict
 
 class DeanAIAgent:
-    def __init__(self, user_id: int):
+    def __init__(self, user_id: int, material: str):
         self.user_id = user_id
+        self.material = material
         self.llm = OpenAI(model_name='gpt-4', temperature=0.7)
         self.conversation = ConversationChain(llm=self.llm)
         self.chunks = []
         self.course_material = ""
 
     def fetch_uploaded_files(self) -> str:
-        # 从后端 API 获取用户上传的文件内容
-        response = requests.get(f"http://localhost:8080/api/users/{self.user_id}/materials")
-        if response.status_code == 200:
-            files_data = response.json().get('files', [])
-            content = ""
-            for file_info in files_data:
-                file_content = file_info.get('content', '')
-                content += file_content + "\n\n"
-            return content
-        else:
+        # 检测文件名是否以用户id+'$'开头
+        if not self.material.startswith(str(self.user_id) + "$"):
             return ""
+        # 检测文件是否位于../materials中
+        if not os.path.abspath(os.path.join('../materials', self.material)).startswith(os.path.abspath('../materials')):
+            return ""
+        # 检测文件是否存在
+        if not os.path.isfile(os.path.join('../materials', self.material)):
+            return ""
+        # 从文件夹中获取用户请求的材料
+        with open(os.path.join('../materials', self.material)) as material:
+            return material.read()
+
 
     def generate_study_plan(self) -> List[Dict]:
         # 获取课程材料

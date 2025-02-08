@@ -2,9 +2,11 @@
 <module version="4">
   <component name="Go" enabled="true" />
   <component name="NewModuleRootManager">
-    <content url="file://$MODULE_DIR$/backend" />
+    <content url="file://$MODULE_DIR$/backend">
+      <excludeFolder url="file://$MODULE_DIR$/backend/.venv" />
+    </content>
     <content url="file://$MODULE_DIR$/frontend" />
-    <orderEntry type="jdk" jdkName="Python 3.12" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.12 (backend)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>

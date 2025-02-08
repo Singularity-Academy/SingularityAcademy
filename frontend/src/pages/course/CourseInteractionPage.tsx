@@ -17,7 +17,6 @@ import { ViewIcon, ViewOffIcon, SmallCloseIcon } from '@chakra-ui/icons';
 import axiosInstance from '@utils/axios';
 import { API_ENDPOINTS } from '@/config/api';
 import Cookies from "js-cookie";
-import Navbar from "@components/Navbar";
 import {useNavigate} from "react-router-dom";
 import { FaFileUpload, FaLink } from 'react-icons/fa';
 import { useDropzone } from 'react-dropzone';
@@ -49,6 +48,8 @@ const CourseInteractionPage: React.FC = () => {
 
   const bgColor = useColorModeValue('gray.50', 'gray.900');
   const cardBg = useColorModeValue('white', 'gray.700');
+  const chatUserBg = useColorModeValue('blue.50', 'blue.500');
+  const chatTeacherBg = useColorModeValue('gray.50', 'gray.500');
 
   const [uploadingFiles, setUploadingFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
@@ -235,11 +236,11 @@ const CourseInteractionPage: React.FC = () => {
 
   // Declare a new Ref for the Dean AI WebSocket
   const deanAIWebSocketRef = useRef<WebSocket | null>(null);
-  const userId = Cookies.get('user_id');
+  const userId = Cookies.get('token');
 
   // Establish WebSocket connection to Dean AI Agent
   useEffect(() => {
-    deanAIWebSocketRef.current = new WebSocket(`ws://localhost:8000/ws/dean_ai/${userId}`);
+    deanAIWebSocketRef.current = new WebSocket(`${API_ENDPOINTS.WS.STREAM}?token=${Cookies.get('token')}`);
 
     deanAIWebSocketRef.current.onopen = () => {
       console.log('Dean AI WebSocket connected');
@@ -414,11 +415,11 @@ const CourseInteractionPage: React.FC = () => {
     maxSize: 100 * 1024 * 1024 // 100MB
   });
 
-  return (<Box bg={bgColor} minH="100vh" p={4} mt={16}>
+  return (<Box bg={bgColor} minH="100vh" p={4}>
         <Container maxW="container.xl">
           <Flex direction={{base: 'column', lg: 'row'}} gap={6}>
             {/* Main Video Area */}
-            <Box flex="2" ref={videoAreaRef} bg={cardBg} borderRadius="lg" p={4} position="relative">
+            <Box flex="2" ref={videoAreaRef} bg={cardBg} borderRadius="lg" p={4} position="relative" >
               <Box
                   bg="gray.800"
                   h="500px"
@@ -498,7 +499,7 @@ const CourseInteractionPage: React.FC = () => {
                   </Button>
                   
                   {resourceLinks.map((link, index) => (
-                    <Flex key={index} align="center" p={2} bg="gray.50" borderRadius="md">
+                    <Flex key={index} align="center" p={2} bg={ bgColor } borderRadius="md">
                       <Text fontSize="sm" isTruncated flex={1}>{link}</Text>
                       <IconButton
                         aria-label="Remove link"
@@ -556,7 +557,7 @@ const CourseInteractionPage: React.FC = () => {
                   {messages.map((msg, index) => (
                       <Box
                           key={index}
-                          bg={msg.role === 'user' ? 'blue.50' : 'gray.50'}
+                          bg={msg.role === 'user' ? chatUserBg : chatTeacherBg}
                           p={3}
                           borderRadius="md"
                       >
