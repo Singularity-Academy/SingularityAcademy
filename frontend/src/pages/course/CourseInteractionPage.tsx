@@ -15,7 +15,7 @@ import {
 } from '@chakra-ui/react';
 import { ViewIcon, ViewOffIcon, SmallCloseIcon } from '@chakra-ui/icons';
 import axiosInstance from '@utils/axios';
-import { API_ENDPOINTS } from '@/config/api';
+import {AI_ENDPOINTS, API_ENDPOINTS} from '@/config/api';
 import Cookies from "js-cookie";
 import {useNavigate} from "react-router-dom";
 import { FaFileUpload, FaLink } from 'react-icons/fa';
@@ -45,6 +45,7 @@ const CourseInteractionPage: React.FC = () => {
   const toast = useToast();
   const navigate = useNavigate();
   const wsRef = useRef<WebSocket | null>(null);
+  const materialRef = useRef<string>("");
 
   const bgColor = useColorModeValue('gray.50', 'gray.900');
   const cardBg = useColorModeValue('white', 'gray.700');
@@ -116,7 +117,7 @@ const CourseInteractionPage: React.FC = () => {
     startVideo();
     startAudio();
     setConnecting(true);
-    const ws = new WebSocket(`${API_ENDPOINTS.WS.STREAM}?token=${Cookies.get('token') || ''}`);
+    const ws = new WebSocket(AI_ENDPOINTS.DEAN_AI(Cookies.get('token') || "token", materialRef.current));
 
     ws.onopen = () => {
       toast({
@@ -144,9 +145,8 @@ const CourseInteractionPage: React.FC = () => {
           duration: 3000,
         });
       }
-      setRecording(false);
-      setConnecting(false);
       websocketRef.current = null; // 清空 WebSocket 实例
+      disconnectWebSocket()
     };
 
     websocketRef.current = ws;
@@ -154,13 +154,14 @@ const CourseInteractionPage: React.FC = () => {
 
   // 断开 WebSocket
   const disconnectWebSocket = () => {
+    console.log('disconnectWebSocket');
+    stopVideo()
+    stopAudio();
+    setRecording(false);
+    setConnecting(false);
     if (websocketRef.current) {
-      stopVideo()
-      stopAudio();
       websocketRef.current.close(1000);
       websocketRef.current = null;
-      setRecording(false);
-      setConnecting(false);
     }
   };
 
@@ -240,7 +241,7 @@ const CourseInteractionPage: React.FC = () => {
 
   // Establish WebSocket connection to Dean AI Agent
   useEffect(() => {
-    deanAIWebSocketRef.current = new WebSocket(`${API_ENDPOINTS.WS.STREAM}?token=${Cookies.get('token')}`);
+    deanAIWebSocketRef.current = new WebSocket(AI_ENDPOINTS.DEAN_AI(Cookies.get('token') || "token", materialRef.current));
 
     deanAIWebSocketRef.current.onopen = () => {
       console.log('Dean AI WebSocket connected');
@@ -325,6 +326,7 @@ const CourseInteractionPage: React.FC = () => {
 
   useEffect(() => {
     const intervalId = setInterval(async () => {
+      if (!recording) clearInterval(intervalId);
       if (!videoStream) return;
 
       const videoTrack = videoStream.getVideoTracks()[0];
@@ -373,6 +375,8 @@ const CourseInteractionPage: React.FC = () => {
           }));
         }
       });
+
+      materialRef.current = response.data?.file
 
       toast({
         title: 'Upload successful',

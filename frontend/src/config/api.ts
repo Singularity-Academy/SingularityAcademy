@@ -1,6 +1,6 @@
 // 配置 API 和 Websocket 的基本 URL
 const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
-const WS_BASE_URL = process.env.REACT_APP_WS_URL || '/api/ws';
+const AI_BASE_URL = process.env.REACT_APP_WS_URL || '/ai';
 
 // API 接口路径
 export const API_ENDPOINTS = {
@@ -17,10 +17,11 @@ export const API_ENDPOINTS = {
     INTERACT: `/courses/interact`,
     MATERIALS: `/courses/materials`
   },
-  WS: {
-    STREAM: `${WS_BASE_URL}/stream`
-  }
 };
+
+export const AI_ENDPOINTS = {
+  DEAN_AI: (token: string, material: string) => `/ai/dean_ai/${token}?material=${material}`,
+}
 
 // Axios 配置
 export const axiosConfig = {

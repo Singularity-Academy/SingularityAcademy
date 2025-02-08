@@ -1,4 +1,4 @@
 fastapi
 uvicorn
-langchain
+langchain_community
 openai 

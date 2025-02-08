@@ -14,11 +14,9 @@ UPLOADS_FOLDER = '../materials/'  # Adjust the path if necessary
 async def root():
     return {"message": "AI Engine is running."}
 
-@app.websocket("/ws/dean_ai/{token}")
+@app.websocket("/ai/dean_ai/{token}")
 async def dean_ai_endpoint(websocket: WebSocket, token: str):
     material = websocket.query_params.get("material", "")
-    if material == "":
-        return
     await websocket.accept()
     agent = DeanAIAgent(User(token).ID, material)
     try:
