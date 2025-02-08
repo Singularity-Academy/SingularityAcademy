@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import requests
 
 
-@dataclass(init=False)
+@dataclass()
 class User:
     ID: int
     Username: str

@@ -17,8 +17,13 @@ async def root():
 @app.websocket("/ai/dean_ai/{token}")
 async def dean_ai_endpoint(websocket: WebSocket, token: str):
     material = websocket.query_params.get("material", "")
+    try:
+        agent = DeanAIAgent(User(token).ID, material)
+    except RuntimeError as error:
+        return
+
     await websocket.accept()
-    agent = DeanAIAgent(User(token).ID, material)
+
     try:
         while True:
             data = await websocket.receive_text()
