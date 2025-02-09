@@ -1,3 +1,5 @@
+import asyncio
+
 import pydantic_core
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from agents.dean_ai_agent import DeanAIAgent
@@ -27,13 +29,22 @@ async def dean_ai_endpoint(websocket: WebSocket, token: str):
     await websocket.accept()
 
     try:
+        study_plan = await agent.generate_study_plan()
+        if study_plan == {}:
+            await websocket.send_text("{\"message\": \"服务器繁忙。\"}")
+        else:
+            await websocket.send_text(json.dumps(study_plan))
         while True:
             try:
                 data = await websocket.receive_text()
             except KeyError:
                 continue
             # Handle user input
-            response = agent.handle_user_input(data)
+            try:
+                response = agent.handle_user_input(data)
+            except json.decoder.JSONDecodeError:
+                await websocket.send_text("{\"message\": \"服务器繁忙。\"}")
+                continue
             await websocket.send_text(json.dumps(response))
     except WebSocketDisconnect:
         print("Client disconnected.")

@@ -1,3 +1,4 @@
+import asyncio
 import os
 import requests  # 新增导入
 import json      # 新增导入
@@ -35,7 +36,7 @@ class DeanAIAgent:
         return DocReader(os.path.join('../materials', self.material)).read()
 
 
-    def generate_study_plan(self) -> List[Dict]:
+    async def generate_study_plan(self) -> Dict:
         # 获取课程材料
         self.course_material = self.fetch_uploaded_files()
 
@@ -50,18 +51,20 @@ class DeanAIAgent:
 1. 用于执行 Manim 的 Python 脚本 (`manim_script`)
 2. 要对学生说的话 (`message`)
 3. 文字笔记 (`notes`)
-请以 JSON 格式返回一个包含 `manim_script`、`message` 和 `notes` 键的对象列表。
+请以 JSON 格式返回一个包含 `manim_script`、`message` 和 `notes` 键的对象列表,不要返回除此以外的任何内容。
 """
-
-        response = self.handle_user_input(prompt)
-        print(response)
+        try:
+            response = await self.handle_user_input_async(prompt)
+        except json.decoder.JSONDecodeError:
+            return {}
+        print(response.lstrip("```json").rstrip("```"))
         # 将响应解析为 JSON 对象列表
         try:
-            chunks = json.loads(response)
+            self.chunks = json.loads(response.lstrip("```json").rstrip("```"))[1:]
         except json.JSONDecodeError:
             # 如果解析失败，返回空列表
-            chunks = []
-        return chunks
+            self.chunks = [{}]
+        return self.chunks[0]
 
     def get_next_chunk(self) -> Dict:
         if self.chunks:
@@ -83,4 +86,7 @@ class DeanAIAgent:
         else:
             # 继续对话
             response = self.conversation.predict(input=user_input)
-            return {"message": response} 
+            return {"message": response}
+
+    async def handle_user_input_async(self, user_input: str) -> str:
+        return await asyncio.to_thread(self.conversation.predict, input=user_input)
