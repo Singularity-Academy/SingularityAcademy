@@ -120,6 +120,7 @@ const CourseInteractionPage: React.FC = () => {
     const ws = new WebSocket(AI_ENDPOINTS.DEAN_AI(Cookies.get('token') || "token", materialRef.current));
 
     ws.onopen = () => {
+      console.log('Dean AI WebSocket connected');
       toast({
         title: 'connect successful',
         status: 'success',
@@ -128,6 +129,29 @@ const CourseInteractionPage: React.FC = () => {
       setConnecting(false);
       setRecording(true);
     };
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      const aiMessage = { role: 'assistant', content: data.message };
+      setMessages(prev => [...prev, aiMessage]);
+
+      // 如果有 manim_script，可以在前端显示或发送到后端处理
+      if (data.manim_script) {
+        // 处理 manim_script，例如发送到后端渲染
+      }
+
+      // 如果有 notes，可以显示给用户
+      if (data.notes) {
+        // 显示 notes，例如更新一个笔记区域
+      }
+
+      // Use Web Speech API to read the message aloud
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(data.message);
+        window.speechSynthesis.speak(utterance);
+      } else {
+        console.warn('Speech Synthesis not supported in this browser.');
+      }
+    }
 
     ws.onclose = (closeEvent) => {
       if (closeEvent.code != 1000){
@@ -235,58 +259,6 @@ const CourseInteractionPage: React.FC = () => {
     }
   };
 
-  // Declare a new Ref for the Dean AI WebSocket
-  const deanAIWebSocketRef = useRef<WebSocket | null>(null);
-  const userId = Cookies.get('token');
-
-  // Establish WebSocket connection to Dean AI Agent
-  useEffect(() => {
-    deanAIWebSocketRef.current = new WebSocket(AI_ENDPOINTS.DEAN_AI(Cookies.get('token') || "token", materialRef.current));
-
-    deanAIWebSocketRef.current.onopen = () => {
-      console.log('Dean AI WebSocket connected');
-    };
-
-    deanAIWebSocketRef.current.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      const aiMessage = { role: 'assistant', content: data.message };
-      setMessages(prev => [...prev, aiMessage]);
-
-      // 如果有 manim_script，可以在前端显示或发送到后端处理
-      if (data.manim_script) {
-        // 处理 manim_script，例如发送到后端渲染
-      }
-
-      // 如果有 notes，可以显示给用户
-      if (data.notes) {
-        // 显示 notes，例如更新一个笔记区域
-      }
-
-      // Use Web Speech API to read the message aloud
-      if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(data.message);
-        window.speechSynthesis.speak(utterance);
-      } else {
-        console.warn('Speech Synthesis not supported in this browser.');
-      }
-    };
-
-    deanAIWebSocketRef.current.onclose = () => {
-      console.log('Dean AI WebSocket disconnected');
-    };
-
-    deanAIWebSocketRef.current.onerror = (error) => {
-      console.log('Dean AI WebSocket error:', error);
-    };
-
-    // Clean up function
-    return () => {
-      if (deanAIWebSocketRef.current) {
-        deanAIWebSocketRef.current.close();
-      }
-    };
-  }, []);
-
   // Modify the handleSubmit function to send messages via WebSocket
   const handleSubmit = () => {
     if (!inputValue.trim()) return;
@@ -296,8 +268,8 @@ const CourseInteractionPage: React.FC = () => {
     setInputValue('');
 
     // Send the message via WebSocket
-    if (deanAIWebSocketRef.current && deanAIWebSocketRef.current.readyState === WebSocket.OPEN) {
-      deanAIWebSocketRef.current.send(inputValue.trim());
+    if (websocketRef.current && websocketRef.current.readyState === WebSocket.OPEN) {
+      websocketRef.current.send(inputValue.trim());
     } else {
       toast({
         title: 'Error',

@@ -1,15 +1,22 @@
 import os
 import requests  # 新增导入
 import json      # 新增导入
-from langchain_community.llms import OpenAI
+
+from langchain_community.chat_models import ChatOpenAI
 from langchain.chains import ConversationChain
 from typing import List, Dict
+
+from langchain_core.messages import BaseMessage
+
+from backend.ai_engine.config.config import get_config
+from backend.ai_engine.docreader.docreader import DocReader
+
 
 class DeanAIAgent:
     def __init__(self, user_id: int, material: str):
         self.user_id = user_id
         self.material = material
-        self.llm = OpenAI(model_name='gpt-4', temperature=0.7)
+        self.llm = ChatOpenAI(**get_config())
         self.conversation = ConversationChain(llm=self.llm)
         self.chunks = []
         self.course_material = ""
@@ -25,8 +32,7 @@ class DeanAIAgent:
         if not os.path.isfile(os.path.join('../materials', self.material)):
             return ""
         # 从文件夹中获取用户请求的材料
-        with open(os.path.join('../materials', self.material)) as material:
-            return material.read()
+        return DocReader(os.path.join('../materials', self.material)).read()
 
 
     def generate_study_plan(self) -> List[Dict]:
@@ -47,7 +53,8 @@ class DeanAIAgent:
 请以 JSON 格式返回一个包含 `manim_script`、`message` 和 `notes` 键的对象列表。
 """
 
-        response = self.llm(prompt)
+        response = self.handle_user_input(prompt)
+        print(response)
         # 将响应解析为 JSON 对象列表
         try:
             chunks = json.loads(response)

@@ -5,3 +5,4 @@ package-lock.json
 qodana.yaml
 .gitignore
 backend/materials/*
+backend/ai_engine/config/config.json

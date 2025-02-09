@@ -1,9 +1,9 @@
+import pydantic_core
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from agents.dean_ai_agent import DeanAIAgent
-import os
 import json
 
-from ai_engine.go_backend.user import User
+from go_backend.user import User
 
 app = FastAPI()
 
@@ -20,13 +20,18 @@ async def dean_ai_endpoint(websocket: WebSocket, token: str):
     try:
         agent = DeanAIAgent(User(token).ID, material)
     except RuntimeError as error:
-        return
+        return str(error)
+    except pydantic_core._pydantic_core.ValidationError as error:
+        return str(error)
 
     await websocket.accept()
 
     try:
         while True:
-            data = await websocket.receive_text()
+            try:
+                data = await websocket.receive_text()
+            except KeyError:
+                continue
             # Handle user input
             response = agent.handle_user_input(data)
             await websocket.send_text(json.dumps(response))
