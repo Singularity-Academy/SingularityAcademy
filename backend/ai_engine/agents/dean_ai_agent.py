@@ -59,12 +59,15 @@ class DeanAIAgent:
             return {}
         print(response.lstrip("```json").rstrip("```"))
         # 将响应解析为 JSON 对象列表
+        first_chunk = {}
         try:
-            self.chunks = json.loads(response.lstrip("```json").rstrip("```"))[1:]
+            self.chunks = json.loads(response.lstrip("```json").rstrip("```"))
+            first_chunk = self.chunks[0]
+            self.chunks = self.chunks[1:]
         except json.JSONDecodeError:
             # 如果解析失败，返回空列表
             self.chunks = [{}]
-        return self.chunks[0]
+        return first_chunk
 
     def get_next_chunk(self) -> Dict:
         if self.chunks:
