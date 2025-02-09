@@ -28,13 +28,21 @@ async def dean_ai_endpoint(websocket: WebSocket, token: str):
 
     await websocket.accept()
 
-    try:
+    study_plan_event = asyncio.Event()
+
+    async def generate_study_plan():
         study_plan = await agent.generate_study_plan()
         if study_plan == {}:
             await websocket.send_text("{\"message\": \"服务器繁忙。\"}")
         else:
             await websocket.send_text(json.dumps(study_plan))
+        study_plan_event.set()
+
+    asyncio.create_task(generate_study_plan())
+
+    try:
         while True:
+            await study_plan_event.wait()
             try:
                 data = await websocket.receive_text()
             except KeyError:
