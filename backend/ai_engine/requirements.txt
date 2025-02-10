@@ -1,4 +1,11 @@
 fastapi
 uvicorn
 langchain_community
-openai 
+openai
+python-multipart
+python-docx
+PyMuPDF
+python-pptx
+requests
+websockets
+python-jose[cryptography] 

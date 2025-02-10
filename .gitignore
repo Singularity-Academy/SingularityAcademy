@@ -8,3 +8,5 @@ backend/materials/*
 backend/ai_engine/config/config.json
 backend/main.exe
 backend/ai_engine/_pycache_
+backend/ai_engine/venv
+backend/ai_engine/config.json
