@@ -8,4 +8,6 @@ PyMuPDF
 python-pptx
 requests
 websockets
-python-jose[cryptography] 
+python-jose[cryptography]
+pydantic
+langchain-core 

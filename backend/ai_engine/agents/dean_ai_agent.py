@@ -9,8 +9,8 @@ from typing import List, Dict
 
 from langchain_core.messages import BaseMessage
 
-from backend.ai_engine.config.config import get_config
-from backend.ai_engine.docreader.docreader import DocReader
+from config.config import get_config
+from docreader.docreader import DocReader
 
 
 class DeanAIAgent:
@@ -23,17 +23,21 @@ class DeanAIAgent:
         self.course_material = ""
 
     def fetch_uploaded_files(self) -> str:
+        # Update paths to use relative path from ai_engine directory
+        materials_path = 'materials'
+        file_path = os.path.join(materials_path, self.material)
+        
         # 检测文件名是否以用户id+'$'开头
         if not self.material.startswith(str(self.user_id) + "$"):
             return ""
-        # 检测文件是否位于../materials中
-        if not os.path.abspath(os.path.join('../materials', self.material)).startswith(os.path.abspath('../materials')):
+        # 检测文件是否位于materials中
+        if not os.path.abspath(file_path).startswith(os.path.abspath(materials_path)):
             return ""
         # 检测文件是否存在
-        if not os.path.isfile(os.path.join('../materials', self.material)):
+        if not os.path.isfile(file_path):
             return ""
         # 从文件夹中获取用户请求的材料
-        return DocReader(os.path.join('../materials', self.material)).read()
+        return DocReader(file_path).read()
 
 
     async def generate_study_plan(self) -> Dict:

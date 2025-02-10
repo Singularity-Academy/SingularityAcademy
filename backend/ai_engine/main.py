@@ -10,7 +10,7 @@ from go_backend.user import User
 app = FastAPI()
 
 # Path where the Go backend saves uploaded files
-UPLOADS_FOLDER = '../materials/'  # Adjust the path if necessary
+UPLOADS_FOLDER = 'materials/'
 
 @app.get("/")
 async def root():
