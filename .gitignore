@@ -10,3 +10,9 @@ backend/main.exe
 backend/ai_engine/_pycache_
 backend/ai_engine/venv
 backend/ai_engine/config.json
+backend/ai_engine/_pycache_
+backend/ai_engine/agents/_pycache_
+backend/ai_engine/config/_pycache_
+backend/ai_engine/docreader/_pycache_
+backend/ai_engine/go_backend/_pycache_
+
