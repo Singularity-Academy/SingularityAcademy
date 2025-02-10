@@ -6,3 +6,5 @@ qodana.yaml
 .gitignore
 backend/materials/*
 backend/ai_engine/config/config.json
+backend/main.exe
+backend/ai_engine/_pycache_
