@@ -1,0 +1,76 @@
+Date : 2025-02-11 17:26:21
+Directory : /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend
+Total : 28 files,  1585 codes, 103 comments, 261 blanks, all 1949 lines
+
+Languages
++------------------+------------+------------+------------+------------+------------+
+| language         | files      | code       | comment    | blank      | total      |
++------------------+------------+------------+------------+------------+------------+
+| Go               |         17 |        785 |         81 |        154 |      1,020 |
+| Markdown         |          1 |        231 |          0 |         55 |        286 |
+| Python           |          5 |        197 |         22 |         41 |        260 |
+| Go Checksum File |          1 |        149 |          0 |          1 |        150 |
+| HTML             |          1 |        137 |          0 |          5 |        142 |
+| Go Module File   |          1 |         59 |          0 |          5 |         64 |
+| YAML             |          1 |         14 |          0 |          0 |         14 |
+| pip requirements |          1 |         13 |          0 |          0 |         13 |
++------------------+------------+------------+------------+------------+------------+
+
+Directories
++--------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                         | files      | code       | comment    | blank      | total      |
++--------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                            |         28 |      1,585 |        103 |        261 |      1,949 |
+| . (Files)                                                                                                    |          4 |        483 |          5 |         68 |        556 |
+| ai_engine                                                                                                    |          6 |        210 |         22 |         41 |        273 |
+| ai_engine (Files)                                                                                            |          2 |         65 |          7 |         14 |         86 |
+| ai_engine/agents                                                                                             |          1 |         71 |         12 |         16 |         99 |
+| ai_engine/config                                                                                             |          1 |          5 |          0 |          2 |          7 |
+| ai_engine/docreader                                                                                          |          1 |         47 |          0 |          6 |         53 |
+| ai_engine/go_backend                                                                                         |          1 |         22 |          3 |          3 |         28 |
+| auth                                                                                                         |          4 |        168 |         16 |         41 |        225 |
+| config                                                                                                       |          5 |        287 |         23 |         32 |        342 |
+| controllers                                                                                                  |          1 |         41 |          3 |          6 |         50 |
+| courses                                                                                                      |          1 |         36 |          4 |          7 |         47 |
+| info                                                                                                         |          1 |         38 |          3 |          6 |         47 |
+| me                                                                                                           |          1 |         13 |          0 |          3 |         16 |
+| middlewares                                                                                                  |          1 |        103 |          9 |         19 |        131 |
+| models                                                                                                       |          1 |         11 |          0 |          3 |         14 |
+| utils                                                                                                        |          2 |        139 |          9 |         26 |        174 |
+| ws                                                                                                           |          1 |         56 |          9 |          9 |         74 |
++--------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++--------------------------------------------------------------------------------------------------------------+------------------+------------+------------+------------+------------+
+| filename                                                                                                     | language         | code       | comment    | blank      | total      |
++--------------------------------------------------------------------------------------------------------------+------------------+------------+------------+------------+------------+
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/README.md                         | Markdown         |        231 |          0 |         55 |        286 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/ai_engine/agents/dean_ai_agent.py | Python           |         71 |         12 |         16 |         99 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/ai_engine/config/config.py        | Python           |          5 |          0 |          2 |          7 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/ai_engine/docreader/docreader.py  | Python           |         47 |          0 |          6 |         53 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/ai_engine/go_backend/user.py      | Python           |         22 |          3 |          3 |         28 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/ai_engine/main.py                 | Python           |         52 |          7 |         14 |         73 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/ai_engine/requirements.txt        | pip requirements |         13 |          0 |          0 |         13 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/auth/auth.go                      | Go               |          6 |          0 |          3 |          9 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/auth/login.go                     | Go               |         42 |          7 |         11 |         60 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/auth/register.go                  | Go               |         77 |          9 |         15 |        101 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/auth/verify.go                    | Go               |         43 |          0 |         12 |         55 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/config/config.go                  | Go               |         14 |          1 |          4 |         19 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/config/config.yml                 | YAML             |         14 |          0 |          0 |         14 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/config/db.go                      | Go               |         26 |         11 |          7 |         44 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/config/email.go                   | Go               |         96 |         11 |         16 |        123 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/config/verifyEmail.html           | HTML             |        137 |          0 |          5 |        142 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/controllers/materials.go          | Go               |         41 |          3 |          6 |         50 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/courses/materials.go              | Go               |         36 |          4 |          7 |         47 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/go.mod                            | Go Module File   |         59 |          0 |          5 |         64 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/go.sum                            | Go Checksum File |        149 |          0 |          1 |        150 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/info/info.go                      | Go               |         38 |          3 |          6 |         47 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/main.go                           | Go               |         44 |          5 |          7 |         56 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/me/me.go                          | Go               |         13 |          0 |          3 |         16 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/middlewares/auth.go               | Go               |        103 |          9 |         19 |        131 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/models/user.go                    | Go               |         11 |          0 |          3 |         14 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/utils/auth.go                     | Go               |        122 |          6 |         22 |        150 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/utils/stream.go                   | Go               |         17 |          3 |          4 |         24 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/ws/stream.go                      | Go               |         56 |          9 |          9 |         74 |
+| Total                                                                                                        |                  |      1,585 |        103 |        261 |      1,949 |
++--------------------------------------------------------------------------------------------------------------+------------------+------------+------------+------------+------------+

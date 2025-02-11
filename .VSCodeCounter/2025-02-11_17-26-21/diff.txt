@@ -1,0 +1,149 @@
+Date : 2025-02-11 17:26:21
+Directory : /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend
+Total : 70 files,  -22182 codes, 17 comments, 8 blanks, all -22157 lines
+
+Languages
++--------------------+------------+------------+------------+------------+------------+
+| language           | files      | code       | comment    | blank      | total      |
++--------------------+------------+------------+------------+------------+------------+
+| Go                 |         17 |        785 |         81 |        154 |      1,020 |
+| Python             |          5 |        197 |         22 |         41 |        260 |
+| Markdown           |          2 |        193 |          0 |         22 |        215 |
+| Go Checksum File   |          1 |        149 |          0 |          1 |        150 |
+| HTML               |          2 |        117 |        -23 |          4 |         98 |
+| Go Module File     |          1 |         59 |          0 |          5 |         64 |
+| YAML               |          1 |         14 |          0 |          0 |         14 |
+| pip requirements   |          1 |         13 |          0 |          0 |         13 |
+| Log                |          1 |         -1 |          0 |         -1 |         -2 |
+| XML                |          1 |         -1 |          0 |          0 |         -1 |
+| JavaScript         |          2 |        -22 |          0 |         -2 |        -24 |
+| JSON with Comments |          1 |        -30 |          0 |          0 |        -30 |
+| CSS                |          3 |        -70 |          0 |        -10 |        -80 |
+| TypeScript         |          8 |       -229 |        -10 |        -26 |       -265 |
+| TypeScript JSX     |         14 |     -2,080 |        -53 |       -177 |     -2,310 |
+| JSON               |         10 |    -21,276 |          0 |         -3 |    -21,279 |
++--------------------+------------+------------+------------+------------+------------+
+
+Directories
++------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                                   | files      | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                      |         70 |    -22,182 |         17 |          8 |    -22,157 |
+| . (Files)                                                                                                              |          4 |        483 |          5 |         68 |        556 |
+| ..                                                                                                                     |         42 |    -23,767 |        -86 |       -253 |    -24,106 |
+| ../frontend                                                                                                            |         42 |    -23,767 |        -86 |       -253 |    -24,106 |
+| ../frontend (Files)                                                                                                    |          7 |    -20,624 |          0 |        -38 |    -20,662 |
+| ../frontend/public                                                                                                     |          2 |        -45 |        -23 |         -2 |        -70 |
+| ../frontend/src                                                                                                        |         33 |     -3,098 |        -63 |       -213 |     -3,374 |
+| ../frontend/src (Files)                                                                                                |         11 |       -233 |         -4 |        -25 |       -262 |
+| ../frontend/src/components                                                                                             |          2 |       -305 |         -6 |        -19 |       -330 |
+| ../frontend/src/config                                                                                                 |          1 |        -29 |         -4 |         -5 |        -38 |
+| ../frontend/src/i18n                                                                                                   |          1 |        -29 |          0 |         -2 |        -31 |
+| ../frontend/src/locales                                                                                                |          7 |       -718 |          0 |          0 |       -718 |
+| ../frontend/src/locales/ar                                                                                             |          1 |       -102 |          0 |          0 |       -102 |
+| ../frontend/src/locales/de                                                                                             |          1 |       -102 |          0 |          0 |       -102 |
+| ../frontend/src/locales/en                                                                                             |          1 |       -106 |          0 |          0 |       -106 |
+| ../frontend/src/locales/es                                                                                             |          1 |       -102 |          0 |          0 |       -102 |
+| ../frontend/src/locales/fr                                                                                             |          1 |       -102 |          0 |          0 |       -102 |
+| ../frontend/src/locales/ja                                                                                             |          1 |       -102 |          0 |          0 |       -102 |
+| ../frontend/src/locales/zh                                                                                             |          1 |       -102 |          0 |          0 |       -102 |
+| ../frontend/src/pages                                                                                                  |          9 |     -1,696 |        -47 |       -151 |     -1,894 |
+| ../frontend/src/pages (Files)                                                                                          |          4 |       -760 |        -16 |        -65 |       -841 |
+| ../frontend/src/pages/auth                                                                                             |          4 |       -452 |          0 |        -33 |       -485 |
+| ../frontend/src/pages/course                                                                                           |          1 |       -484 |        -31 |        -53 |       -568 |
+| ../frontend/src/styles                                                                                                 |          1 |        -25 |          0 |         -2 |        -27 |
+| ../frontend/src/utils                                                                                                  |          1 |        -63 |         -2 |         -9 |        -74 |
+| ai_engine                                                                                                              |          6 |        210 |         22 |         41 |        273 |
+| ai_engine (Files)                                                                                                      |          2 |         65 |          7 |         14 |         86 |
+| ai_engine/agents                                                                                                       |          1 |         71 |         12 |         16 |         99 |
+| ai_engine/config                                                                                                       |          1 |          5 |          0 |          2 |          7 |
+| ai_engine/docreader                                                                                                    |          1 |         47 |          0 |          6 |         53 |
+| ai_engine/go_backend                                                                                                   |          1 |         22 |          3 |          3 |         28 |
+| auth                                                                                                                   |          4 |        168 |         16 |         41 |        225 |
+| config                                                                                                                 |          5 |        287 |         23 |         32 |        342 |
+| controllers                                                                                                            |          1 |         41 |          3 |          6 |         50 |
+| courses                                                                                                                |          1 |         36 |          4 |          7 |         47 |
+| info                                                                                                                   |          1 |         38 |          3 |          6 |         47 |
+| me                                                                                                                     |          1 |         13 |          0 |          3 |         16 |
+| middlewares                                                                                                            |          1 |        103 |          9 |         19 |        131 |
+| models                                                                                                                 |          1 |         11 |          0 |          3 |         14 |
+| utils                                                                                                                  |          2 |        139 |          9 |         26 |        174 |
+| ws                                                                                                                     |          1 |         56 |          9 |          9 |         74 |
++------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++------------------------------------------------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+
+| filename                                                                                                               | language           | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/README.md                                   | Markdown           |        231 |          0 |         55 |        286 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/ai_engine/agents/dean_ai_agent.py           | Python             |         71 |         12 |         16 |         99 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/ai_engine/config/config.py                  | Python             |          5 |          0 |          2 |          7 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/ai_engine/docreader/docreader.py            | Python             |         47 |          0 |          6 |         53 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/ai_engine/go_backend/user.py                | Python             |         22 |          3 |          3 |         28 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/ai_engine/main.py                           | Python             |         52 |          7 |         14 |         73 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/ai_engine/requirements.txt                  | pip requirements   |         13 |          0 |          0 |         13 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/auth/auth.go                                | Go                 |          6 |          0 |          3 |          9 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/auth/login.go                               | Go                 |         42 |          7 |         11 |         60 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/auth/register.go                            | Go                 |         77 |          9 |         15 |        101 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/auth/verify.go                              | Go                 |         43 |          0 |         12 |         55 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/config/config.go                            | Go                 |         14 |          1 |          4 |         19 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/config/config.yml                           | YAML               |         14 |          0 |          0 |         14 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/config/db.go                                | Go                 |         26 |         11 |          7 |         44 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/config/email.go                             | Go                 |         96 |         11 |         16 |        123 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/config/verifyEmail.html                     | HTML               |        137 |          0 |          5 |        142 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/controllers/materials.go                    | Go                 |         41 |          3 |          6 |         50 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/courses/materials.go                        | Go                 |         36 |          4 |          7 |         47 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/go.mod                                      | Go Module File     |         59 |          0 |          5 |         64 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/go.sum                                      | Go Checksum File   |        149 |          0 |          1 |        150 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/info/info.go                                | Go                 |         38 |          3 |          6 |         47 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/main.go                                     | Go                 |         44 |          5 |          7 |         56 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/me/me.go                                    | Go                 |         13 |          0 |          3 |         16 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/middlewares/auth.go                         | Go                 |        103 |          9 |         19 |        131 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/models/user.go                              | Go                 |         11 |          0 |          3 |         14 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/utils/auth.go                               | Go                 |        122 |          6 |         22 |        150 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/utils/stream.go                             | Go                 |         17 |          3 |          4 |         24 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/ws/stream.go                                | Go                 |         56 |          9 |          9 |         74 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/README.md                                  | Markdown           |        -38 |          0 |        -33 |        -71 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/config-overrides.js                        | JavaScript         |        -12 |          0 |         -2 |        -14 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/debug.log                                  | Log                |         -1 |          0 |         -1 |         -2 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/jest.config.js                             | JavaScript         |        -10 |          0 |          0 |        -10 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/package-lock 2.json                        | JSON               |    -20,460 |          0 |         -1 |    -20,461 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/package.json                               | JSON               |        -73 |          0 |         -1 |        -74 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/public/index.html                          | HTML               |        -20 |        -23 |         -1 |        -44 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/public/manifest.json                       | JSON               |        -25 |          0 |         -1 |        -26 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/App.css                                | CSS                |        -33 |          0 |         -6 |        -39 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/App.test.tsx                           | TypeScript JSX     |         -8 |          0 |         -1 |         -9 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/App.tsx                                | TypeScript JSX     |        -51 |          0 |         -3 |        -54 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/components/Footer.tsx                  | TypeScript JSX     |       -130 |          0 |         -7 |       -137 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/components/Navbar.tsx                  | TypeScript JSX     |       -175 |         -6 |        -12 |       -193 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/config/api.ts                          | TypeScript         |        -29 |         -4 |         -5 |        -38 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/custom.d.ts                            | TypeScript         |        -16 |          0 |         -3 |        -19 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/i18n.ts                                | TypeScript         |        -50 |          0 |         -2 |        -52 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/i18n/index.ts                          | TypeScript         |        -29 |          0 |         -2 |        -31 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/index.css                              | CSS                |        -12 |          0 |         -2 |        -14 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/index.tsx                              | TypeScript JSX     |        -20 |          0 |         -3 |        -23 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/locales/ar/translation.json            | JSON               |       -102 |          0 |          0 |       -102 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/locales/de/translation.json            | JSON               |       -102 |          0 |          0 |       -102 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/locales/en/translation.json            | JSON               |       -106 |          0 |          0 |       -106 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/locales/es/translation.json            | JSON               |       -102 |          0 |          0 |       -102 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/locales/fr/translation.json            | JSON               |       -102 |          0 |          0 |       -102 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/locales/ja/translation.json            | JSON               |       -102 |          0 |          0 |       -102 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/locales/zh/translation.json            | JSON               |       -102 |          0 |          0 |       -102 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/logo.svg                               | XML                |         -1 |          0 |          0 |         -1 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/pages/HomePage.tsx                     | TypeScript JSX     |       -232 |         -6 |        -21 |       -259 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/pages/LearningPage.tsx                 | TypeScript JSX     |       -139 |         -2 |         -9 |       -150 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/pages/PersonalHomePage.tsx             | TypeScript JSX     |       -147 |         -2 |        -14 |       -163 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/pages/PrincipalAIPage.tsx              | TypeScript JSX     |       -242 |         -6 |        -21 |       -269 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/pages/auth/LoginPage.tsx               | TypeScript JSX     |       -103 |          0 |         -9 |       -112 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/pages/auth/MePage.tsx                  | TypeScript JSX     |        -16 |          0 |         -1 |        -17 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/pages/auth/RegisterPage.tsx            | TypeScript JSX     |       -140 |          0 |         -9 |       -149 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/pages/auth/VerifyPage.tsx              | TypeScript JSX     |       -193 |          0 |        -14 |       -207 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/pages/course/CourseInteractionPage.tsx | TypeScript JSX     |       -484 |        -31 |        -53 |       -568 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/reportWebVitals.ts                     | TypeScript         |        -13 |          0 |         -2 |        -15 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/setupTests.ts                          | TypeScript         |         -2 |         -4 |          0 |         -6 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/styles/ParticleBackground.css          | CSS                |        -25 |          0 |         -2 |        -27 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/theme.ts                               | TypeScript         |        -27 |          0 |         -3 |        -30 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/src/utils/axios.ts                         | TypeScript         |        -63 |         -2 |         -9 |        -74 |
+| /Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/frontend/tsconfig.json                              | JSON with Comments |        -30 |          0 |          0 |        -30 |
+| Total                                                                                                                  |                    |    -22,182 |         17 |          8 |    -22,157 |
++------------------------------------------------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+

@@ -1,0 +1,30 @@
+"filename", "language", "Go", "Go Module File", "Go Checksum File", "Markdown", "YAML", "HTML", "Python", "pip requirements", "comment", "blank", "total"
+"/Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/README.md", "Markdown", 0, 0, 0, 231, 0, 0, 0, 0, 0, 55, 286
+"/Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/ai_engine/agents/dean_ai_agent.py", "Python", 0, 0, 0, 0, 0, 0, 71, 0, 12, 16, 99
+"/Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/ai_engine/config/config.py", "Python", 0, 0, 0, 0, 0, 0, 5, 0, 0, 2, 7
+"/Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/ai_engine/docreader/docreader.py", "Python", 0, 0, 0, 0, 0, 0, 47, 0, 0, 6, 53
+"/Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/ai_engine/go_backend/user.py", "Python", 0, 0, 0, 0, 0, 0, 22, 0, 3, 3, 28
+"/Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/ai_engine/main.py", "Python", 0, 0, 0, 0, 0, 0, 52, 0, 7, 14, 73
+"/Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/ai_engine/requirements.txt", "pip requirements", 0, 0, 0, 0, 0, 0, 0, 13, 0, 0, 13
+"/Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/auth/auth.go", "Go", 6, 0, 0, 0, 0, 0, 0, 0, 0, 3, 9
+"/Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/auth/login.go", "Go", 42, 0, 0, 0, 0, 0, 0, 0, 7, 11, 60
+"/Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/auth/register.go", "Go", 77, 0, 0, 0, 0, 0, 0, 0, 9, 15, 101
+"/Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/auth/verify.go", "Go", 43, 0, 0, 0, 0, 0, 0, 0, 0, 12, 55
+"/Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/config/config.go", "Go", 14, 0, 0, 0, 0, 0, 0, 0, 1, 4, 19
+"/Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/config/config.yml", "YAML", 0, 0, 0, 0, 14, 0, 0, 0, 0, 0, 14
+"/Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/config/db.go", "Go", 26, 0, 0, 0, 0, 0, 0, 0, 11, 7, 44
+"/Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/config/email.go", "Go", 96, 0, 0, 0, 0, 0, 0, 0, 11, 16, 123
+"/Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/config/verifyEmail.html", "HTML", 0, 0, 0, 0, 0, 137, 0, 0, 0, 5, 142
+"/Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/controllers/materials.go", "Go", 41, 0, 0, 0, 0, 0, 0, 0, 3, 6, 50
+"/Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/courses/materials.go", "Go", 36, 0, 0, 0, 0, 0, 0, 0, 4, 7, 47
+"/Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/go.mod", "Go Module File", 0, 59, 0, 0, 0, 0, 0, 0, 0, 5, 64
+"/Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/go.sum", "Go Checksum File", 0, 0, 149, 0, 0, 0, 0, 0, 0, 1, 150
+"/Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/info/info.go", "Go", 38, 0, 0, 0, 0, 0, 0, 0, 3, 6, 47
+"/Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/main.go", "Go", 44, 0, 0, 0, 0, 0, 0, 0, 5, 7, 56
+"/Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/me/me.go", "Go", 13, 0, 0, 0, 0, 0, 0, 0, 0, 3, 16
+"/Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/middlewares/auth.go", "Go", 103, 0, 0, 0, 0, 0, 0, 0, 9, 19, 131
+"/Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/models/user.go", "Go", 11, 0, 0, 0, 0, 0, 0, 0, 0, 3, 14
+"/Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/utils/auth.go", "Go", 122, 0, 0, 0, 0, 0, 0, 0, 6, 22, 150
+"/Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/utils/stream.go", "Go", 17, 0, 0, 0, 0, 0, 0, 0, 3, 4, 24
+"/Users/zhaojiace/Documents/StartupProjects/AIonlineSchool/Codes2/A/backend/ws/stream.go", "Go", 56, 0, 0, 0, 0, 0, 0, 0, 9, 9, 74
+"Total", "-", 785, 59, 149, 231, 14, 137, 197, 13, 103, 261, 1949
