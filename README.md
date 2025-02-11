@@ -1,8 +1,19 @@
 # AI-Driven Online School Platform
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![Python Version](https://img.shields.io/badge/Python-3.11%2B-blue)
 ![Go Version](https://img.shields.io/badge/Go-1.19%2B-blue)
+![TypeScript Version 5+ (very important)]()
+![React 18+]()
+![Tailwind CSS 3.3+]()
+![Zustand 4+]()
+![React Router 6.14+]()
+![Caddy 2.6+]()
+![Gin 1.9+]()
+![GORM 2.0+]()
+![LangChain 0.0.340+]()
+![Manim Community 0.17+]()
+
+
 
 A full-stack AI-powered education platform combining modern web technologies with advanced AI capabilities for personalized learning experiences.
 
