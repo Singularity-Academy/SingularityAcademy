@@ -2,16 +2,16 @@
 
 ![Python Version](https://img.shields.io/badge/Python-3.11%2B-blue)
 ![Go Version](https://img.shields.io/badge/Go-1.19%2B-blue)
-![TypeScript Version 5+ (very important)]()
-![React 18+]()
-![Tailwind CSS 3.3+]()
-![Zustand 4+]()
-![React Router 6.14+]()
-![Caddy 2.6+]()
-![Gin 1.9+]()
-![GORM 2.0+]()
-![LangChain 0.0.340+]()
-![Manim Community 0.17+]()
+![TypeScript Version 5+ (very important)](https://img.shields.io/badge/TypeScript-5%2B-blue)
+![React 18+](https://img.shields.io/badge/React-18%2B-blue)
+![Tailwind CSS 3.3+](https://img.shields.io/badge/Tailwind%20CSS-3.3%2B-blue)
+![Zustand 4+](https://img.shields.io/badge/Zustand-4%2B-blue)
+![React Router 6.14+](https://img.shields.io/badge/React%20Router-6.14%2B-blue)
+![Caddy 2.6+](https://img.shields.io/badge/Caddy-2.6%2B-blue)
+![Gin 1.9+](https://img.shields.io/badge/Gin-1.9%2B-blue)
+![GORM 2.0+](https://img.shields.io/badge/GORM-2.0%2B-blue)
+![LangChain 0.0.340+](https://img.shields.io/badge/LangChain-0.0.340%2B-blue)
+![Manim Community 0.17+](https://img.shields.io/badge/Manim-0.17%2B-blue)
 
 
 
