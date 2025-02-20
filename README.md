@@ -162,6 +162,9 @@ go run main.go
 cd frontend
 npm install
 npm run dev
+
+# Caddy Proxy Server: At root
+caddy start
 ```
 
 ## API Documentation
