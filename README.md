@@ -153,6 +153,7 @@ go run cmd/migrate/main.go
 ```bash
 # Start AI Engine
 uvicorn main:app --reload --port 8000
+uvicorn main:app --reload --port 8000
 
 # Start Go Backend
 go run main.go

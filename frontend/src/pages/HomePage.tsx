@@ -209,7 +209,7 @@ const VisionSection = ({ visions }: { visions: Vision[] }) => {
   );
 };
 
-const FeatureCard: React.FC<FeatureProps> = ({ title, description, icon }) => {
+const FeatureCard: React.FC<FeatureProps> = ({  title, description, icon }) => {
   return (
     <VStack
       p={8}
