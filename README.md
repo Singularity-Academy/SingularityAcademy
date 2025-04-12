@@ -156,12 +156,12 @@ uvicorn main:app --reload --port 8000
 uvicorn main:app --reload --port 8000
 
 # Start Go Backend
-go run main.go
+go run .
 
 # Start Frontend
 cd frontend
-npm install
-npm run dev
+npm install --force
+npm start
 
 # Caddy Proxy Server: At root
 caddy start
