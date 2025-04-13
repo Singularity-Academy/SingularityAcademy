@@ -1,5 +1,4 @@
-# AI-Driven Online School Platform
-
+# Singularity Academy
 ![Python Version](https://img.shields.io/badge/Python-3.11%2B-blue)
 ![Go Version](https://img.shields.io/badge/Go-1.19%2B-blue)
 ![TypeScript Version 5+ (very important)](https://img.shields.io/badge/TypeScript-5%2B-blue)
