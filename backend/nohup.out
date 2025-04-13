@@ -1,2 +1,0 @@
-go: errors parsing go.mod:
-/TheGospelIns/AI-online-School/backend/go.mod:3: invalid go version '1.23.4': must match format 1.23
