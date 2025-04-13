@@ -182,7 +182,26 @@ profile_default/
 ipython_config.py
 
 # Go specific
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
 go.work
+
+# Go build and cache
+backend/go/pkg/
+backend/go/bin/
+backend/pkg/mod/
+backend/pkg/sumdb/
+backend/.go/
+backend/go-build/
+_obj/
+_test/
+*.o
+*.a
 _obj
 _test
 *.[568vq]
@@ -196,8 +215,11 @@ _testmain.go
 /go.mod.local
 /go.sum.local
 /go.work.sum
-.air.toml
-tmp/
+*.prof
+*.test
+*.out
+/bin/
+/pkg/
 
 # Security and Secrets
 *.pem
