@@ -3,7 +3,6 @@ frontend/node_modules
 package-lock.json
 .idea
 qodana.yaml
-.gitignore
 **/*.exe
 backend/materials/*
 backend/ai_engine/config/config.json
