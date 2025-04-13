@@ -317,3 +317,7 @@ Temporary Items
 .~*
 *.part
 *.crdownload
+
+# Go compiled
+backend/backend
+backend/backend.exe
