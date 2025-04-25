@@ -29,6 +29,13 @@ interface Founder {
   image: string;
 }
 
+interface Studio {
+  name: string;
+  description: string;
+  image: string;
+  website?: string;
+}
+
 interface Vision {
   content: string;
   color: string;
@@ -44,6 +51,7 @@ const HomePage: React.FC = () => {
   // Safely get translated resources with fallbacks
   const features: Feature[] = t('HomePage.features', { returnObjects: true }) || [];
   const founders: Founder[] = t('HomePage.founders', { returnObjects: true }) || [];
+  const studios: Studio[] = t('HomePage.studios', { returnObjects: true }) || [];
   const visions: Vision[] = t('HomePage.visions', { returnObjects: true }) || [];
 
   if (!ready) {
@@ -102,6 +110,10 @@ const HomePage: React.FC = () => {
           <FounderSection founders={founders} />
         )}
 
+        {studios?.length > 0 && (
+          <StudioSection studios={studios} />
+        )}
+
         {/* Statistics Section */}
         {visions?.length > 0 && (
           <VisionSection visions={visions} />
@@ -140,7 +152,7 @@ const FeatureSection = ({ features }: { features: Feature[] }) => {
   const { t } = useTranslation();
   return (
     <Box bg={useColorModeValue('white', 'gray.700')} py={20}>
-      <Container maxW="container.xl">
+      <Container maxW="container.xl" >
         <VStack spacing={12}>
           <Heading textAlign="center" color="blue.500">
             {t("HomePage.feature")}
@@ -180,6 +192,66 @@ const FounderSection = ({ founders }: { founders: Founder[] }) => {
         </VStack>
       </Container>
     </Box>
+  );
+};
+
+const StudioSection = ({ studios }: { studios: Studio[] }) => {
+  const { t } = useTranslation();
+  return (
+    <Box py={20}>
+      <Container maxW="container.xl">
+        <VStack spacing={12}>
+          <Heading textAlign="center" color="blue.500">
+            {t("HomePage.studio")}
+          </Heading>
+          <SimpleGrid columns={{ base: 1, md: studios.length }} spacing={10}>
+            {studios.map((studio, index) => (
+              <StudioCard key={index} {...studio} />
+            ))}
+          </SimpleGrid>
+        </VStack>
+      </Container>
+    </Box>
+  );
+};
+
+const StudioCard: React.FC<Studio> = ({ name, description, image, website }) => {
+  return (
+    <VStack
+      p={8}
+      bg={useColorModeValue('white', 'gray.800')}
+      borderRadius="lg"
+      boxShadow="xl"
+      spacing={4}
+      align="center"
+      _hover={{ transform: 'translateY(-5px)', transition: '0.3s' }}
+    >
+      {image ? (
+        <Image
+          src={image}
+          alt={name}
+          boxSize="150px"
+          objectFit="cover"
+        />
+      ) : (
+        <Avatar size="2xl" name={name} bg="blue.500" color="white" />
+      )}
+      <Heading size="md">{name}</Heading>
+      <Text color="gray.600" textAlign="center">{description}</Text>
+      {website && (
+        <Button
+          as="a"
+          href={website}
+          target="_blank"
+          rel="noopener noreferrer"
+          colorScheme="blue"
+          variant="outline"
+          size="sm"
+        >
+          Visit Website
+        </Button>
+      )}
+    </VStack>
   );
 };
 
