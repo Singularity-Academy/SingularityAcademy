@@ -62,7 +62,7 @@
         "icon": "💡"
       }
     ],
-    "founder": "创始团队",
+    "founder": "创始人员  ",
     "founders": [
       {
         "name": "赵嘉策",
@@ -77,7 +77,22 @@
         "image": ""
       }
     ],
-    "vision": "我们的愿景",
+    "studios": [
+      {
+        "name": "Krypoto 工作室",
+        "description": "Krypoto工作室是一个强大的工作室，专注于硬件、软件、网络和网络安全等领域的开发。",
+        "image": "/studios/krypoto.png",
+        "website": "http://studio.krypoto.top/"
+      },
+      {
+        "name": "GPE 社团",
+        "description": "GPE社团是清华附中国际部学生组成的社团，专注于软件编程和游戏开发，成立于2024年。",
+        "image": "/studios/gpe.png",
+        "website": "https://gpeclub.com"
+      }
+    ],
+    "studio": "开发团队",
+      "vision": "我们的愿景",
     "visions": [
       {
         "content": "我们致力于通过AI技术打破教育壁垒，让优质教育资源触手可及"
