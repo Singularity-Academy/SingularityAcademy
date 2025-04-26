@@ -120,7 +120,7 @@ const CourseInteractionPage: React.FC = () => {
     setConnecting(true);
     const video = studentVideoRef.current;
     // const ws = new WebSocket(AI_ENDPOINTS.DEAN_AI(Cookies.get('token') || "token", materialRef.current));
-    const ws = new WebSocket("ws://localhost:8080/api/ws/stream?token=\<token\>");
+    const ws = new WebSocket(`ws://localhost:8080/api/ws/stream?token=${Cookies.get('token')}`);
 
     ws.onopen = () => {
       console.log('Dean AI WebSocket connected');
