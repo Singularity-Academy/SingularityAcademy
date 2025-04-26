@@ -29,7 +29,7 @@ const PrincipalAIPage: React.FC = () => {
   const particleColor = useColorModeValue('#3182ce', '#90cdf4');
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
-  const [studyPlan] = useState<string[]>([
+  const [studyPlan] = useState<string[]>([ // ONLY FOR SHOWCASING TODO : REMOVE & REPLACE WITH REAL DATA
     t('PrincipalAI.physics'),
     t('PrincipalAI.mathematics'),
     t('PrincipalAI.engineering'),

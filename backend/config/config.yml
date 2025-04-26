@@ -1,9 +1,9 @@
 database:
   user: "root"
-  password: "Cilsso037"
-  host: "39.105.187.119"
+  password: "qqqq"
+  host: "127.0.0.1"
   port: 3306
-  name: "test1"
+  name: "school"
   charset: "utf8mb4"
   parseTime: true
   loc: "Local"
