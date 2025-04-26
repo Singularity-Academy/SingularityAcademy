@@ -102,6 +102,7 @@ const CourseInteractionPage: React.FC = () => {
         studentVideoRef.current.srcObject = stream;
       }
       setVideoStream(stream);
+      return stream;
     })
     .catch((error) => toast({
         title: "error accessing media devices",
@@ -117,7 +118,9 @@ const CourseInteractionPage: React.FC = () => {
     startVideo();
     startAudio();
     setConnecting(true);
-    const ws = new WebSocket(AI_ENDPOINTS.DEAN_AI(Cookies.get('token') || "token", materialRef.current));
+    const video = studentVideoRef.current;
+    // const ws = new WebSocket(AI_ENDPOINTS.DEAN_AI(Cookies.get('token') || "token", materialRef.current));
+    const ws = new WebSocket("ws://localhost:8080/api/ws/stream?token=\<token\>");
 
     ws.onopen = () => {
       console.log('Dean AI WebSocket connected');
@@ -132,8 +135,25 @@ const CourseInteractionPage: React.FC = () => {
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       const aiMessage = { role: 'assistant', content: data.message };
-      setMessages(prev => [...prev, aiMessage]);
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
 
+      setMessages(prev => [...prev, aiMessage]);
+      
+      ws.onopen = () => {
+        console.log("WebSocket 连接成功");
+        // 定期捕获视频帧
+        setInterval(() => {
+          if (!video || !ctx) return; // 添加null检查
+          
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          // 将帧转为 JPEG 数据
+          const imageData = canvas.toDataURL("image/jpeg", 0.8);
+          ws.send(imageData);
+        }, 100);
+      };
       // 如果有 manim_script，可以在前端显示或发送到后端处理
       if (data.manim_script) {
         // 处理 manim_script，例如发送到后端渲染
