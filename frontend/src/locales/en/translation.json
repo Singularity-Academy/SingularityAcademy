@@ -67,21 +67,6 @@
         "image": ""
       }
     ],
-    "studios": [
-      {
-        "name": "Krypoto Studio",
-        "description": "Krypoto studio is a powerful studio within anything. ALL Hardware; Software; Web; CS (cybersecurity);",
-        "image": "/studios/krypoto.png",
-        "website": "http://studio.krypoto.top/"
-      },
-      {
-        "name": "GPE Club",
-        "description": "GPE Club is a club formed by students at the Tsinghua International School that focuses on software programming and game development, established since 2024.",
-        "image": "/studios/gpe.png",
-        "website": "https://gpeclub.com"
-      }
-    ],
-    "studio": "Development Teams",
     "vision": "Vision",
     "visions": [
       {
