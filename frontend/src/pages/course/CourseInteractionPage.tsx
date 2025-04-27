@@ -100,6 +100,10 @@ const CourseInteractionPage: React.FC = () => {
     .then((stream) => {
       if (studentVideoRef.current) {
         studentVideoRef.current.srcObject = stream;
+        // 日志：每次分配流时输出当前 srcObject
+        console.log("[startVideo] studentVideoRef.current.srcObject:", studentVideoRef.current.srcObject);
+      } else {
+        console.warn("[startVideo] studentVideoRef.current 不存在");
       }
       setVideoStream(stream);
       return stream;
@@ -223,10 +227,13 @@ const CourseInteractionPage: React.FC = () => {
       // 停止所有的视频流轨道
       videoStream.getTracks().forEach(track => track.stop());
       setVideoStream(null);
+      // 日志：stopVideo 被调用时输出
+      console.log("[stopVideo] setVideoStream(null) 已调用");
     }
     // 清除视频元素的 srcObject
     if (studentVideoRef.current) {
       studentVideoRef.current.srcObject = null;
+      console.log("[stopVideo] studentVideoRef.current.srcObject 已清空");
     }
     if (!sendingVideoTask.current) return;
     clearInterval(sendingVideoTask.current)
@@ -252,12 +259,12 @@ const CourseInteractionPage: React.FC = () => {
     };
   }, []);
 
- useEffect(() => {
-   // Check if user is authenticated
-   if (!Cookies.get('token')) {
-     navigate('/login'); // Redirect to login page if not authenticated
-   }
- }, [Cookies.get('token')]);
+  useEffect(() => {
+    // Check if user is authenticated
+    if (!Cookies.get('token')) {
+      navigate('/login'); // Redirect to login page if not authenticated
+    }
+  }, [Cookies.get('token')]);
 
   useEffect(() => {
     // Scroll to bottom when messages update
@@ -313,38 +320,7 @@ const CourseInteractionPage: React.FC = () => {
       }
     };
   }, [mediaRecorder]);
-
-  useEffect(() => {
-    const intervalId = setInterval(async () => {
-      if (!recording) clearInterval(intervalId);
-      if (!videoStream) return;
-
-      const videoTrack = videoStream.getVideoTracks()[0];
-
-      // Check if the video track is still active and enabled
-      if (!videoTrack || videoTrack.readyState !== 'live' || !videoTrack.enabled) {
-        console.warn("Video track is not in a valid state");
-        return;
-      }
-
-      const imageCapture = new ImageCapture(videoTrack);
-
-      // Check WebSocket connection
-      if (websocketRef.current?.readyState !== WebSocket.OPEN) return;
-
-      // Capture image and send it
-      try {
-        const blob = await imageCapture.takePhoto();
-        websocketRef.current?.send(await blob.arrayBuffer());
-      } catch (error) {
-        console.error("Error capturing photo:", error);
-      }
-    }, 1000 / 2);
-
-    // Clean up the interval on component unmount
-    return () => clearInterval(intervalId);
-  }, [videoStream]);
-
+ 
   const handleFileUpload = async (acceptedFiles: File[]) => {
     const formData = new FormData();
 
