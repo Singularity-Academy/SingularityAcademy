@@ -156,9 +156,17 @@ const Navbar: React.FC = () => {
                                 <Spinner size="sm" />
                             )
                         ) : (
-                            <Button variant="ghost" onClick={() => navigate('/login')}>
+                            <Button
+                              bg="background.secondary"
+                              color="black"
+                              _hover={{
+                                textDecoration: 'underline'
+                              }}
+                        onClick={() => navigate('/login')}
+                            >
                                 {t('common.signIn')}
                             </Button>
+
                         )}
 
                         {/* 主题切换按钮 */}
