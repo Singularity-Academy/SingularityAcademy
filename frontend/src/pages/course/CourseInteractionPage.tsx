@@ -119,7 +119,6 @@ const CourseInteractionPage: React.FC = () => {
     startAudio();
     setConnecting(true);
     const video = studentVideoRef.current;
-    // const ws = new WebSocket(AI_ENDPOINTS.DEAN_AI(Cookies.get('token') || "token", materialRef.current));
     const ws = new WebSocket(`ws://localhost:8080/api/ws/stream?token=${Cookies.get('token')}`);
 
     ws.onopen = () => {
@@ -131,39 +130,40 @@ const CourseInteractionPage: React.FC = () => {
       });
       setConnecting(false);
       setRecording(true);
+      // 定期捕获视频帧，降低帧率，压缩分辨率，使用 toBlob 发送二进制数据
+      if (video) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        sendingVideoTask.current = setInterval(() => {
+          if (!video || !ctx || websocketRef.current?.readyState !== WebSocket.OPEN) return;
+          // 降低分辨率
+          const targetWidth = 320;
+          const targetHeight = 240;
+          canvas.width = targetWidth;
+          canvas.height = targetHeight;
+          ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
+          canvas.toBlob((blob) => {
+            if (blob && websocketRef.current?.readyState === WebSocket.OPEN) {
+              blob.arrayBuffer().then(buffer => {
+                websocketRef.current?.send(buffer);
+              });
+            }
+          }, 'image/jpeg', 0.7);
+        }, 200); // 200ms 一帧
+      }
     };
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       const aiMessage = { role: 'assistant', content: data.message };
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-
       setMessages(prev => [...prev, aiMessage]);
-      
-      ws.onopen = () => {
-        console.log("WebSocket 连接成功");
-        // 定期捕获视频帧
-        setInterval(() => {
-          if (!video || !ctx) return; // 添加null检查
-          
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          // 将帧转为 JPEG 数据
-          const imageData = canvas.toDataURL("image/jpeg", 0.8);
-          ws.send(imageData);
-        }, 100);
-      };
       // 如果有 manim_script，可以在前端显示或发送到后端处理
       if (data.manim_script) {
         // 处理 manim_script，例如发送到后端渲染
       }
-
       // 如果有 notes，可以显示给用户
       if (data.notes) {
         // 显示 notes，例如更新一个笔记区域
       }
-
       // Use Web Speech API to read the message aloud
       if ('speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(data.message);
@@ -172,7 +172,6 @@ const CourseInteractionPage: React.FC = () => {
         console.warn('Speech Synthesis not supported in this browser.');
       }
     }
-
     ws.onclose = (closeEvent) => {
       if (closeEvent.code != 1000){
         toast({
@@ -192,7 +191,6 @@ const CourseInteractionPage: React.FC = () => {
       websocketRef.current = null; // 清空 WebSocket 实例
       disconnectWebSocket()
     };
-
     websocketRef.current = ws;
   };
 
