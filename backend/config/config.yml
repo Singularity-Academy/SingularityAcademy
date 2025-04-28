@@ -1,12 +1,13 @@
 database:
   user: "root"
-  password: "dl110426"
-  host: "127.0.0.1"
+  password: "123123123"  # 使用您之前设置的新密码
+  host: "localhost"  # 或 127.0.0.1
   port: 3306
   name: "school"
   charset: "utf8mb4"
   parseTime: true
   loc: "Local"
+
 email:
   email: admin@dicloud.vip
   password: 6kziffhAngtWsJas
