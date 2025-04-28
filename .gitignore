@@ -323,3 +323,7 @@ backend/config/config.yml
 logs/
 .DS_Store
 .DS_Store
+
+
+backend/config/config.yml
+logs/
