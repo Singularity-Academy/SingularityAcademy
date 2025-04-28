@@ -321,3 +321,6 @@ Temporary Items
 # Go compiled
 backend/backend
 backend/backend.exe
+
+backend/config/config.yml
+logs/
