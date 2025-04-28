@@ -105,10 +105,22 @@ const CourseInteractionPage: React.FC = () => {
         studentVideoRef.current.srcObject = stream;
         // 日志：每次分配流时输出当前 srcObject
         console.log("[startVideo] studentVideoRef.current.srcObject:", studentVideoRef.current.srcObject);
+        // 新增：持续监控 srcObject 是否被清空
+        setInterval(() => {
+          if (studentVideoRef.current) {
+            console.log("[monitor] studentVideoRef.current.srcObject:", studentVideoRef.current.srcObject);
+          }
+        }, 2000);
       } else {
         console.warn("[startVideo] studentVideoRef.current 不存在");
       }
       setVideoStream(stream);
+      // 新增：持续监控 videoStream 的 track 状态
+      stream.getTracks().forEach(track => {
+        track.onended = () => {
+          console.warn("[monitor] videoStream track ended:", track);
+        };
+      });
       return stream;
     })
     .catch((error) => toast({
@@ -157,6 +169,10 @@ const CourseInteractionPage: React.FC = () => {
             }
           }, 'image/jpeg', 0.7);
         }, 200); // 200ms 一帧
+        // 新增：监控 setInterval 是否持续运行
+        setInterval(() => {
+          console.log("[monitor] sendingVideoTask.current:", sendingVideoTask.current);
+        }, 2000);
       }
     };
     ws.onmessage = (event) => {
@@ -204,6 +220,7 @@ const CourseInteractionPage: React.FC = () => {
   // 断开 WebSocket
   const disconnectWebSocket = () => {
     console.log('disconnectWebSocket');
+    // 日志：disconnectWebSocket 被调用
     stopVideo()
     stopAudio();
     setRecording(false);
@@ -228,7 +245,11 @@ const CourseInteractionPage: React.FC = () => {
   const stopVideo = () => {
     if (videoStream) {
       // 停止所有的视频流轨道
-      videoStream.getTracks().forEach(track => track.stop());
+      videoStream.getTracks().forEach(track => {
+        track.stop();
+        // 日志：track.stop 被调用
+        console.log("[stopVideo] track.stop 被调用:", track);
+      });
       setVideoStream(null);
       // 日志：stopVideo 被调用时输出
       console.log("[stopVideo] setVideoStream(null) 已调用");
@@ -241,6 +262,8 @@ const CourseInteractionPage: React.FC = () => {
     if (!sendingVideoTask.current) return;
     clearInterval(sendingVideoTask.current)
     sendingVideoTask.current = null
+    // 日志：stopVideo 完成所有清理
+    console.log("[stopVideo] 完成所有清理");
   };
 
 
