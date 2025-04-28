@@ -73,6 +73,7 @@ const CourseInteractionPage: React.FC = () => {
     navigator.mediaDevices.getUserMedia({ audio: true })
         .then((stream) => {
           setAudioStream(stream);
+          // audio stream logic
           const mediaRecorder = new MediaRecorder(stream);
           mediaRecorder.ondataavailable = (event) => {
             if (websocketRef.current?.readyState !== WebSocket.OPEN) return;
@@ -80,6 +81,8 @@ const CourseInteractionPage: React.FC = () => {
             const reader = new FileReader();
             reader.onloadend = () => {
               const buffer = reader.result;
+              // 测试是否在发送音频数据
+              // console.log("发送音频数据，字节长度:", buffer ? (buffer as ArrayBuffer).byteLength : 0);
               // Send the audio buffer via WebSocket
               websocketRef.current?.send(buffer || "")
             };
