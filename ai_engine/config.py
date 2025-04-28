@@ -1,7 +1,7 @@
 from configparser import ConfigParser
 
 _CONFIG = None
-CONFIG_PATH = "config.example.ini"
+CONFIG_PATH = "config.ini"
 
 def get_config() -> dict:
     global _CONFIG
