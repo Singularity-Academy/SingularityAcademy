@@ -21,6 +21,7 @@ qodana.yaml
 
 # Environment and local files
 .DS_Store
+.DS_Store
 .env
 .env.local
 .env.development.local
@@ -321,3 +322,5 @@ Temporary Items
 # Go compiled
 backend/backend
 backend/backend.exe
+.DS_Store
+.DS_Store
