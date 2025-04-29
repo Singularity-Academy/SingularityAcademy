@@ -21,6 +21,7 @@ qodana.yaml
 
 # Environment and local files
 .DS_Store
+.DS_Store
 .env
 .env.local
 .env.development.local
@@ -324,3 +325,5 @@ backend/backend.exe
 
 backend/config/config.yml
 logs/
+.DS_Store
+.DS_Store
