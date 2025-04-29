@@ -233,11 +233,7 @@ _testmain.go
 *.p7b
 *.p7c
 *.keystore
-*.jks
-*secret*
-*credential*
-*password*
-*token*
+*.jks 
 .ssh/
 
 # Backup and temporary files
