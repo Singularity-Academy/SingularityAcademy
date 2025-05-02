@@ -2,7 +2,7 @@
 
 ## 1. 页面主要功能概述
 
-该页面为“课程互动”核心页面，主要实现以下功能：
+该页面为"课程互动"核心页面，主要实现以下功能：
 
 - **学习资料上传**：支持拖拽或点击上传多种格式的学习资料（PDF、Word、PPT、图片、视频等），并显示上传进度。
 - **资源链接管理**：允许用户添加、删除外部学习资源链接。
@@ -10,8 +10,6 @@
 - **AI 聊天互动**：支持与 AI 教师实时文本对话，消息通过 WebSocket 实时收发，并支持语音播报 AI 回复。
 - **全屏切换**：主课程内容区支持全屏显示。
 - **会话消息区**：展示用户与 AI 教师的所有对话消息。
-
----
 
 ## 2. 主要实现方法
 
@@ -32,8 +30,7 @@
 - 用户可通过弹窗输入资源链接，前端校验 URL 合法性后加入列表。
 - 支持删除已添加的链接。
 
-
-### 2.4.1 音频采集与推送（L72-133）
+### 2.4.1 音频采集与推送
 
 #### 主要函数：`startAudio`
 
@@ -74,7 +71,7 @@ const startAudio = () => {
 };
 ```
 
-### 2.4.2 视频采集与本地预览（L72-133）
+### 2.4.2 视频采集与本地预览
 
 #### 主要函数：`startVideo`
 
@@ -120,7 +117,7 @@ const startVideo = () => {
 };
 ```
 
-### 2.5 WebSocket连接与视频帧推送（L143-177）
+### 2.5 WebSocket连接与视频帧推送
 
 #### 主要函数：`connectWebSocket`
 
@@ -144,7 +141,8 @@ const connectWebSocket = () => {
   startAudio();
   setConnecting(true);
   const video = studentVideoRef.current;
-  ......
+  // 代码块太长，此处省略...
+};
 ```
 
 ### 2.6 聊天消息管理
@@ -156,8 +154,6 @@ const connectWebSocket = () => {
 
 - 页面加载时校验 Cookie 中是否有 token，无则跳转登录页。
 
----
-
 ## 3. 主要接口说明
 
 ### 3.1 文件上传接口
@@ -167,12 +163,14 @@ const connectWebSocket = () => {
 - **请求体**：`FormData`，字段名为 `materials`
 - **需带 Token**：是
 - **响应示例**：
-  ```json
-  {
-    "message": "uploadSuccessfully",
-    "file": "550707222846377484$quadratic function.docx"
-  }
-  ```
+
+```json
+{
+  "message": "uploadSuccessfully",
+  "file": "550707222846377484$quadratic function.docx"
+}
+```
+
 - **用途**：上传学习资料，返回后端存储的文件名。
 
 ### 3.2 WebSocket 实时推流接口
@@ -200,8 +198,6 @@ const connectWebSocket = () => {
 - **/api/courses/list**：课程列表
 - **/api/courses/detail/:id**：课程详情
 
----
-
 ## 4. 关键代码结构说明
 
 - **文件上传**：`handleFileUpload` 方法，调用 `axiosInstance.post(API_ENDPOINTS.COURSE.MATERIALS, formData, ...)`
@@ -210,20 +206,17 @@ const connectWebSocket = () => {
 - **消息发送**：`handleSubmit` 方法，文本消息通过 WebSocket 发送
 - **UI 组件**：使用 Chakra UI 组件库实现响应式布局与交互
 
----
-
 ## 5. 交互流程示意
 
 1. 用户进入页面，校验 token，未登录则跳转登录页。
 2. 用户可上传学习资料，资料上传后文件名存储于 `materialRef`。
 3. 用户可添加/删除外部资源链接。
-4. 用户点击“Turn On”按钮，开启摄像头与麦克风，建立 WebSocket 连接，开始推流。
+4. 用户点击"Turn On"按钮，开启摄像头与麦克风，建立 WebSocket 连接，开始推流。
 5. 用户可与 AI 教师进行文本对话，消息通过 WebSocket 实时收发。
 6. AI 教师回复自动语音播报，消息区实时展示。
 7. 用户可随时关闭摄像头/麦克风，断开 WebSocket 连接。
 
-
-## 7. 参考文件
+## 6. 相关参考资料
 
 - frontend/src/pages/course/CourseInteractionPage.tsx
 - frontend/src/config/api.ts

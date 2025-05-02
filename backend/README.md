@@ -1,7 +1,13 @@
-### /api/auth/register
-#### 请求方法: POST
-#### 需要传入Token: 否
-#### 请求体示例:
+# Backend API Documentation
+
+## Authentication Endpoints
+
+### `/api/auth/register`
+
+#### Request Method: POST
+#### Authentication Required: No
+#### Request Body Example:
+
 ```json
 {
     "name": "张三",
@@ -9,15 +15,19 @@
     "password": "zhangsan123213"
 }
 ```
-#### 参数说明
-| 参数名      | 类型     | 必填 | 描述     |
-|----------|--------|----|--------|
-| name     | string | 是  | 用户名字   |
-| email    | string | 是  | 用户邮箱地址 |
-| password | string | 是  | 用户密码   |
 
-#### 响应体示例:
-#### 出现错误时
+#### Parameters
+
+| Parameter | Type   | Required | Description |
+|-----------|--------|----------|-------------|
+| name      | string | Yes      | Username    |
+| email     | string | Yes      | User email  |
+| password  | string | Yes      | Password    |
+
+#### Response Examples
+
+**Error Response:**
+
 ```json
 {
     "error":  "api.auth.invalidRequestData",
@@ -25,14 +35,14 @@
 }
 ```
 
-#### 数据字段说明
+**Error Response Fields:**
 
-| 字段名    | 类型     | 必填 | 描述           |
-|--------|--------|----|--------------|
-| error  | string | 是  | 错误类型(i18n的键) |
-| detail | string | 否  | 错误详细信息       |
+| Field   | Type   | Required | Description                |
+|---------|--------|----------|----------------------------|
+| error   | string | Yes      | Error type (i18n key)      |
+| detail  | string | No       | Detailed error information |
 
-#### 注册成功时
+**Success Response:**
 
 ```json
 {
@@ -40,32 +50,36 @@
 }
 ```
 
-#### 数据字段说明
+**Success Response Fields:**
 
-| 字段名     | 类型     | 必填 | 描述      |
-|---------|--------|----|---------|
-| message | string | 是  | 登录成功的消息 |
+| Field   | Type   | Required | Description        |
+|---------|--------|----------|--------------------|
+| message | string | Yes      | Success message    |
 
+### `/api/auth/login`
 
-### /api/auth/login
-#### 用于处理用户登录请求的接口
-#### 请求方法: POST
-#### 需要传入Token: 否
-#### 请求体示例: 
+#### Request Method: POST
+#### Authentication Required: No
+#### Request Body Example:
+
 ```json
 {
     "email": "zhangsan123@example.com",
     "password": "zhangsan123213"
 }
 ```
-#### 参数说明
-| 字段名    | 类型     | 必填 | 描述           |
-|--------|--------|----|--------------|
-| error  | string | 是  | 错误类型(i18n的键) |
-| detail | string | 否  | 错误详细信息       |
 
-#### 响应体示例: 
-#### 出现错误时
+#### Parameters
+
+| Field   | Type   | Required | Description        |
+|---------|--------|----------|--------------------|
+| email   | string | Yes      | User email         |
+| password| string | Yes      | User password      |
+
+#### Response Examples
+
+**Error Response:**
+
 ```json
 {
     "error":  "api.auth.incorrectEmailOrPassword",
@@ -73,13 +87,14 @@
 }
 ```
 
-#### 数据字段说明
+**Error Response Fields:**
 
-| 字段名    | 类型     | 必填 | 描述           |
-|--------|--------|----|--------------|
-| error  | string | 是  | 错误类型(i18n的键) |
-| detail | string | 否  | 错误详细信息       |
-#### 登陆成功时
+| Field   | Type   | Required | Description                |
+|---------|--------|----------|----------------------------|
+| error   | string | Yes      | Error type (i18n key)      |
+| detail  | string | No       | Detailed error information |
+
+**Success Response:**
 
 ```json
 {
@@ -88,30 +103,35 @@
 }
 ```
 
-#### 数据字段说明
+**Success Response Fields:**
 
-| 字段名     | 类型     | 描述               |
-|---------|--------|------------------|
-| message | string | 登录成功的消息          |
-| token   | string | 用户有效期30天的JWToken |
+| Field   | Type   | Description                |
+|---------|--------|----------------------------|
+| message | string | Success message            |
+| token   | string | JWT token valid for 30 days|
 
-### /api/auth/verify
-#### 用于处理用户验证邮箱请求的接口
-#### 请求方法: POST
-#### 需要传入Token: 否
-#### 请求体示例:
+### `/api/auth/verify`
+
+#### Request Method: POST
+#### Authentication Required: No
+#### Request Body Example:
+
 ```json
 {
     "token": "verify_token"
 }
 ```
-#### 参数说明
-| 参数名   | 类型     | 必填 | 描述              |
-|-------|--------|----|-----------------|
-| token | string | 是  | 用户的verify_token |
 
-#### 响应体示例:
-#### 出现错误时
+#### Parameters
+
+| Parameter | Type   | Required | Description         |
+|-----------|--------|----------|---------------------|
+| token     | string | Yes      | Verification token  |
+
+#### Response Examples
+
+**Error Response:**
+
 ```json
 {
     "error":  "api.auth.invalidVerificationToken",
@@ -119,14 +139,14 @@
 }
 ```
 
-#### 数据字段说明
+**Error Response Fields:**
 
-| 字段名    | 类型     | 必填 | 描述           |
-|--------|--------|----|--------------|
-| error  | string | 是  | 错误类型(i18n的键) |
-| detail | string | 否  | 错误详细信息       |
+| Field   | Type   | Required | Description                |
+|---------|--------|----------|----------------------------|
+| error   | string | Yes      | Error type (i18n key)      |
+| detail  | string | No       | Detailed error information |
 
-#### 验证成功时
+**Success Response:**
 
 ```json
 {
@@ -134,18 +154,22 @@
 }
 ```
 
-#### 数据字段说明
+**Success Response Fields:**
 
-| 字段名     | 类型     | 必填 | 描述      |
-|---------|--------|----|---------|
-| message | string | 是  | 登录成功的消息 |
+| Field   | Type   | Required | Description     |
+|---------|--------|----------|-----------------|
+| message | string | Yes      | Success message |
 
-### /api/me
-#### 用于用户查询自己信息的接口
-#### 请求方法: GET
-#### 需要传入Token: 是
-#### 响应体示例:
-#### 出现错误时
+## User Information Endpoints
+
+### `/api/me`
+
+#### Request Method: GET
+#### Authentication Required: Yes
+#### Response Examples
+
+**Error Response:**
+
 ```json
 {
     "error": "api.auth.tokenIsRequired",
@@ -153,53 +177,14 @@
 }
 ```
 
-#### 数据字段说明
+**Error Response Fields:**
 
-| 字段名    | 类型     | 必填 | 描述           |
-|--------|--------|----|--------------|
-| error  | string | 是  | 错误类型(i18n的键) |
-| detail | string | 否  | 错误详细信息       |
+| Field   | Type   | Required | Description                |
+|---------|--------|----------|----------------------------|
+| error   | string | Yes      | Error type (i18n key)      |
+| detail  | string | No       | Detailed error information |
 
-#### 查询成功时
-
-```json
-{
-  "email": "zhangsan123@example.com",
-  "id": 550707222846377484,
-  "name": "张三"
-}
-```
-
-
-#### 数据字段说明
-
-| 字段名   | 类型     | 描述      |
-|-------|--------|---------|
-| email | string | 用户绑定的邮箱 |
-| id    | int    | 用户的id   |
-| name  | string | 用户的名字   |
-
-### /api/info/\<id\>
-#### 用于用户查询信息的接口
-#### 请求方法: GET
-#### 需要传入Token: 否
-#### 响应体示例:
-#### 出现错误时
-```json
-{
-  "error":  "api.auth.userNotFound",
-  "detail": "No users found with the given ID"
-}
-```
-
-#### 数据字段说明
-
-| 字段名    | 类型     | 必填 | 描述           |
-|--------|--------|----|--------------|
-| error  | string | 是  | 错误类型(i18n的键) |
-| detail | string | 否  | 错误详细信息       |
-
-#### 查询成功时
+**Success Response:**
 
 ```json
 {
@@ -209,22 +194,22 @@
 }
 ```
 
+**Success Response Fields:**
 
-#### 数据字段说明
+| Field  | Type   | Description      |
+|--------|--------|------------------|
+| email  | string | User email       |
+| id     | int    | User ID          |
+| name   | string | Username         |
 
-| 字段名   | 类型     | 描述      |
-|-------|--------|---------|
-| email | string | 用户绑定的邮箱 |
-| id    | int    | 用户的id   |
-| name  | string | 用户的名字   |
+### `/api/info/{id}`
 
+#### Request Method: GET
+#### Authentication Required: No
+#### Response Examples
 
-### /api/ws/stream?token=\<token\>
-#### 用于用户上课时图像和音频传输的接口
-#### 请求方法: WEBSOCKET
-#### 需要传入Token: 是
-#### 响应体示例:
-#### 出现错误时
+**Error Response:**
+
 ```json
 {
   "error":  "api.auth.userNotFound",
@@ -232,21 +217,63 @@
 }
 ```
 
-#### 数据字段说明
+**Error Response Fields:**
 
-| 字段名    | 类型     | 必填 | 描述           |
-|--------|--------|----|--------------|
-| error  | string | 是  | 错误类型(i18n的键) |
-| detail | string | 否  | 错误详细信息       |
+| Field   | Type   | Required | Description                |
+|---------|--------|----------|----------------------------|
+| error   | string | Yes      | Error type (i18n key)      |
+| detail  | string | No       | Detailed error information |
 
-#### 查询成功时
+**Success Response:**
 
-`0x89, 0x50, 0x4E, 0x47`开头的图片  
-`0x43`开头的音频
+```json
+{
+  "email": "zhangsan123@example.com",
+  "id": 550707222846377484,
+  "name": "张三"
+}
+```
 
+**Success Response Fields:**
 
-#### 数据字段说明
-无
+| Field  | Type   | Description     |
+|--------|--------|-----------------|
+| email  | string | User email      |
+| id     | int    | User ID         |
+| name   | string | Username        |
+
+## WebSocket Endpoints
+
+### `/api/ws/stream?token={token}`
+
+#### Request Method: WEBSOCKET
+#### Authentication Required: Yes
+#### Response Examples
+
+**Error Response:**
+
+```json
+{
+  "error":  "api.auth.userNotFound",
+  "detail": "No users found with the given ID"
+}
+```
+
+**Error Response Fields:**
+
+| Field   | Type   | Required | Description                |
+|---------|--------|----------|----------------------------|
+| error   | string | Yes      | Error type (i18n key)      |
+| detail  | string | No       | Detailed error information |
+
+**Success Response:**
+
+Binary data: 
+- Image data starting with `0x89, 0x50, 0x4E, 0x47` (PNG header)
+- Audio data starting with `0x43`
+
+**Success Response Fields:**
+None (binary data)
 
 ### /api/courses/materials
 #### 用于用户查询信息的接口

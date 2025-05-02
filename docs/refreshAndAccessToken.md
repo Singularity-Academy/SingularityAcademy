@@ -1,12 +1,8 @@
-
-
-------
+# Refresh Token 与 Access Token 认证机制
 
 ## 一、什么是 Refresh Token？
 
 Refresh Token（刷新令牌）是配合 Access Token（访问令牌）使用的一种认证机制，用于在 Access Token 过期后，**无需用户重新登录**，通过 Refresh Token 换取新的 Access Token，从而提升用户体验和安全性。
-
-------
 
 ## 二、为什么需要 Refresh Token？
 
@@ -17,8 +13,6 @@ Refresh Token（刷新令牌）是配合 Access Token（访问令牌）使用的
 ### 2. 用户不可能频繁输入密码
 
 - 为了避免用户频繁登录，我们使用 Refresh Token 来自动续签新的 Access Token。
-
-------
 
 ## 三、Refresh Token 的工作流程
 
@@ -37,8 +31,6 @@ Refresh Token（刷新令牌）是配合 Access Token（访问令牌）使用的
    - 成功：继续访问资源。
    - 失败（如 Refresh Token 过期或被撤销）：客户端必须重新登录。
 
-------
-
 ## 四、Refresh Token 的存储位置（客户端）
 
 1. **Web 应用：**
@@ -46,8 +38,6 @@ Refresh Token（刷新令牌）是配合 Access Token（访问令牌）使用的
    - Refresh Token：建议存在 HttpOnly、Secure 的 cookie 中。
 2. **移动端或桌面应用：**
    - 可以保存在加密的本地存储或系统密钥链中。
-
-------
 
 ## 五、Refresh Token 的安全设计要点
 
@@ -58,17 +48,11 @@ Refresh Token（刷新令牌）是配合 Access Token（访问令牌）使用的
 4. **限制使用次数或频率**
    - 防止被攻击者暴力尝试使用。
 
-------
-
 ## 六、例子（基于 JWT）
 
 用户登录后返回：
 
-```
-json
-
-
-复制编辑
+```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIs...",
   "refresh_token": "def50200b2c9ef4d4f..."
@@ -77,11 +61,7 @@ json
 
 刷新接口：
 
-```
-http
-
-
-复制编辑
+```http
 POST /auth/refresh
 Content-Type: application/json
 
@@ -90,11 +70,7 @@ Content-Type: application/json
 }
 ```
 
-------
-
 ## 七、总结
-
-
 
 | 项目 | Access Token       | Refresh Token                  |
 | ---- | ------------------ | ------------------------------ |

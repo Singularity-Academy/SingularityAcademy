@@ -1,4 +1,5 @@
 # Singularity Academy
+
 ![Python Version](https://img.shields.io/badge/Python-3.11%2B-blue)
 ![Go Version](https://img.shields.io/badge/Go-1.19%2B-blue)
 ![TypeScript Version 5+ (very important)](https://img.shields.io/badge/TypeScript-5%2B-blue)
@@ -11,8 +12,6 @@
 ![GORM 2.0+](https://img.shields.io/badge/GORM-2.0%2B-blue)
 ![LangChain 0.0.340+](https://img.shields.io/badge/LangChain-0.0.340%2B-blue)
 ![Manim Community 0.17+](https://img.shields.io/badge/Manim-0.17%2B-blue)
-
-
 
 A full-stack AI-powered education platform combining modern web technologies with advanced AI capabilities for personalized learning experiences.
 
@@ -34,6 +33,7 @@ graph TD
 ## Technology Stack
 
 ### Core Components
+
 - **Reverse Proxy**: Caddy 2.6+ with automatic HTTPS
 - **Frontend**: 
   - React 18+ with TypeScript 5+
@@ -54,6 +54,7 @@ graph TD
   - Document Processing: PyMuPDF, python-docx, python-pptx
 
 ### AI Capabilities
+
 - **Dean AI Agent**:
   - Dynamic study plan generation
   - Multi-stage conversational interface
@@ -66,11 +67,13 @@ graph TD
   - Content chunking for AI processing
 
 ### Database
+
 - MySQL 8.0+ with InnoDB engine
 - Database schema versioning with migrations
 - Connection pooling with Go-MySQL-Driver
 
 ### DevOps
+
 - Containerization: Docker 20.10+
 - CI/CD: GitHub Actions
 - Monitoring: Prometheus + Grafana
@@ -79,6 +82,7 @@ graph TD
 ## Key Features
 
 ### AI-Powered Learning Flow
+
 1. **Document Upload & Processing**:
    - Secure file validation and storage
    - Multi-format text extraction
@@ -100,6 +104,7 @@ graph TD
    - Progressive content delivery
 
 ### Security Features
+
 - JWT-based authentication
 - File validation:
   ```python
@@ -115,6 +120,7 @@ graph TD
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 18.12+ (LTS)
 - Go 1.20+
 - Python 3.11+
@@ -124,6 +130,7 @@ graph TD
 ### Installation
 
 #### AI Engine Setup
+
 ```bash
 cd backend/ai_engine
 python -m venv venv
@@ -136,6 +143,7 @@ cp config/config.example.json config/config.json
 ```
 
 #### Go Backend Setup
+
 ```bash
 cd backend
 go mod download
@@ -149,9 +157,9 @@ go run cmd/migrate/main.go
 ```
 
 ### Running the System
+
 ```bash
 # Start AI Engine
-uvicorn main:app --reload --port 8000
 uvicorn main:app --reload --port 8000
 
 # Start Go Backend
@@ -169,6 +177,7 @@ caddy start
 ## API Documentation
 
 ### AI Engine Endpoints
+
 - `WS /ai/dean_ai/{token}?material={filename}`
   - Real-time study plan generation
   - Payload format:
@@ -181,6 +190,7 @@ caddy start
   ```
 
 ### Core Endpoints
+
 - Authentication: JWT-based
 - File Management:
   - POST /api/materials
@@ -192,35 +202,31 @@ caddy start
 ## Development Guidelines
 
 ### Branch Strategy
+
 - `main`: Production-ready code
 - `develop`: Integration branch
 - Feature branches: `feature/[description]`
 
 ### Testing
+
 - Go: Native testing package
 - Python: pytest with 90%+ coverage
 - Frontend: Jest + React Testing Library
 
 ## License
+
 No current license, since it's not an open source project.
 
 ## Roadmap
 
 ### Q1-2 2025
+
 - [ ] Multi-modal AI integration (vision/audio)
 - [ ] Real-time collaboration features
 - [ ] Adaptive assessment engine
 
 ### Q3-4 2025
+
 - [ ] Mobile app integration
 - [ ] AI teaching assistant marketplace
 - [ ] Blockchain credential verification
-```
-
-1. System architecture visualization
-2. Detailed technology specifications
-3. Key implementation details from the code
-4. Clear setup instructions
-5. API documentation
-6. Development guidelines
-7. Future roadmap

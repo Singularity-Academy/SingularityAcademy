@@ -1,12 +1,8 @@
 # Project Architecture and Technology Stack Report
 
-        											JIACE ZHAO  JIACE ZHAO  JIACE ZHAO
 ## Overview
 
 This project aims to develop a scalable, high-performance application with AI-powered real-time communication capabilities. The system will feature a robust **backend infrastructure** and a modern **frontend interface**, designed to handle a high volume of concurrent users while providing a seamless, intuitive user experience.
-
----
-       											 JIACE ZHAO  JIACE ZHAO  JIACE ZHAO
 
 ## 1. High-Level Architecture
 
@@ -23,11 +19,7 @@ The architecture is **modular** and **service-oriented**, divided into the follo
 3. **Infrastructure Layer**:
    - Ensures scalability, reliability, and security using cloud services and containerized deployments.
 
----
-        										JIACE ZHAO  JIACE ZHAO  JIACE ZHAO
-
 ## 2. Technology Stack
-        											JIACE ZHAO  JIACE ZHAO  JIACE ZHAO
 
 ### **Frontend Stack**
 
@@ -64,8 +56,6 @@ The architecture is **modular** and **service-oriented**, divided into the follo
 | **Content Delivery**      | Cloudflare CDN        | Cache and deliver static assets efficiently.             |
 | **Monitoring**            | Prometheus + Grafana  | Observe system health and performance.                   |
 | **CI/CD**                 | GitHub Actions or CircleCI | Automate testing, building, and deployment.           |
-
----
 
 ## 3. Application Workflow
 
@@ -105,8 +95,6 @@ The architecture is **modular** and **service-oriented**, divided into the follo
 4. **Monitoring**:
    - System performance is monitored using **Prometheus** with dashboards provided by **Grafana**.
 
----
-
 ## 4. Key Features
 
 - **Scalability**:
@@ -127,8 +115,6 @@ The architecture is **modular** and **service-oriented**, divided into the follo
   - Caching API responses and model inference outputs using **Redis**.
   - Serving static assets via **Cloudflare CDN**.
 
----
-
 ## 5. Development Workflow
 
 1. **Version Control**:
@@ -140,20 +126,16 @@ The architecture is **modular** and **service-oriented**, divided into the follo
 
 3. **Code Quality**:
    - Enforce linting (ESLint) and formatting (Prettier) in the frontend.
-   - Use Go’s built-in formatting tools (gofmt) for the backend.
-
----
+   - Use Go's built-in formatting tools (gofmt) for the backend.
 
 ## 6. Testing Strategy
 
 | **Type**              | **Tools**                       | **Purpose**                                |
 |------------------------|----------------------------------|--------------------------------------------|
-| **Unit Testing**       | Jest (frontend), Go’s testing   | Test individual functions and components.  |
+| **Unit Testing**       | Jest (frontend), Go's testing   | Test individual functions and components.  |
 | **Integration Testing**| React Testing Library           | Validate interaction between components/APIs. |
 | **End-to-End Testing** | Cypress                         | Simulate user workflows.                   |
 | **Load Testing**       | JMeter or Locust               | Assess system performance under high load. |
-
----
 
 ## 7. Deployment Pipeline
 
@@ -170,15 +152,11 @@ The architecture is **modular** and **service-oriented**, divided into the follo
 4. **Monitor**:
    - Use Prometheus and Grafana for real-time monitoring.
 
----
-
 ## 8. Future Enhancements
 
 - Implement Progressive Web App (PWA) capabilities for offline usage.
 - Introduce GraphQL for complex client-server interactions.
 - Add support for streaming large datasets (e.g., AI responses).
 - Integrate advanced analytics to track and optimize system usage.
-
----
 
 This report serves as the blueprint for the architecture, design, and technology stack of the project. Let me know if you need additional details or adjustments to this plan!

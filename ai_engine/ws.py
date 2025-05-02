@@ -37,25 +37,17 @@ async def ws(request, ws):
     """
     data = await ws.recv()
     data = loads(data)
-    if data["type"] == "auth":
-        token = data["token"]
-        try:
-            user_id = bp.ctx.auth.decode_token(token)["ID"]
-        except ValueError as e:
-            await ws.send(dumps({
-                "status": "error",
-                "message": str(e)
-            }))
-            return
-        else:
+    try:
+        if data["type"] == "auth":
+            user_id = bp.ctx.auth.decode_token(data["token"])["ID"]
             await ws.send(dumps({
                 "status": "success",
                 "health": "ok"
             }))
-    else:
+    except Exception as e:
         await ws.send(dumps({
             "status": "error",
-            "message": "Invalid message type"
+            "message": str(e)
         }))
         return
     # demo code

@@ -1,8 +1,6 @@
-# Singularity Academy : AI online school
+# Singularity Academy: AI Online School
 
-
-
-#### Project Overview:
+## Project Overview
 
 Singularity Academy is an online school for privileged & unprivileged students to learn whatever they want with AI principal, dean, and teachers agents.
 

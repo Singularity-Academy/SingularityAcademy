@@ -56,6 +56,9 @@ const CourseInteractionPage: React.FC = () => {
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
   const [resourceLinks, setResourceLinks] = useState<string[]>([]);
 
+  // Add a state variable to track authentication status
+  const [authenticated, setAuthenticated] = useState(false);
+
   const ALLOWED_FILE_TYPES = {
     'application/pdf': ['.pdf'],
     'application/msword': ['.doc'],
@@ -134,100 +137,205 @@ const CourseInteractionPage: React.FC = () => {
 
   const connectWebSocket = () => {
     if (websocketRef.current) return; // 如果已经连接了，就不重复连接
-    startVideo();
-    startAudio();
+    
+    // First handle connection and authentication, then start media
     setConnecting(true);
-    const video = studentVideoRef.current;
-    const ws = new WebSocket(`ws://localhost:8080/api/ws/stream?token=${Cookies.get('token')}`);
+    setAuthenticated(false);
+    
+    const ws = new WebSocket(`ws://localhost:1298/ai/ws/stream`);
+    
+    // Define all event handlers before setting the reference
 
     ws.onopen = () => {
       console.log('Dean AI WebSocket connected');
-      toast({
-        title: 'connect successful',
-        status: 'success',
-        duration: 3000,
-      });
-      setConnecting(false);
-      setRecording(true);
-      // 定期捕获视频帧，降低帧率，压缩分辨率，使用 toBlob 发送二进制数据
-      if (video) {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        sendingVideoTask.current = setInterval(() => {
-          if (!video || !ctx || websocketRef.current?.readyState !== WebSocket.OPEN) return;
-          // 降低分辨率
-          const targetWidth = 320;
-          const targetHeight = 240;
-          canvas.width = targetWidth;
-          canvas.height = targetHeight;
-          ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
-          canvas.toBlob((blob) => {
-            if (blob && websocketRef.current?.readyState === WebSocket.OPEN) {
-              blob.arrayBuffer().then(buffer => {
-                websocketRef.current?.send(buffer);
-              });
-            }
-          }, 'image/jpeg', 0.7);
-        }, 200); // 200ms 一帧
-        // 新增：监控 setInterval 是否持续运行
-        setInterval(() => {
-          console.log("[monitor] sendingVideoTask.current:", sendingVideoTask.current);
-        }, 2000);
-      }
-    };
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      const aiMessage = { role: 'assistant', content: data.message };
-      setMessages(prev => [...prev, aiMessage]);
-      // 如果有 manim_script，可以在前端显示或发送到后端处理
-      if (data.manim_script) {
-        // 处理 manim_script，例如发送到后端渲染
-      }
-      // 如果有 notes，可以显示给用户
-      if (data.notes) {
-        // 显示 notes，例如更新一个笔记区域
-      }
-      // Use Web Speech API to read the message aloud
-      if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(data.message);
-        window.speechSynthesis.speak(utterance);
-      } else {
-        console.warn('Speech Synthesis not supported in this browser.');
-      }
-    }
-    ws.onclose = (closeEvent) => {
-      if (closeEvent.code != 1000){
+      
+      // Send authentication message immediately after connection
+      const token = Cookies.get('token');
+      if (!token) {
         toast({
-          title: 'connection closed',
-          description: closeEvent.reason,
+          title: 'Authentication error',
+          description: 'No auth token found',
           status: 'error',
           duration: 3000,
         });
+        ws.close();
+        return;
       }
-      else {
+      
+      const authMessage = JSON.stringify({
+        type: "auth",
+        token: token
+      });
+      ws.send(authMessage);
+      console.log('Authentication message sent');
+      
+      toast({
+        title: 'Connecting to AI',
+        description: 'Authenticating...',
+        status: 'info',
+        duration: 2000,
+      });
+    };
+    
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log('Received message:', data);
+        
+        // Handle authentication response
+        if (data.status === "success" && data.health === "ok") {
+          console.log("Authentication successful");
+          setAuthenticated(true);
+          setConnecting(false);
+          setRecording(true);
+          
+          toast({
+            title: 'Connected successfully',
+            description: 'Authentication successful',
+            status: 'success',
+            duration: 3000,
+          });
+          
+          // Only start media streams after successful authentication
+          startVideo();
+          startAudio();
+          
+          // Start video frame capture
+          const video = studentVideoRef.current;
+          if (video) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            sendingVideoTask.current = setInterval(() => {
+              if (!video || !ctx || websocketRef.current?.readyState !== WebSocket.OPEN) return;
+              // 降低分辨率
+              const targetWidth = 320;
+              const targetHeight = 240;
+              canvas.width = targetWidth;
+              canvas.height = targetHeight;
+              ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
+              canvas.toBlob((blob) => {
+                if (blob && websocketRef.current?.readyState === WebSocket.OPEN) {
+                  blob.arrayBuffer().then(buffer => {
+                    websocketRef.current?.send(buffer);
+                  });
+                }
+              }, 'image/jpeg', 0.7);
+            }, 200); // 200ms 一帧
+            
+            // 新增：监控 setInterval 是否持续运行
+            setInterval(() => {
+              console.log("[monitor] sendingVideoTask.current:", sendingVideoTask.current);
+            }, 2000);
+          }
+        } 
+        // Handle authentication error
+        else if (data.status === "error") {
+          console.error("Authentication error:", data.message);
+          setConnecting(false);
+          toast({
+            title: 'Authentication failed',
+            description: data.message || 'Could not authenticate with the server',
+            status: 'error',
+            duration: 5000,
+          });
+          // Close the connection on auth failure
+          ws.close(1000, "Authentication failed");
+        }
+        // Handle regular messages
+        else if (data.message) {
+          const aiMessage = { role: 'assistant', content: data.message };
+          setMessages(prev => [...prev, aiMessage]);
+          
+          // 如果有 manim_script，可以在前端显示或发送到后端处理
+          if (data.manim_script) {
+            // 处理 manim_script，例如发送到后端渲染
+          }
+          // 如果有 notes，可以显示给用户
+          if (data.notes) {
+            // 显示 notes，例如更新一个笔记区域
+          }
+          // Use Web Speech API to read the message aloud
+          if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(data.message);
+            window.speechSynthesis.speak(utterance);
+          } else {
+            console.warn('Speech Synthesis not supported in this browser.');
+          }
+        }
+      } catch (error) {
+        console.error("Error parsing message:", error);
+        console.log("Raw message:", event.data);
+        
+        // For non-JSON responses that might be from early debugging
+        if (typeof event.data === 'string' && event.data.startsWith('Received:')) {
+          console.log("Received acknowledgment from server");
+        }
+      }
+    }
+    
+    ws.onclose = (closeEvent) => {
+      setAuthenticated(false);
+      setRecording(false);
+      
+      if (closeEvent.code !== 1000) {
+        console.error("WebSocket closed with code:", closeEvent.code);
         toast({
-          title: 'close successful',
+          title: 'Connection closed',
+          description: closeEvent.reason || 'The connection was closed unexpectedly',
+          status: 'error',
+          duration: 3000,
+        });
+      } else {
+        toast({
+          title: 'Disconnected',
+          description: 'Connection closed successfully',
           status: 'success',
           duration: 3000,
         });
       }
       websocketRef.current = null; // 清空 WebSocket 实例
-      disconnectWebSocket()
+      disconnectWebSocket();
     };
+    
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+      toast({
+        title: 'Connection error',
+        description: 'Failed to connect to the server',
+        status: 'error',
+        duration: 3000,
+      });
+      setConnecting(false);
+    };
+
+    // Set the WebSocket reference after defining all event handlers
     websocketRef.current = ws;
   };
 
   // 断开 WebSocket
   const disconnectWebSocket = () => {
-    console.log('disconnectWebSocket');
-    // 日志：disconnectWebSocket 被调用
-    stopVideo()
+    console.log('Disconnecting WebSocket');
+    
+    // Stop media streams
+    stopVideo();
     stopAudio();
+    
+    // Update state
     setRecording(false);
     setConnecting(false);
+    setAuthenticated(false);
+    
+    // Close WebSocket connection if it exists
     if (websocketRef.current) {
-      websocketRef.current.close(1000);
-      websocketRef.current = null;
+      console.log('Closing WebSocket connection');
+      try {
+        // 1000 is normal closure status code
+        websocketRef.current.close(1000, "User disconnected");
+        websocketRef.current = null;
+        console.log('WebSocket disconnected successfully');
+      } catch (error) {
+        console.error('Error closing WebSocket:', error);
+      }
     }
   };
 
@@ -512,29 +620,78 @@ const CourseInteractionPage: React.FC = () => {
               <Box w="100%" bg={cardBg} borderRadius="lg" p={4}>
                 <Flex justify="space-between" mb={2}>
                   <Heading size="sm">Your Camera</Heading>
-                  <Button
+                  <Flex align="center">
+                    {authenticated && recording && (
+                      <Box 
+                        w="10px" 
+                        h="10px" 
+                        borderRadius="full" 
+                        bg="green.500" 
+                        mr={2} 
+                        animation="pulse 1.5s infinite"
+                        sx={{
+                          "@keyframes pulse": {
+                            "0%": { opacity: 1 },
+                            "50%": { opacity: 0.5 },
+                            "100%": { opacity: 1 }
+                          }
+                        }}
+                      />
+                    )}
+                    <Button
                       size="sm"
                       colorScheme={recording ? 'red' : 'green'}
                       onClick={toggleConnect}
                       isLoading={connecting}
-                      loadingText="Connetcing"
-                  >
-                    {recording ? 'Turn Off' : 'Turn On'}
-                  </Button>
+                      loadingText="Connecting"
+                    >
+                      {recording ? 'Turn Off' : 'Turn On'}
+                    </Button>
+                  </Flex>
                 </Flex>
-                <Box
+                <Box position="relative">
+                  <Box
                     w="100%"
                     h="200px"
                     bg="gray.700"
                     borderRadius="md"
                     overflow="hidden"
-                >
-                  <video
+                  >
+                    <video
                       ref={studentVideoRef}
                       style={{width: '100%', height: '100%', objectFit: 'cover'}}
                       playsInline
                       autoPlay
-                      muted/>
+                      muted
+                    />
+                  </Box>
+                  
+                  {connecting && !authenticated && (
+                    <Flex 
+                      position="absolute" 
+                      top="0" 
+                      left="0" 
+                      right="0" 
+                      bottom="0" 
+                      bg="blackAlpha.700" 
+                      zIndex="10"
+                      justify="center"
+                      align="center"
+                      direction="column"
+                      borderRadius="md"
+                    >
+                      <Text color="white" mb={2} fontWeight="bold">
+                        Authenticating...
+                      </Text>
+                      <Progress 
+                        size="xs" 
+                        isIndeterminate 
+                        colorScheme="blue" 
+                        w="80%" 
+                        borderRadius="full"
+                      />
+                    </Flex>
+                  )}
                 </Box>
               </Box>
 
