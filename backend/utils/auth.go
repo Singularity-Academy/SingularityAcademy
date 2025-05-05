@@ -10,6 +10,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/sony/sonyflake"
 	"math/big"
+	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -76,6 +77,16 @@ func CheckPassword(passwd string, encryption string) bool {
 }
 
 var secretKey = []byte("AISAISAAA") // 你可以自定义你的密钥
+
+func init() {
+	// Write the secret key to a file for the Python backend
+	err := os.WriteFile("auth_secret.key", secretKey, 0600)
+	if err != nil {
+		fmt.Println("Warning: Failed to write secret key to file:", err)
+	} else {
+		fmt.Println("Secret key written to auth_secret.key")
+	}
+}
 
 type Claims struct {
 	ID uint64 `json:"ID"`

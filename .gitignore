@@ -320,3 +320,5 @@ backend/backend
 backend/backend.exe
 .DS_Store
 .DS_Store
+
+frames/

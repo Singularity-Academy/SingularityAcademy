@@ -75,20 +75,29 @@ const CourseInteractionPage: React.FC = () => {
           setAudioStream(stream);
           // audio stream logic
           const mediaRecorder = new MediaRecorder(stream);
+          let audioPacketId = 0;
           mediaRecorder.ondataavailable = (event) => {
             if (websocketRef.current?.readyState !== WebSocket.OPEN) return;
             const audioBlob = event.data;
             const reader = new FileReader();
             reader.onloadend = () => {
-              const buffer = reader.result;
-              // 测试是否在发送音频数据
-              // console.log("发送音频数据，字节长度:", buffer ? (buffer as ArrayBuffer).byteLength : 0);
-              // Send the audio buffer via WebSocket
-              websocketRef.current?.send(buffer || "")
+              // Get base64 data
+              const base64data = reader.result as string;
+              // Send audio data in JSON format, similar to video
+              const audioPacket = {
+                packet_id: audioPacketId++,
+                time: Date.now(),
+                video: null,
+                audio: base64data,
+              };
+              
+              // Send as JSON string
+              websocketRef.current?.send(JSON.stringify(audioPacket));
             };
-            reader.readAsArrayBuffer(audioBlob);
+            // Read as base64 instead of ArrayBuffer
+            reader.readAsDataURL(audioBlob);
           };
-          mediaRecorder.start(500);  // Capture every 1 second of audio
+          mediaRecorder.start(500);  // Capture every 0.5 seconds of audio
         })
         .catch((error) => toast({
             title: "error accessing media devices",
@@ -133,12 +142,14 @@ const CourseInteractionPage: React.FC = () => {
   };
 
   const connectWebSocket = () => {
-    if (websocketRef.current) return; // 如果已经连接了，就不重复连接
+    if (websocketRef.current) return; // If already connected, don't reconnect
     startVideo();
     startAudio();
     setConnecting(true);
     const video = studentVideoRef.current;
-    const ws = new WebSocket(`ws://localhost:8080/api/ws/stream?token=${Cookies.get('token')}`);
+    const base_url = window.location.host;
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const ws = new WebSocket(`${protocol}//${base_url}/ai/ws/stream`);
 
     ws.onopen = () => {
       console.log('Dean AI WebSocket connected');
@@ -147,54 +158,60 @@ const CourseInteractionPage: React.FC = () => {
         status: 'success',
         duration: 3000,
       });
+      // Send authentication token and wait for response
+      ws.send(JSON.stringify({
+        type: 'auth',
+        token: Cookies.get('token')
+      }));
       setConnecting(false);
-      setRecording(true);
-      // 定期捕获视频帧，降低帧率，压缩分辨率，使用 toBlob 发送二进制数据
-      if (video) {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        sendingVideoTask.current = setInterval(() => {
-          if (!video || !ctx || websocketRef.current?.readyState !== WebSocket.OPEN) return;
-          // 降低分辨率
-          const targetWidth = 320;
-          const targetHeight = 240;
-          canvas.width = targetWidth;
-          canvas.height = targetHeight;
-          ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
-          canvas.toBlob((blob) => {
-            if (blob && websocketRef.current?.readyState === WebSocket.OPEN) {
-              blob.arrayBuffer().then(buffer => {
-                websocketRef.current?.send(buffer);
-              });
-            }
-          }, 'image/jpeg', 0.7);
-        }, 200); // 200ms 一帧
-        // 新增：监控 setInterval 是否持续运行
-        setInterval(() => {
-          console.log("[monitor] sendingVideoTask.current:", sendingVideoTask.current);
-        }, 2000);
-      }
+      // Wait for auth response before starting video - don't start streaming yet
     };
     ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      const aiMessage = { role: 'assistant', content: data.message };
-      setMessages(prev => [...prev, aiMessage]);
-      // 如果有 manim_script，可以在前端显示或发送到后端处理
-      if (data.manim_script) {
-        // 处理 manim_script，例如发送到后端渲染
+      try {
+        const data = JSON.parse(event.data);
+        
+        // Handle auth response
+        if (data.type === 'auth_response') {
+          if (data.status === 'success') {
+            setRecording(true);
+            startVideoStreaming(video, ws);
+          } else {
+            toast({
+              title: 'Authentication failed',
+              description: data.message || 'Invalid credentials',
+              status: 'error',
+              duration: 3000,
+            });
+            disconnectWebSocket();
+            return;
+          }
+          return;
+        }
+        
+        // Handle regular messages
+        const aiMessage = { role: 'assistant', content: data.message };
+        setMessages(prev => [...prev, aiMessage]);
+        
+        // 如果有 manim_script，可以在前端显示或发送到后端处理
+        if (data.manim_script) {
+          // 处理 manim_script，例如发送到后端渲染
+        }
+        // 如果有 notes，可以显示给用户
+        if (data.notes) {
+          // 显示 notes，例如更新一个笔记区域
+        }
+        // Use Web Speech API to read the message aloud
+        if ('speechSynthesis' in window) {
+          const utterance = new SpeechSynthesisUtterance(data.message);
+          window.speechSynthesis.speak(utterance);
+        } else {
+          console.warn('Speech Synthesis not supported in this browser.');
+        }
+      } catch (err) {
+        console.error('Error processing message:', err);
       }
-      // 如果有 notes，可以显示给用户
-      if (data.notes) {
-        // 显示 notes，例如更新一个笔记区域
-      }
-      // Use Web Speech API to read the message aloud
-      if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(data.message);
-        window.speechSynthesis.speak(utterance);
-      } else {
-        console.warn('Speech Synthesis not supported in this browser.');
-      }
-    }
+    };
+    
     ws.onclose = (closeEvent) => {
       if (closeEvent.code != 1000){
         toast({
@@ -212,8 +229,9 @@ const CourseInteractionPage: React.FC = () => {
         });
       }
       websocketRef.current = null; // 清空 WebSocket 实例
-      disconnectWebSocket()
+      disconnectWebSocket();
     };
+
     websocketRef.current = ws;
   };
 
@@ -410,6 +428,55 @@ const CourseInteractionPage: React.FC = () => {
     multiple: true,
     maxSize: 100 * 1024 * 1024 // 100MB
   });
+
+  // Function to start streaming video frames
+  const startVideoStreaming = (video: HTMLVideoElement | null, ws: WebSocket) => {
+    if (!video) return;
+    
+    let packetId = 0;
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    sendingVideoTask.current = setInterval(() => {
+      if (!video || !ctx || ws.readyState !== WebSocket.OPEN) return;
+      
+      // 降低分辨率
+      const targetWidth = 320;
+      const targetHeight = 240;
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+      ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
+      
+      // Convert frame to base64 instead of binary
+      canvas.toBlob((blob) => {
+        if (blob && ws.readyState === WebSocket.OPEN) {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            // Get base64 data string
+            const base64data = reader.result as string;
+            // Extract the base64 part (remove the data:image/jpeg;base64, prefix)
+            const base64EncodedFrame = base64data.split(',')[1];
+            
+            // Create packet according to Python backend spec
+            const videoPacket = {
+              packet_id: packetId++,
+              time: Date.now(),
+              video: base64EncodedFrame,
+              audio: null // We're only sending video for now
+            };
+            
+            // Send as JSON string
+            ws.send(JSON.stringify(videoPacket));
+          };
+          reader.readAsDataURL(blob);
+        }
+      }, 'image/jpeg', 0.7);
+    }, 200); // 200ms 一帧
+    
+    // 新增：监控 setInterval 是否持续运行
+    setInterval(() => {
+      console.log("[monitor] sendingVideoTask.current:", sendingVideoTask.current);
+    }, 2000);
+  };
 
   return (<Box bg={bgColor} minH="100vh" p={4}>
         <Container maxW="container.xl">
