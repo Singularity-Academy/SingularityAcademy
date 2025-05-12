@@ -13,6 +13,34 @@ os.makedirs("frames", exist_ok=True)
 bp = Blueprint("ws", url_prefix="/ai/ws")
 bp.ctx.auth = AuthManager.from_env()
 
+@bp.websocket("/principal")
+async def principal(request, ws):
+    """
+    Handles a single Principal AI chat connection.
+    Lifecycle:
+     - accepts and waits for auth msg
+     - check auth data and verifies it
+     - returns auth_ok msg
+     - starts recieving video & audio chunks
+
+    Database scheme for course:
+     - course_id PRIMARY KEY AUTOINCREMENT
+     - course_name
+     - course_description
+     - course_created_at
+     - course_updated_at
+     - course_materials -> ONETOMANY RELATION to course_materials table
+     - course_owner -> MANYTOONE RELATION to users table
+    """
+    # TODO: verify auth token
+
+    # TODO: start recieving chat messages
+
+    # TODO: FOR EACH CHAT_MESSAGE:
+    # - send to LLM
+    # - send response back to frontend
+
+    
 @bp.websocket("/stream")
 async def ws(request, ws):
     """
@@ -45,7 +73,7 @@ async def ws(request, ws):
     try:
         # Wait for authentication message
         print("Waiting for auth message...")
-        auth_message = await ws.recv()
+        auth_message = await ws.recv() #Recv
         auth_data = loads(auth_message)
         if auth_data.get("type") != "auth" or not auth_data.get("token"):
             print("Invalid auth data format")
@@ -54,7 +82,7 @@ async def ws(request, ws):
         # Verify auth token
         token = auth_data.get("token")
         print(f"Verifying token: {token[:10]}...")
-        if not bp.ctx.auth.verify_token(token):
+        if not bp.ctx.auth.verify_token(token): # Verify
             print("Token verification failed")
             raise AuthError("Invalid token")
 
