@@ -322,3 +322,4 @@ backend/backend.exe
 .DS_Store
 
 frames/
+backend/sa_database.db
