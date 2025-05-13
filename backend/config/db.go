@@ -2,14 +2,18 @@ package config
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
 var DB *gorm.DB
 
-func ConnectDatabase() {
+// The original MySQL connection function
+func ConnectDatabaseMySQL() {
 	// Extract database details from the configuration
 	user := viper.GetString("database.user")
 	password := viper.GetString("database.password")
@@ -28,16 +32,19 @@ func ConnectDatabase() {
 	// Open the database connection
 	database, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
+		log.Printf("[error] failed to initialize database, got error %v", err)
 		panic("Failed to connect to database: " + err.Error())
 	}
 	DB = database
 }
 
-//func ConnectDatabase() {
-//	dsn := "AIS:AISAISAAA@tcp(156.238.229.162:3306)/test1?charset=utf8mb4&parseTime=True&loc=Local"
-//	database, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-//	if err != nil {
-//		panic("Failed to connect to database: " + err.Error())
-//	}
-//	DB = database
-//}
+// Use SQLite instead which doesn't require authentication
+func ConnectDatabase() {
+	database, err := gorm.Open(sqlite.Open("sa_database.db"), &gorm.Config{})
+	if err != nil {
+		log.Printf("[error] failed to initialize SQLite database, got error %v", err)
+		panic("Failed to connect to SQLite database: " + err.Error())
+	}
+	log.Printf("Successfully connected to SQLite database")
+	DB = database
+}

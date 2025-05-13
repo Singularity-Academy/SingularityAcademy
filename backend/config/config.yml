@@ -1,9 +1,9 @@
 database:
-  user: "root"
-  password: "dl110426"  # 使用您之前设置的新密码
-  host: "localhost"  # 或 127.0.0.1
+  user: "sauser"
+  password: "sa-password123"  # New password for sauser
+  host: "127.0.0.1"  # or 127.0.0.1
   port: 3306
-  name: "school"
+  name: "SA"
   charset: "utf8mb4"
   parseTime: true
   loc: "Local"

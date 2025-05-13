@@ -43,7 +43,7 @@ const LoginPage: React.FC = () => {
         status: 'success',
         duration: 3000,
       });
-      navigate('/dashboard');
+      navigate('/me/homepage');
     } catch (err) {
       const error = err as AxiosError<ErrorResponse>;
       toast(getToastMessage(error));

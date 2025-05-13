@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import Footer from './components/Footer';
 import PrincipalAIPage from './pages/PrincipalAIPage';
 import Navbar from "@components/Navbar";
+import PrivateRoute from './components/PrivateRoute';
 
 const App: React.FC = () => {
   const { i18n } = useTranslation();
@@ -36,12 +37,17 @@ const App: React.FC = () => {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
-                <Route path='/homepage' element={<PersonalHomePage />} />
-                <Route path='/me/homepage' element={<LearningPage />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-                <Route path="/course/interaction" element={<CourseInteractionPage />} />
                 <Route path="/auth/verify" element={<VerifyPage />} />
-                <Route path="/principal-ai" element={<PrincipalAIPage />} />
+                
+                {/* Protected Routes */}
+                <Route element={<PrivateRoute />}>
+                  <Route path='/homepage' element={<PersonalHomePage />} />
+                  <Route path='/me/homepage' element={<LearningPage />} />
+                  <Route path="/course/interaction" element={<CourseInteractionPage />} />
+                  <Route path="/principal-ai" element={<PrincipalAIPage />} />
+                </Route>
+                
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Box>
           <Footer />

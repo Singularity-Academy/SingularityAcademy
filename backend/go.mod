@@ -9,10 +9,15 @@ require (
 	github.com/sony/sonyflake v1.2.0
 	github.com/spf13/viper v1.19.0
 	gorm.io/driver/mysql v1.5.7
-	gorm.io/gorm v1.25.12
+	gorm.io/gorm v1.26.1
 )
 
 require github.com/gorilla/websocket v1.5.3
+
+require (
+	github.com/mattn/go-sqlite3 v1.14.28 // indirect
+	gorm.io/driver/sqlite v1.5.7 // indirect
+)
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect; indirect3
@@ -56,7 +61,7 @@ require (
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
 	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/text v0.25.0 // indirect
 	google.golang.org/protobuf v1.36.3 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

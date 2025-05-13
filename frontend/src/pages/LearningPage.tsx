@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -11,6 +11,7 @@ import {
 import Navbar from "@components/Navbar";
 import {useNavigate} from "react-router-dom";
 import { useTranslation } from 'react-i18next';
+import Cookies from 'js-cookie';
 
 const LearningPage: React.FC = () => {
   const bgColor = useColorModeValue('gray.50', 'gray.900');
@@ -18,6 +19,13 @@ const LearningPage: React.FC = () => {
   const navigate = useNavigate();
   const [selectedSection, setSelectedSection] = useState<string>('overview');
   const { t } = useTranslation();
+
+  // Check authentication
+  useEffect(() => {
+    if (!Cookies.get('token')) {
+      navigate('/login');
+    }
+  }, [navigate]);
 
   const renderContent = () => {
     switch (selectedSection) {
