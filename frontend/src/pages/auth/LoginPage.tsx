@@ -43,10 +43,10 @@ const LoginPage: React.FC = () => {
         status: 'success',
         duration: 3000,
       });
-      navigate('/me/homepage');
+      navigate('/me/homepage'); // 登录成功后跳转到 Dashboard
     } catch (err) {
       const error = err as AxiosError<ErrorResponse>;
-      toast(getToastMessage(error));
+      toast(getToastMessage(error)); 
     }
   };
 
