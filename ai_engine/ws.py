@@ -11,7 +11,7 @@ import time
 os.makedirs("frames", exist_ok=True)
 
 bp = Blueprint("ws", url_prefix="/ai/ws")
-bp.ctx.auth = AuthManager.from_env()
+bp.ctx.auth = AuthManager
 
 @bp.websocket("/principal")
 async def principal(request, ws):

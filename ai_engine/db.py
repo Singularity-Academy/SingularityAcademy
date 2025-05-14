@@ -12,9 +12,27 @@ class User(models.Model):
     is_verified = fields.BooleanField(default=False)
     verification_token = fields.CharField(max_length=10, null=True)
     register_at = fields.DatetimeField(auto_now_add=True)
+    # Add a related_name for the reverse relation from User to Course
+    # courses: fields.ReverseRelation["Course"] # This will be automatically available
 
     class Meta:
         table = "users"
+
+class Course(models.Model):
+    id = fields.BigIntField(pk=True)
+    name = fields.CharField(max_length=255, null=False)
+    desc = fields.TextField(null=True) # Description can be optional or longer
+    created_at = fields.DatetimeField(auto_now_add=True)
+    # Many-to-one relationship: A course belongs to a user
+    # 'models.User' refers to the User model in the current app/module context
+    # related_name='courses' allows you to access user.courses to get all courses for a user
+    owner = fields.ForeignKeyField('models.User', related_name='courses', description="The user who owns/created this course")
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        table = "courses"
 
 def load_db_config():
     """Load database configuration from config.yml"""
