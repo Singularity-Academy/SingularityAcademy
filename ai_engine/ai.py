@@ -8,6 +8,7 @@ import uuid
 from typing import Optional, Tuple, Dict, Any
 import ujson as json # Using ujson instead of json for faster performance
 import os # Added for OPENAI_API_KEY
+from datetime import datetime, timezone
 
 from openai import AsyncOpenAI # We'll need this later
 from openai.types.chat.chat_completion_message_tool_call import ChatCompletionMessageToolCall # For type hinting
@@ -87,6 +88,16 @@ class Chat:
         self._openai_client: Optional[AsyncOpenAI] = None # Will be initialized by _ensure_openai_client
 
         self._is_new_history = True # Flag to indicate if history_instance needs creation
+        
+        # Load the system prompt from prompt.txt
+        prompt_path = os.path.join(os.path.dirname(__file__), 'prompt.txt')
+        try:
+            with open(prompt_path, 'r') as f:
+                self.system_prompt = f.read().strip()
+            logger.info("Loaded system prompt from prompt.txt")
+        except Exception as e:
+            logger.warning(f"Failed to load system prompt from {prompt_path}: {e}")
+            self.system_prompt = "You are an assistant that helps with educational queries."
 
     async def _get_or_create_history_instance(self) -> PrincipalChatHistory:
         """
@@ -112,7 +123,17 @@ class Chat:
             await self.history_instance.save()
             self.chat_history_id = self.history_instance.id # Store the new ID
             self._is_new_history = False # It's now saved
-            logger.info(f"Created new chat history ID: {self.history_instance.id} for user ID: {self.user.id}")
+            
+            # Add the system prompt as the first message for new chats
+            system_message = {
+                "message_id": f"system-{uuid.uuid4()}",
+                "role": "system",
+                "content": self.system_prompt,
+                "timestamp": datetime.now(timezone.utc).isoformat(timespec='seconds') + "Z"
+            }
+            await self.history_instance.insert_message(system_message)
+            logger.info(f"Created new chat history ID: {self.history_instance.id} with system prompt for user ID: {self.user.id}")
+            
         except Exception as e:
             logger.error(f"Failed to save new PrincipalChatHistory for user {self.user.id}: {e}")
             # In this case, history_instance remains unsaved, and subsequent operations might fail or retry.
@@ -160,23 +181,31 @@ class Chat:
     async def _prepare_initial_api_messages(self, db_messages: list) -> list:
         """
         Prepares the initial list of messages for the OpenAI API from DB history.
-        Skips assistant messages that were tool call initiations to simplify context,
-        as their corresponding tool responses are not stored in the DB.
+        Converts all messages in the history to the format expected by the API.
         """
         api_messages = []
+        
         for msg in db_messages:
             role = msg.get('role')
             content = msg.get('content')
             
-            if role == 'user':
+            if role == 'system':
+                # System messages are sent as-is
+                api_messages.append({'role': 'system', 'content': content})
+            elif role == 'user':
+                # User messages are sent as-is
                 api_messages.append({'role': 'user', 'content': content})
             elif role == 'assistant':
-                # Only include assistant messages that have textual content and were not (primarily) tool calls.
-                # This is a simplification: if a message had both text and calls, we only take text.
-                if isinstance(content, dict) and content.get('text') and not content.get('calls'):
-                    api_messages.append({'role': 'assistant', 'content': content.get('text')})
-                elif isinstance(content, str): # Should ideally not happen for assistant with new model
-                     api_messages.append({'role': 'assistant', 'content': content})
+                # For assistant messages with a dictionary content
+                if isinstance(content, dict):
+                    # Extract the text content
+                    text_content = content.get('text', '')
+                    api_messages.append({'role': 'assistant', 'content': text_content})
+                # For legacy assistant messages with string content
+                elif isinstance(content, str):
+                    api_messages.append({'role': 'assistant', 'content': content})
+        
+        logger.debug(f"Prepared {len(api_messages)} messages for API")
         return api_messages
 
     async def send_message(self, user_message_content: str, model_name: str = "gpt-4o-mini") -> Dict[str, Any]:
