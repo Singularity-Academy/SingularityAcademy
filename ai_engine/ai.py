@@ -6,7 +6,7 @@ import asyncio
 import logging
 import uuid
 from typing import Optional, Tuple, Dict, Any
-import json # Added for parsing function arguments
+import ujson as json # Using ujson instead of json for faster performance
 import os # Added for OPENAI_API_KEY
 
 from openai import AsyncOpenAI # We'll need this later

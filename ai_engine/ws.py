@@ -3,15 +3,31 @@ from sanic.blueprints import Blueprint
 from ujson import loads, dumps
 from .exceptions import AuthError
 from .auth import AuthManager
+from .ai import Chat
+from .db import User
 import base64
 import os
 import time
+import logging
+from typing import Dict, Any, Optional, Tuple, Union
+
+# Import helpers and constants
+from .ws_helpers import (
+    # Constants
+    MSG_TYPE_AUTH, MSG_TYPE_AUTH_RESPONSE, MSG_TYPE_MESSAGE, 
+    MSG_TYPE_MESSAGE_RESPONSE, MSG_TYPE_ERROR, MSG_TYPE_ACK,
+    # Helper functions
+    handle_authentication, send_error_response,
+    process_chat_message, save_video_frame, process_stream_packet
+)
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 # Create frames directory if it doesn't exist
 os.makedirs("frames", exist_ok=True)
 
 bp = Blueprint("ws", url_prefix="/ai/ws")
-bp.ctx.auth = AuthManager
 
 @bp.websocket("/principal")
 async def principal(request, ws):
@@ -21,35 +37,93 @@ async def principal(request, ws):
      - accepts and waits for auth msg
      - check auth data and verifies it
      - returns auth_ok msg
-     - starts recieving video & audio chunks
+     - starts receiving chat messages and processes them through LLM
 
-    Database scheme for course:
-     - course_id PRIMARY KEY AUTOINCREMENT
-     - course_name
-     - course_description
-     - course_created_at
-     - course_updated_at
-     - course_materials -> ONETOMANY RELATION to course_materials table
-     - course_owner -> MANYTOONE RELATION to users table
-    """
-    # TODO: verify auth token
-
-    # TODO: start recieving chat messages
-
-    # TODO: FOR EACH CHAT_MESSAGE:
-    # - send to LLM
-    # - send response back to frontend
-
+    Message format for frontend -> backend:
+    {
+        "type": "auth",
+        "token": "jwt_token_here"
+    }
     
+    OR
+    
+    {
+        "type": "message",
+        "content": "User's message here"
+    }
+
+    Message format for backend -> frontend:
+    {
+        "type": "auth_response",
+        "status": "success",
+        "user_id": "1234"
+    }
+    
+    OR
+    
+    {
+        "type": "message_response",
+        "content": {
+            "text": "Response from LLM",
+            "calls": [] # Any function calls (empty for now)
+        },
+        "message_id": "prinmsg-uuid..."
+    }
+    """
+    logger.info("Principal chat WebSocket connection established")
+    chat_session = None
+    user_id = None
+    
+    try:
+        # Authenticate user and send success response in one step
+        claims, user_id = await handle_authentication(ws, request)
+        
+        # Fetch user from database
+        try:
+            user = await User.get(id=claims["ID"])
+            logger.info(f"Found user: {user.username} (ID: {user_id})")
+        except Exception as e:
+            logger.error(f"Failed to retrieve user {user_id}: {e}")
+            raise AuthError(f"User not found: {e}")
+        
+        # Create chat session
+        chat_session = Chat(user=user)
+        
+        # Start receiving chat messages
+        logger.info(f"Starting to receive chat messages for user {user_id}")
+        while True:
+            try:
+                message = await ws.recv()
+                message_data = loads(message)
+                await process_chat_message(ws, chat_session, message_data, user_id)
+            except AuthError as e:
+                logger.error(f"Auth error during message processing: {e}")
+                await send_error_response(ws, MSG_TYPE_ERROR, f"Authentication error: {str(e)}")
+                break
+            except Exception as e:
+                logger.error(f"Error processing message: {e}")
+                await send_error_response(ws, MSG_TYPE_ERROR, f"Error processing your message: {str(e)}")
+    
+    except AuthError as e:
+        logger.error(f"Authentication error: {e}")
+        await send_error_response(ws, MSG_TYPE_AUTH_RESPONSE, str(e))
+    except Exception as e:
+        logger.error(f"WebSocket error: {e}")
+        await send_error_response(ws, MSG_TYPE_ERROR, f"Server error: {str(e)}")
+    finally:
+        # Ensure connection is closed
+        logger.info(f"Principal chat WebSocket connection closed for user {user_id}")
+        await ws.close()
+
 @bp.websocket("/stream")
-async def ws(request, ws):
+async def stream_handler(request, ws):
     """
     Handles a single WebSocket Video & Audio streaming connection.
     Lifecycle:
      - accepts and waits for auth msg
      - check auth data and verifies it
      - returns auth_ok msg
-     - starts recieving video & audio chunks
+     - starts receiving video & audio chunks
     Frontend -> backend auth msg:
     {
         "type": "auth",
@@ -69,105 +143,37 @@ async def ws(request, ws):
         "audio": "base64_encoded_audio_data"
     }
     """
-    print("WebSocket connection established")
+    logger.info("WebSocket stream connection established")
+    user_id = None
+    
     try:
-        # Wait for authentication message
-        print("Waiting for auth message...")
-        auth_message = await ws.recv() #Recv
-        auth_data = loads(auth_message)
-        if auth_data.get("type") != "auth" or not auth_data.get("token"):
-            print("Invalid auth data format")
-            raise AuthError("Invalid message type")
-        
-        # Verify auth token
-        token = auth_data.get("token")
-        print(f"Verifying token: {token[:10]}...")
-        if not bp.ctx.auth.verify_token(token): # Verify
-            print("Token verification failed")
-            raise AuthError("Invalid token")
-
-        print("Auth successful, sending success response")
-        await ws.send(dumps({
-            "type": "auth_response",
-            "status": "success",
-            "user_id": "1234567890"
-            }))
+        # Authenticate user and send success response in one step
+        claims, user_id = await handle_authentication(ws, request)
         
         # Create a unique session folder using timestamp
         session_id = int(time.time())
         session_dir = f"frames/session_{session_id}"
         os.makedirs(session_dir, exist_ok=True)
-        print(f"Created session directory: {session_dir}")
+        logger.info(f"Created session directory: {session_dir}")
         
         # Start receiving video & audio chunks
-        print("Starting to receive video/audio data")
+        logger.info("Starting to receive video/audio data")
         while True:
             chunk = await ws.recv()
             try:
                 chunk_data = loads(chunk)
-                
-                # Process video frames
-                if chunk_data.get("video") is not None:
-                    packet_id = chunk_data.get('packet_id')
-                    print(f"Received video packet #{packet_id} at time {chunk_data.get('time')}")
-                    
-                    # Decode base64 data and save as image file
-                    try:
-                        # Get the base64 encoded frame
-                        base64_data = chunk_data.get("video")
-                        
-                        # Decode the base64 data
-                        image_data = base64.b64decode(base64_data)
-                        
-                        # Save to file
-                        file_path = f"{session_dir}/frame_{packet_id}.jpg"
-                        with open(file_path, "wb") as f:
-                            f.write(image_data)
-                        
-                        print(f"Saved frame #{packet_id} to {file_path}")
-                    except Exception as e:
-                        print(f"Error saving frame #{packet_id}: {e}")
-                    
-                    # Send acknowledgment if needed
-                    await ws.send(dumps({
-                        "type": "ack",
-                        "packet_id": packet_id,
-                        "message": f"Frame {packet_id} received and saved"
-                    }))
-                
-                # Process audio frames
-                if chunk_data.get("audio") is not None:
-                    packet_id = chunk_data.get('packet_id')
-                    print(f"Received audio packet #{packet_id} at time {chunk_data.get('time')}")
-                    
-                    # Here you can process the base64-encoded audio data
-                    # For example, saving audio to a file:
-                    """
-                    try:
-                        base64_data = chunk_data.get("audio").split(",")[1] if "," in chunk_data.get("audio") else chunk_data.get("audio")
-                        audio_data = base64.b64decode(base64_data)
-                        file_path = f"{session_dir}/audio_{packet_id}.wav"
-                        with open(file_path, "wb") as f:
-                            f.write(audio_data)
-                    except Exception as e:
-                        print(f"Error saving audio #{packet_id}: {e}")
-                    """
-                
+                await process_stream_packet(ws, chunk_data, session_dir)
             except Exception as e:
-                print(f"Error processing message: {e}")
-                print(f"Message content (first 100 chars): {str(chunk)[:100]}")
-            
+                logger.error(f"Error processing message: {e}")
+                logger.debug(f"Message content (first 100 chars): {str(chunk)[:100]}")
+        
     except AuthError as e:
-        print(f"Authentication error: {e}")
-        await ws.send(dumps({
-            "type": "auth_response",
-            "status": "error",
-            "message": str(e)
-        }))
+        logger.error(f"Authentication error: {e}")
+        await send_error_response(ws, MSG_TYPE_AUTH_RESPONSE, str(e))
     except Exception as e:
-        print(f"WebSocket error: {e}")
+        logger.error(f"WebSocket error: {e}")
         raise
     finally:
         # Ensure connection is closed
-        print("WebSocket connection closed")
+        logger.info(f"WebSocket stream connection closed for user {user_id}")
         await ws.close()
