@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Engine Project Inconsistencies</title>
+    <script>
+        // Define functions before they're used
+        function toggleInconsistency(element) {
+            // Find the content div that's a direct sibling of the h3
+            const content = element.nextElementSibling;
+            if (content && content.classList.contains('inconsistency-content')) {
+                element.classList.toggle('collapsed');
+                content.classList.toggle('collapsed');
+            }
+        }
+
+        function toggleAll() {
+            const allHeaders = document.querySelectorAll('.inconsistency h3');
+            const isAnyExpanded = Array.from(allHeaders).some(header => !header.classList.contains('collapsed'));
+            
+            allHeaders.forEach(header => {
+                if (isAnyExpanded) {
+                    header.classList.add('collapsed');
+                    const content = header.nextElementSibling;
+                    if (content && content.classList.contains('inconsistency-content')) {
+                        content.classList.add('collapsed');
+                    }
+                } else {
+                    header.classList.remove('collapsed');
+                    const content = header.nextElementSibling;
+                    if (content && content.classList.contains('inconsistency-content')) {
+                        content.classList.remove('collapsed');
+                    }
+                }
+            });
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click handlers to all issue headers
+            document.querySelectorAll('.inconsistency h3').forEach(header => {
+                header.addEventListener('click', function() {
+                    toggleInconsistency(this);
+                });
+            });
+
+            // Add keyboard navigation
+            document.addEventListener('keydown', function(e) {
+                if (e.altKey && e.key === 'a') {
+                    toggleAll();
+                }
+            });
+
+            // Initialize all issues as expanded
+            const allHeaders = document.querySelectorAll('.inconsistency h3');
+            allHeaders.forEach(header => {
+                header.classList.remove('collapsed');
+                const content = header.nextElementSibling;
+                if (content && content.classList.contains('inconsistency-content')) {
+                    content.classList.remove('collapsed');
+                }
+            });
+        });
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        h1 {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            margin-top: 30px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        h2::after {
+            content: '▼';
+            font-size: 0.8em;
+            transition: transform 0.3s ease;
+        }
+        h2.collapsed::after {
+            transform: rotate(-90deg);
+        }
+        .inconsistency {
+            background-color: #f8f9fa;
+            border-left: 4px solid #e74c3c;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 4px 4px 0;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        .inconsistency.fixed {
+            border-left-color: #2ecc71;
+        }
+        .inconsistency-content {
+            max-height: 2000px;
+            opacity: 1;
+            transition: all 0.3s ease;
+            padding: 15px;
+            margin-top: 10px;
+        }
+        .inconsistency-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
+        }
+        .inconsistency h3 {
+            margin-top: 0;
+            color: #e74c3c;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+        .inconsistency h3:hover {
+            background-color: #e9ecef;
+        }
+        .inconsistency h3::after {
+            content: '▼';
+            font-size: 0.8em;
+            transition: transform 0.3s ease;
+        }
+        .inconsistency h3.collapsed::after {
+            transform: rotate(-90deg);
+        }
+        .impact {
+            background-color: #eafaf1;
+            border-left: 4px solid #2ecc71;
+            padding: 10px 15px;
+            margin: 10px 0;
+        }
+        .solution {
+            background-color: #ebf5fb;
+            border-left: 4px solid #3498db;
+            padding: 10px 15px;
+            margin: 10px 0;
+        }
+        code {
+            background-color: #f1f1f1;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f1f1f1;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .file-path {
+            font-weight: bold;
+            color: #7f8c8d;
+        }
+        .severity {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .high {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .medium {
+            background-color: #fff3e0;
+            color: #ef6c00;
+        }
+        .low {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .toggle-all {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+        .toggle-all:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <button class="toggle-all" onclick="toggleAll()">Toggle All Issues</button>
+    <h1>AI Engine Project Inconsistencies</h1>
+    <p>This document outlines the key inconsistencies found in the AI Engine project codebase. Each inconsistency is documented with its impact and potential solutions.</p>
+
+    <h2>1. Authentication System Inconsistencies [FIXED]</h2>
+    <div class="inconsistency" style="border-color: green;">
+        <h3 onclick="toggleInconsistency(this)" style="color: #2ecc71;">Authentication Implementation Issues <span class="severity high">High</span> [FIXED]</h3>
+        <div class="inconsistency-content">
+            <p class="file-path">File: ai_engine/auth.py, ai_engine/utils.py, ai_engine/ws_helpers.py</p>
+            
+            <p><strong>Description:</strong> Multiple authentication-related issues have been resolved:</p>
+            <ul>
+                <li>The deprecated <code>verify_auth_token</code> function in <code>utils.py</code> has been completely removed</li>
+                <li>The <code>login_required</code> decorator has been properly implemented in <code>auth.py</code></li>
+                <li>Authentication logic has been centralized in <code>auth.py</code></li>
+            </ul>
+
+            <p><strong>Impact:</strong> Previously, there were several authentication-related issues:</p>
+            <ul>
+                <li>Security vulnerability from the deprecated function always returning True</li>
+                <li>Confusion about which authentication mechanism to use</li>
+                <li>Code duplication between auth.py and ws_helpers.py</li>
+                <li>Inconsistent authentication patterns across the codebase</li>
+            </ul>
+
+            <p><strong>Solution:</strong> The authentication system has been completely revamped:</p>
+            <ul>
+                <li>Removed the deprecated <code>verify_auth_token</code> function</li>
+                <li>Implemented a proper <code>login_required</code> decorator in <code>auth.py</code></li>
+                <li>Centralized authentication logic in <code>AuthManager</code></li>
+                <li>Standardized token verification and user context setting</li>
+                <li>Improved error handling and logging</li>
+            </ul>
+
+            <p><strong>Implementation Details:</strong></p>
+            <pre><code># In auth.py
+def login_required(func):
+    """
+    Decorator to verify authentication token and set user context.
+    This is where actual token verification happens, only when the decorator is used.
+    """
+    @wraps(func)
+    async def wrapper(request, *args, **kwargs):
+        if not request.ctx.raw_auth_token:
+            return json({"error": "Authentication required", "error_code": "AUTH_REQUIRED"}, status=401)
+        
+        # Get auth manager from app context
+        auth_manager = request.app.ctx.auth
+        
+        # Verify the token
+        claims = auth_manager.decode_token(request.ctx.raw_auth_token)
+        if not claims:
+            return json({"error": "Invalid or expired token", "error_code": "INVALID_TOKEN"}, status=401)
+        
+        # Set user context
+        request.ctx.user_id = claims.get("ID")
+        request.ctx.claims = claims
+        
+        logger.info(f"User {request.ctx.user_id} authenticated successfully")
+        return await func(request, *args, **kwargs)
+    
+    return wrapper</code></pre>
+        </div>
+    </div>
+
+    <h2>2. WebSocket and Streaming Implementation Issues</h2>
+    <div class="inconsistency">
+        <h3 onclick="toggleInconsistency(this)">Incomplete WebSocket and Streaming Functionality <span class="severity high">High</span></h3>
+        <div class="inconsistency-content">
+            <p class="file-path">File: ai_engine/ws.py, ai_engine/ws_helpers.py</p>
+            
+            <p><strong>Description:</strong> Several issues with WebSocket and streaming implementation:</p>
+            <ul>
+                <li>Inconsistent error handling between WebSocket endpoints</li>
+                <li>Incomplete audio processing implementation</li>
+                <li>Inconsistent handling of different media types</li>
+            </ul>
+
+            <div class="impact">
+                <h4>Impact:</h4>
+                <ul>
+                    <li>Inconsistent error responses to clients</li>
+                    <li>Incomplete functionality for audio streaming</li>
+                    <li>Difficult to debug issues due to inconsistent error handling</li>
+                    <li>Poor user experience with incomplete media handling</li>
+                </ul>
+            </div>
+
+            <div class="solution">
+                <h4>Solution:</h4>
+                <p>Implement comprehensive WebSocket and streaming functionality:</p>
+                <ol>
+                    <li>Create a common error handling utility for WebSockets</li>
+                    <li>Implement proper audio processing or document its status</li>
+                    <li>Standardize media type handling</li>
+                </ol>
+                <pre><code># In ws_helpers.py
+async def handle_websocket_error(ws, error_type: str, message: str, exception: Exception = None) -> None:
+    """Standardized error handling for WebSocket connections."""
+    if exception:
+        logger.error(f"WebSocket error: {message}", exc_info=exception)
+    else:
+        logger.warning(f"WebSocket warning: {message}")
+    
+    await ws.send(dumps({
+        "type": error_type,
+        "status": "error",
+        "message": message,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }))
+
+async def process_stream_packet(ws, chunk_data: Dict[str, Any], session_dir: str) -> None:
+    """Process both video and audio stream packets."""
+    try:
+        # Process video frames
+        if chunk_data.get("video") is not None:
+            # Existing video processing code
+            pass
+        
+        # Process audio frames
+        if chunk_data.get("audio") is not None:
+            packet_id = chunk_data.get('packet_id')
+            logger.info(f"Processing audio packet #{packet_id}")
+            
+            # Implement audio processing or document why it's not implemented
+            audio_data = base64.b64decode(chunk_data.get("audio"))
+            file_path = f"{session_dir}/audio_{packet_id}.wav"
+            
+            with open(file_path, "wb") as f:
+                f.write(audio_data)
+            
+            logger.info(f"Saved audio packet #{packet_id}")
+            
+            await ws.send(dumps({
+                "type": MSG_TYPE_ACK,
+                "packet_id": packet_id,
+                "message": f"Audio packet {packet_id} processed"
+            }))
+    except Exception as e:
+        await handle_websocket_error(ws, MSG_TYPE_ERROR, f"Error processing stream: {str(e)}", e)</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <h2>3. Configuration and Module Registration Issues</h2>
+    <div class="inconsistency">
+        <h3 onclick="toggleInconsistency(this)">Configuration and Blueprint Management <span class="severity high">High</span></h3>
+        <div class="inconsistency-content">
+            <p class="file-path">File: ai_engine/config.py, ai_engine/app.py, ai_engine/courses.py</p>
+            
+            <p><strong>Description:</strong> Multiple issues with configuration and module registration:</p>
+            <ul>
+                <li>Incomplete model configuration handling</li>
+                <li>Unimplemented tools in configuration</li>
+                <li>Unregistered blueprints</li>
+            </ul>
+
+            <div class="impact">
+                <h4>Impact:</h4>
+                <ul>
+                    <li>Unclear behavior with unavailable models</li>
+                    <li>Configuration suggests functionality that doesn't exist</li>
+                    <li>Course-related endpoints are not accessible</li>
+                    <li>Incomplete API functionality</li>
+                </ul>
+            </div>
+
+            <div class="solution">
+                <h4>Solution:</h4>
+                <p>Implement comprehensive configuration and module management:</p>
+                <ol>
+                    <li>Add proper model validation and fallback</li>
+                    <li>Implement or remove unimplemented tools</li>
+                    <li>Register all necessary blueprints</li>
+                </ol>
+                <pre><code># In config.py
+"models": {
+    "default": "gpt-4o-mini",
+    "available": {
+        "gpt-4o-mini": {
+            "name": "GPT-4o Mini",
+            "status": "active",
+            "fallback": null
+        },
+        "gpt-4o": {
+            "name": "GPT-4o",
+            "status": "active",
+            "fallback": "gpt-4o-mini"
+        }
+    }
+},
+"tools": {
+    "course_details": {
+        "enabled": True,
+        "status": "implemented",
+        "implementation_file": "ai_engine/ai_langchain.py"
+    }
+}
+
+# In app.py
+from .courses import bp as courses_bp
+from .ws import bp as ws_bp
+
+def register_blueprints(app):
+    """Register all application blueprints."""
+    app.blueprint(main_bp)
+    app.blueprint(ws_bp)
+    app.blueprint(courses_bp)
+    logger.info("All blueprints registered successfully")</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <h2>4. Database Model and Course Functionality Issues [FIXED]</h2>
+    <div class="inconsistency" style="border-color: green;">
+        <h3 onclick="toggleInconsistency(this)" style="color: #2ecc71;">Course Implementation Complete <span class="severity high">High</span> [FIXED]</h3>
+        <div class="inconsistency-content">
+            <p class="file-path">File: ai_engine/db.py, ai_engine/courses.py, ai_engine/ai_langchain.py</p>
+            
+            <p><strong>Description:</strong> The course functionality has been completely implemented:</p>
+            <ul>
+                <li>Database schema and API endpoints are fully implemented in <code>courses.py</code></li>
+                <li>AI tools in <code>ai_langchain.py</code> now use the database instead of hardcoded responses</li>
+                <li>Course management tools are properly integrated with the AI assistant</li>
+            </ul>
+
+            <div class="impact">
+                <h4>Impact:</h4>
+                <ul>
+                    <li>AI assistant now provides accurate course information from the database</li>
+                    <li>Users can create, search, and list courses through both API and AI interface</li>
+                    <li>Consistent course information across all interfaces</li>
+                </ul>
+            </div>
+
+            <div class="solution">
+                <h4>Implementation Details:</h4>
+                <p>The following components have been implemented:</p>
+                <ol>
+                    <li>Database Model (<code>db.py</code>):
+                        <ul>
+                            <li>Course model with proper fields and relationships</li>
+                            <li>Support for course ownership and metadata</li>
+                        </ul>
+                    </li>
+                    <li>API Endpoints (<code>courses.py</code>):
+                        <ul>
+                            <li>Full CRUD operations with proper validation</li>
+                            <li>Authentication and ownership verification</li>
+                            <li>Comprehensive error handling</li>
+                        </ul>
+                    </li>
+                    <li>AI Tools (<code>ai_langchain.py</code>):
+                        <ul>
+                            <li><code>get_course_details</code>: Search courses in database</li>
+                            <li><code>create_course</code>: Create new courses</li>
+                            <li><code>list_courses</code>: List all available courses</li>
+                        </ul>
+                    </li>
+                </ol>
+                <pre><code># Example of AI tool implementation
+@tool
+async def get_course_details(course_name: str) -> Dict:
+    """Get details about a specific course from the database."""
+    logger.info(f"Fetching course details for: {course_name}")
+    try:
+        course = await Course.filter(name__icontains=course_name).first()
+        if course:
+            return {
+                "course_id": course.id,
+                "title": course.name,
+                "description": course.desc,
+                "created_at": course.created_at.isoformat(),
+                "owner_id": course.owner_id
+            }
+        return {"error": "Course not found", "title": course_name}
+    except Exception as e:
+        logger.error(f"Error fetching course details: {e}")
+        return {"error": "Failed to fetch course details", "title": course_name}</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <h2>5. Error Handling Standardization</h2>
+    <div class="inconsistency">
+        <h3 onclick="toggleInconsistency(this)">Inconsistent Error Handling <span class="severity medium">Medium</span></h3>
+        <div class="inconsistency-content">
+            <p class="file-path">File: ai_engine/*.py</p>
+            
+            <p><strong>Description:</strong> Inconsistent error handling across the codebase:</p>
+            <ul>
+                <li>Some functions have extensive error handling while others have minimal</li>
+                <li>Inconsistent error response formats</li>
+                <li>Varying levels of error logging</li>
+            </ul>
+
+            <div class="impact">
+                <h4>Impact:</h4>
+                <ul>
+                    <li>Inconsistent error reporting to clients</li>
+                    <li>Some errors may not be properly logged</li>
+                    <li>Difficult to debug issues</li>
+                </ul>
+            </div>
+
+            <div class="solution">
+                <h4>Solution:</h4>
+                <p>Implement standardized error handling:</p>
+                <ol>
+                    <li>Create a common error handling utility</li>
+                    <li>Define standard error response formats</li>
+                    <li>Ensure consistent logging</li>
+                </ol>
+                <pre><code># In exceptions.py
+class AIEngineError(Exception):
+    """Base exception for AI Engine errors."""
+    def __init__(self, message: str, error_code: str = "INTERNAL_ERROR", status_code: int = 500):
+        self.message = message
+        self.error_code = error_code
+        self.status_code = status_code
+        super().__init__(message)
+
+# In utils.py
+async def handle_error(request, error: Exception) -> json:
+    """Standardized error handling for HTTP requests."""
+    if isinstance(error, AIEngineError):
+        logger.warning(f"{error.error_code}: {error.message}")
+        return json({
+            "error": error.message,
+            "error_code": error.error_code
+        }, status=error.status_code)
+    else:
+        logger.error(f"Unexpected error: {str(error)}", exc_info=True)
+        return json({
+            "error": "An unexpected error occurred",
+            "error_code": "INTERNAL_ERROR"
+        }, status=500)</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <h2>Summary</h2>
+    <p>This document has identified 5 key areas of inconsistency in the AI Engine project codebase. These range from high-severity issues like authentication and WebSocket implementation to medium-severity issues like error handling standardization. Addressing these issues will improve the codebase's reliability, maintainability, and user experience.</p>
+    
+    <p>Recommended next steps:</p>
+    <ol>
+        <li>Complete the WebSocket and streaming functionality implementation</li>
+        <li>Finalize configuration and module registration</li>
+        <li>Complete course functionality implementation</li>
+        <li>Implement standardized error handling across the codebase</li>
+        <li>Update documentation to reflect the current state of the codebase</li>
+    </ol>
+</body>
+</html> 

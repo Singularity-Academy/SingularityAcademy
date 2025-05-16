@@ -1,103 +1,249 @@
 """
-Module for AI-related functionality.
+Module for AI-related functionality using LangChain.
+This module implements chat functionality using LangChain abstractions.
 """
 
 import asyncio
-import logging
+import os
 import uuid
-from typing import Optional, Tuple, Dict, Any
-import ujson as json # Using ujson instead of json for faster performance
-import os # Added for OPENAI_API_KEY
+from typing import Optional, Dict, Any, List, AsyncGenerator, Set
 from datetime import datetime, timezone
 
-from openai import AsyncOpenAI # We'll need this later
-from openai.types.chat.chat_completion_message_tool_call import ChatCompletionMessageToolCall # For type hinting
+import ujson as json
+from loguru import logger
+from sanic import Websocket
+
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, ToolMessage
+from langchain_core.prompts import ChatPromptTemplate
+from langchain.tools import tool
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.callbacks import AsyncCallbackHandler
+from langchain_core.runnables import RunnableConfig
+
 from tortoise.exceptions import DoesNotExist
 
-from ai_engine.db import PrincipalChatHistory, User # Assuming User model is needed for association
-
-logger = logging.getLogger(__name__)
+from .db import PrincipalChatHistory, User, Course
+from .model_config import ModelConfig, model_manager, get_model_config
+from .streaming import stream_with_buffer, StreamChunk
 
 # Load OpenAI API key from environment variable
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# Define a sample tool that the AI can call
-TOOLS_AVAILABLE = [
-    {
-        "type": "function",
-        "function": {
-            "name": "get_course_details",
-            "description": "Get details about a specific course given its name.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "course_name": {
-                        "type": "string",
-                        "description": "The name of the course, e.g. 'Introduction to Python Programming'",
-                    },
-                },
-                "required": ["course_name"],
-            },
-        },
-    }
-]
-
-# --- Simulated local functions that the AI can trigger ---
-def _simulate_get_course_details(course_name: str) -> dict:
-    """Simulates fetching course details."""
-    logger.info(f"Simulating get_course_details for: {course_name}")
-    # In a real application, this would query a database or another service
-    if "python" in course_name.lower():
-        return {"course_id": "PY101", "title": course_name, "description": "A comprehensive course on Python.", "credits": 3}
-    elif "history" in course_name.lower():
-        return {"course_id": "HIST202", "title": course_name, "description": "A survey of world history.", "credits": 4}
-    else:
+# Define tools that the AI can call
+@tool
+async def get_course_details(course_name: str) -> Dict:
+    """
+    Get details about a specific course from the database.
+    
+    Args:
+        course_name: The name of the course to search for
+        
+    Returns:
+        A dictionary containing course details or an error message
+    """
+    logger.info(f"Fetching course details for: {course_name}")
+    try:
+        # Query the database for the course
+        course = await Course.filter(name__icontains=course_name).first()
+        
+        if course:
+            return {
+                "course_id": course.id,
+                "title": course.name,
+                "description": course.desc,
+                "created_at": course.created_at.isoformat(),
+                "owner_id": course.owner_id
+            }
         return {"error": "Course not found", "title": course_name}
+    except Exception as e:
+        logger.error(f"Error fetching course details: {e}")
+        return {"error": "Failed to fetch course details", "title": course_name}
 
-AVAILABLE_FUNCTIONS_MAP = {
-    "get_course_details": _simulate_get_course_details,
-}
-# --- End of simulated functions ---
+# Add new tools for course management
+@tool
+async def create_course(name: str, description: str = None) -> Dict:
+    """
+    Create a new course in the database.
+    
+    Args:
+        name: The name of the course
+        description: Optional description of the course
+        
+    Returns:
+        A dictionary containing the created course details or an error message
+    """
+    logger.info(f"Creating new course: {name}")
+    try:
+        # Create the course
+        course = await Course.create(
+            name=name,
+            desc=description
+        )
+        
+        return {
+            "course_id": course.id,
+            "title": course.name,
+            "description": course.desc,
+            "created_at": course.created_at.isoformat(),
+            "owner_id": course.owner_id
+        }
+    except Exception as e:
+        logger.error(f"Error creating course: {e}")
+        return {"error": "Failed to create course", "title": name}
 
+@tool
+async def list_courses() -> Dict:
+    """
+    List all available courses from the database.
+    
+    Returns:
+        A dictionary containing a list of courses or an error message
+    """
+    logger.info("Listing all courses")
+    try:
+        courses = await Course.all()
+        return {
+            "courses": [
+                {
+                    "course_id": course.id,
+                    "title": course.name,
+                    "description": course.desc,
+                    "created_at": course.created_at.isoformat(),
+                    "owner_id": course.owner_id
+                }
+                for course in courses
+            ],
+            "count": len(courses)
+        }
+    except Exception as e:
+        logger.error(f"Error listing courses: {e}")
+        return {"error": "Failed to list courses"}
+
+class StreamingCallbackHandler(AsyncCallbackHandler):
+    """Callback handler for streaming LLM responses."""
+    
+    def __init__(self, websocket: Optional[Websocket] = None):
+        self.websocket = websocket
+        self.active_websockets: Set[Websocket] = set()
+        if websocket:
+            self.active_websockets.add(websocket)
+        logger.debug("Initialized StreamingCallbackHandler")
+    
+    def add_websocket(self, websocket: Websocket) -> None:
+        """Add a websocket to receive stream updates."""
+        self.active_websockets.add(websocket)
+        logger.debug("Added websocket to handler")
+    
+    def remove_websocket(self, websocket: Websocket) -> None:
+        """Remove a websocket from stream updates."""
+        self.active_websockets.discard(websocket)
+        logger.debug("Removed websocket from handler")
+    
+    async def on_llm_new_token(self, token: str, **kwargs) -> None:
+        """Run on new LLM token."""
+        # This is now just a pass-through as streaming is handled by stream_with_buffer
+        pass
 
 class Chat:
     """
+    LangChain implementation of chat functionality.
     Manages a single chat session, including interaction with the database 
     (via PrincipalChatHistory), user input validation, and communication 
-    with an AI model (e.g., OpenAI), including handling function calls.
+    with an AI model using LangChain.
     """
 
-    def __init__(self, user: User, chat_history_id: Optional[int] = None, openai_api_key: Optional[str] = None):
+    def __init__(self, user: User, chat_history_id: Optional[int] = None, model_id: Optional[str] = None):
         """
         Initializes a Chat instance.
-
-        If chat_history_id is provided, it attempts to load an existing chat history.
-        Otherwise, a new PrincipalChatHistory record is prepared (but not saved until the first message).
 
         Args:
             user: The User object associated with this chat.
             chat_history_id: Optional ID of an existing PrincipalChatHistory record to load.
-            openai_api_key: Optional OpenAI API key. If not provided, it attempts to load
-                            from the OPENAI_API_KEY environment variable.
+            model_id: Optional model ID to use. If not provided, uses the default model.
         """
         self.user = user
         self.chat_history_id: Optional[int] = chat_history_id
         self.history_instance: Optional[PrincipalChatHistory] = None
+        self._is_new_history = True
         
-        self._openai_api_key = openai_api_key or OPENAI_API_KEY
-        self._openai_client: Optional[AsyncOpenAI] = None # Will be initialized by _ensure_openai_client
-
-        self._is_new_history = True # Flag to indicate if history_instance needs creation
+        # Get model configuration
+        self.model_config = get_model_config(model_id) if model_id else model_manager.get_default_model()
+        if not self.model_config:
+            raise ValueError(f"Model {model_id} not found in configuration")
         
-        # Load the system prompt from prompt.txt
-        prompt_path = os.path.join(os.path.dirname(__file__), 'prompt.txt')
-        try:
-            with open(prompt_path, 'r') as f:
-                self.system_prompt = f.read().strip()
-            logger.info("Loaded system prompt from prompt.txt")
-        except Exception as e:
-            logger.warning(f"Failed to load system prompt from {prompt_path}: {e}")
+        # Load the system prompt from prompt.txt (using cached version)
+        self.system_prompt = model_manager.get_static_file(
+            os.path.join(os.path.dirname(__file__), 'prompt.txt')
+        ).strip()
+        if not self.system_prompt:
+            logger.warning("Failed to load system prompt, using default")
             self.system_prompt = "You are an assistant that helps with educational queries."
+            
+        # Initialize LangChain components
+        self._init_langchain()
+    
+    def _init_langchain(self):
+        """Initialize LangChain components."""
+        if not self.model_config.api_key and not os.getenv("OPENAI_API_KEY"):
+            raise ValueError("OpenAI API key not configured")
+        
+        # Initialize LLM with model configuration
+        self.llm = ChatOpenAI(
+            api_key=self.model_config.api_key or os.getenv("OPENAI_API_KEY"),
+            temperature=self.model_config.temperature,
+            model=self.model_config.model_id,
+            max_tokens=self.model_config.max_tokens,
+            streaming=False,
+            timeout=self.model_config.timeout
+        )
+        
+        # Initialize streaming LLM
+        self.streaming_llm = ChatOpenAI(
+            api_key=self.model_config.api_key or os.getenv("OPENAI_API_KEY"),
+            temperature=self.model_config.temperature,
+            model=self.model_config.model_id,
+            max_tokens=self.model_config.max_tokens,
+            streaming=True,
+            timeout=self.model_config.timeout
+        )
+        
+        # Initialize tools - always include course tools
+        self.tools = [
+            get_course_details,
+            list_courses
+        ]
+    
+    def update_model(self, model_id: str) -> bool:
+        """
+        Update the model being used by this chat instance.
+        
+        Args:
+            model_id: ID of the model to use
+            
+        Returns:
+            True if successful, False if model not available
+        """
+        new_config = get_model_config(model_id)
+        if not new_config:
+            logger.warning(f"Model {model_id} not found in configuration")
+            return False
+            
+        self.model_config = new_config
+        
+        # Update LLM instances with new configuration
+        self.llm.model_name = new_config.model_id
+        self.llm.temperature = new_config.temperature
+        self.llm.max_tokens = new_config.max_tokens
+        self.llm.timeout = new_config.timeout
+        
+        self.streaming_llm.model_name = new_config.model_id
+        self.streaming_llm.temperature = new_config.temperature
+        self.streaming_llm.max_tokens = new_config.max_tokens
+        self.streaming_llm.timeout = new_config.timeout
+        
+        logger.info(f"Updated chat model to {new_config.name}")
+        return True
 
     async def _get_or_create_history_instance(self) -> PrincipalChatHistory:
         """
@@ -118,11 +264,11 @@ class Chat:
                 # Fall through to create a new one
         
         # Create a new history instance
-        self.history_instance = PrincipalChatHistory(user=self.user, messages=[]) # Start with empty messages
+        self.history_instance = PrincipalChatHistory(user=self.user, messages=[])  # Start with empty messages
         try:
             await self.history_instance.save()
-            self.chat_history_id = self.history_instance.id # Store the new ID
-            self._is_new_history = False # It's now saved
+            self.chat_history_id = self.history_instance.id  # Store the new ID
+            self._is_new_history = False  # It's now saved
             
             # Add the system prompt as the first message for new chats
             system_message = {
@@ -136,21 +282,10 @@ class Chat:
             
         except Exception as e:
             logger.error(f"Failed to save new PrincipalChatHistory for user {self.user.id}: {e}")
-            # In this case, history_instance remains unsaved, and subsequent operations might fail or retry.
-            # Depending on desired behavior, could re-raise or handle.
-            raise # Re-raise for now, as saving history is critical
+            raise  # Re-raise for now, as saving history is critical
         return self.history_instance
 
-    def _ensure_openai_client(self) -> AsyncOpenAI:
-        """Initializes and returns the OpenAI client, raising an error if no API key is found."""
-        if not self._openai_client:
-            if not self._openai_api_key:
-                logger.error("OpenAI API key is not configured. Cannot make API calls.")
-                raise ValueError("OpenAI API key not configured. Set OPENAI_API_KEY environment variable or pass it to Chat constructor.")
-            self._openai_client = AsyncOpenAI(api_key=self._openai_api_key)
-        return self._openai_client
-
-    def _validate_user_input(self, user_message_content: str) -> Tuple[bool, str]:
+    def _validate_user_input(self, user_message_content: str) -> tuple[bool, str]:
         """
         Validates the user's message content.
 
@@ -178,151 +313,278 @@ class Chat:
         """Creates a standardized error response dictionary."""
         return {"error": message, "role": role, "type": error_type}
 
-    async def _prepare_initial_api_messages(self, db_messages: list) -> list:
+    async def _convert_db_messages_to_langchain(self, db_messages: List[Dict]) -> List[Any]:
         """
-        Prepares the initial list of messages for the OpenAI API from DB history.
-        Converts all messages in the history to the format expected by the API.
+        Convert database messages to LangChain message types.
+        
+        Args:
+            db_messages: List of message dictionaries from the database
+            
+        Returns:
+            List of LangChain message objects
         """
-        api_messages = []
+        langchain_messages = []
         
         for msg in db_messages:
             role = msg.get('role')
             content = msg.get('content')
             
             if role == 'system':
-                # System messages are sent as-is
-                api_messages.append({'role': 'system', 'content': content})
+                langchain_messages.append(SystemMessage(content=content))
             elif role == 'user':
-                # User messages are sent as-is
-                api_messages.append({'role': 'user', 'content': content})
+                langchain_messages.append(HumanMessage(content=content))
             elif role == 'assistant':
                 # For assistant messages with a dictionary content
                 if isinstance(content, dict):
-                    # Extract the text content
+                    # Extract text content
                     text_content = content.get('text', '')
-                    api_messages.append({'role': 'assistant', 'content': text_content})
+                    langchain_messages.append(AIMessage(content=text_content))
                 # For legacy assistant messages with string content
                 elif isinstance(content, str):
-                    api_messages.append({'role': 'assistant', 'content': content})
-        
-        logger.debug(f"Prepared {len(api_messages)} messages for API")
-        return api_messages
+                    langchain_messages.append(AIMessage(content=content))
+            # Tool messages would be handled here if needed
+            
+        logger.debug(f"Converted {len(langchain_messages)} messages for LangChain")
+        return langchain_messages
 
-    async def send_message(self, user_message_content: str, model_name: str = "gpt-4o-mini") -> Dict[str, Any]:
+    async def send_message(self, user_message_content: str, model_id: Optional[str] = None) -> Dict[str, Any]:
         """
-        Processes a user's message, handles OpenAI API interaction including function calls,
+        Processes a user's message using LangChain, handles tool calls,
         and saves messages to the database.
+        
+        Args:
+            user_message_content: The message from the user
+            model_id: Optional model ID to use for this message only. 
+                        If provided, temporarily switches to this model.
         """
         is_valid, validated_content = self._validate_user_input(user_message_content)
         if not is_valid:
             logger.warning(f"User input validation failed for user {self.user.id}: {validated_content}")
             return self._create_error_response(validated_content, "validation_error")
 
+        # Handle optional model switching
+        original_model = self.model_config.model_id
+        if model_id and model_id != original_model:
+            if not self.update_model(model_id):
+                logger.warning(f"Failed to switch to model {model_id}, using {original_model}")
+
         try:
             history = await self._get_or_create_history_instance()
-            client = self._ensure_openai_client()
-        except ValueError as ve: # Handles API key not configured from _ensure_openai_client
-            logger.error(f"Initialization error for user {self.user.id}: {ve}")
-            return self._create_error_response(str(ve), "config_error")
-        except Exception as e: # Handles DB errors from _get_or_create_history_instance
-            logger.error(f"Failed to get/create chat history for user {self.user.id}: {e}")
-            return self._create_error_response("Failed to initialize chat session.", "db_init_error")
+                
+        except Exception as e:
+            logger.error(f"Failed to initialize chat for user {self.user.id}: {e}")
+            
+            # Restore original model if we switched
+            if model_id and original_model != self.model_config.model_id:
+                self.update_model(original_model)
+                
+            return self._create_error_response(str(e), "init_error")
 
+        # Save user message to database
         user_message_payload = PrincipalChatHistory.create_user_message_payload(content=validated_content)
         if not await history.insert_message(user_message_payload):
             logger.error(f"Failed to save user message for chat ID {history.id}")
+            
+            # Restore original model if we switched
+            if model_id and original_model != self.model_config.model_id:
+                self.update_model(original_model)
+                
             return self._create_error_response("Failed to save user message.", "db_error")
 
-        messages_for_api = await self._prepare_initial_api_messages(history.messages)
-        MAX_TOOL_CALL_ITERATIONS = 5
-        
-        for i in range(MAX_TOOL_CALL_ITERATIONS):
-            logger.debug(f"OpenAI API call iteration {i+1}. Messages: {json.dumps(messages_for_api, indent=2)}")
-            try:
-                completion = await client.chat.completions.create(
-                    model=model_name,
-                    messages=messages_for_api,
-                    tools=TOOLS_AVAILABLE,
-                    tool_choice="auto", 
-                )
-                response_message = completion.choices[0].message
-            except Exception as e:
-                logger.error(f"OpenAI API call failed during iteration {i+1} for chat {history.id}: {e}")
-                return self._create_error_response(f"AI service unavailable: {str(e)}", "api_error")
-
-            ai_response_text = response_message.content
-            tool_calls_from_api: Optional[list[ChatCompletionMessageToolCall]] = response_message.tool_calls
+        try:
+            # Convert database messages to LangChain format
+            langchain_messages = await self._convert_db_messages_to_langchain(history.messages)
             
-            db_calls_to_save = []
-            if tool_calls_from_api:
-                for tc in tool_calls_from_api:
-                    db_calls_to_save.append({
-                        "id": tc.id,
-                        "type": tc.type,
-                        "function": {"name": tc.function.name, "arguments": tc.function.arguments}
-                    })
-
-            assistant_message_payload = PrincipalChatHistory.create_assistant_message_payload(
-                text_content=ai_response_text or "", 
-                calls_content=db_calls_to_save,
-                request_message_id=user_message_payload["message_id"] 
+            # Create a message ID for the assistant response
+            assistant_message_id = f"prinmsg-{uuid.uuid4()}"
+            
+            # Set up the chain with tools
+            chain = self.llm.bind(tools=self.tools)
+            
+            # Run the chain
+            response = await chain.ainvoke(
+                langchain_messages,
+                config={"tool_choice": "auto"}
             )
-
+            
+            ai_response_text = response.content
+            tool_calls = getattr(response, "tool_calls", None)
+            
+            # Process tool calls if present
+            db_calls_to_save = []
+            if tool_calls:
+                for tc in tool_calls:
+                    # Extract tool call details
+                    tool_name = tc.name
+                    tool_args = tc.args
+                    
+                    # Call the tool
+                    tool_function = next((t for t in self.tools if t.name == tool_name), None)
+                    if tool_function:
+                        tool_result = await tool_function.ainvoke(tool_args)
+                        # Add tool result as a message
+                        langchain_messages.append(ToolMessage(content=str(tool_result), name=tool_name))
+                    
+                    # Save call details for database
+                    db_calls_to_save.append({
+                        "id": str(uuid.uuid4()),
+                        "type": "function",
+                        "function": {"name": tool_name, "arguments": json.dumps(tool_args)}
+                    })
+                
+                # Get final response after tool calls
+                if db_calls_to_save:
+                    final_response = await chain.ainvoke(langchain_messages)
+                    ai_response_text = final_response.content
+            
+            # Save assistant message to database
+            assistant_message_payload = PrincipalChatHistory.create_assistant_message_payload(
+                text_content=ai_response_text or "",
+                calls_content=db_calls_to_save,
+                request_message_id=user_message_payload["message_id"],
+                message_id=assistant_message_id
+            )
+            
             if not await history.insert_message(assistant_message_payload):
                 logger.error(f"Failed to save assistant message for chat ID {history.id}")
                 return self._create_error_response("Failed to save assistant's response.", "db_error")
             
-            api_assistant_msg_for_next_iteration = {'role': 'assistant', 'content': ai_response_text}
-            if tool_calls_from_api:
-                api_assistant_msg_for_next_iteration['tool_calls'] = [
-                    {'id': tc.id, 'type': tc.type, 'function': {'name': tc.function.name, 'arguments': tc.function.arguments}}
-                    for tc in tool_calls_from_api
-                ]
-                if not ai_response_text: 
-                    api_assistant_msg_for_next_iteration['content'] = None
+            return assistant_message_payload
             
-            messages_for_api.append(api_assistant_msg_for_next_iteration)
+        except Exception as e:
+            logger.error(f"Error in LangChain processing for chat ID {history.id}: {e}")
+            return self._create_error_response(f"AI service error: {str(e)}", "langchain_error")
+        finally:
+            # Restore original model if we switched
+            if model_id and original_model != self.model_config.model_id:
+                self.update_model(original_model)
 
-            if not tool_calls_from_api:
-                logger.info(f"Assistant provided final text response for chat ID {history.id}.")
-                return assistant_message_payload 
-
-            logger.info(f"Assistant requested tool calls: {db_calls_to_save} for chat ID {history.id}")
+    async def stream_message(
+        self, 
+        user_message_content: str, 
+        model_id: Optional[str] = None,
+        websocket: Optional[Websocket] = None
+    ) -> AsyncGenerator[StreamChunk, None]:
+        """
+        Processes a user's message and streams the response using LangChain.
+        
+        Args:
+            user_message_content: The message from the user
+            model_id: Optional model ID to use for this message only.
+                     If provided, temporarily switches to this model.
+            websocket: Optional WebSocket connection to stream responses to.
             
-            tool_response_messages_for_api = []
-            for tool_call in tool_calls_from_api:
-                function_name = tool_call.function.name
-                function_args_str = tool_call.function.arguments
-                tool_call_id = tool_call.id
-                tool_content_str = ""
+        Yields:
+            StreamChunk objects containing the assistant's response
+        """
+        is_valid, validated_content = self._validate_user_input(user_message_content)
+        if not is_valid:
+            logger.warning(f"User input validation failed for user {self.user.id}: {validated_content}")
+            yield StreamChunk(
+                content="",
+                message_id=str(uuid.uuid4()),
+                timestamp=datetime.now(),
+                is_final=True,
+                error=validated_content
+            )
+            return
 
-                try:
-                    args = json.loads(function_args_str)
-                    function_to_call = AVAILABLE_FUNCTIONS_MAP[function_name]
-                    logger.info(f"Executing tool '{function_name}' with args: {args} (Call ID: {tool_call_id}) for chat {history.id}")
-                    function_response_content = function_to_call(**args) # This is synchronous
-                    tool_content_str = json.dumps(function_response_content)
-                except json.JSONDecodeError as e:
-                    logger.error(f"JSONDecodeError for tool {function_name} args '{function_args_str}' (Call ID: {tool_call_id}): {e}")
-                    tool_content_str = json.dumps({"error": f"Invalid arguments format for {function_name}.", "details": str(e)})
-                except KeyError:
-                    logger.warning(f"Function {function_name} not found in AVAILABLE_FUNCTIONS_MAP (Call ID: {tool_call_id}) for chat {history.id}.")
-                    tool_content_str = json.dumps({"error": f"Function {function_name} not available."})
-                except Exception as e: # Catch errors from the function execution itself
-                    logger.error(f"Error executing tool {function_name} (Call ID: {tool_call_id}) for chat {history.id}: {e}")
-                    tool_content_str = json.dumps({"error": str(e), "details": "Function execution failed."})
+        # Handle optional model switching
+        original_model = self.model_config.model_id
+        if model_id and model_id != original_model:
+            if not self.update_model(model_id):
+                logger.warning(f"Failed to switch to model {model_id}, using {original_model}")
+
+        try:
+            history = await self._get_or_create_history_instance()
                 
-                tool_response_messages_for_api.append({
-                    "tool_call_id": tool_call_id,
-                    "role": "tool",
-                    "name": function_name, 
-                    "content": tool_content_str
-                })
+        except Exception as e:
+            logger.error(f"Failed to initialize chat for user {self.user.id}: {e}")
             
-            messages_for_api.extend(tool_response_messages_for_api)
+            # Restore original model if we switched
+            if model_id and original_model != self.model_config.model_id:
+                self.update_model(original_model)
+                
+            yield StreamChunk(
+                content="",
+                message_id=str(uuid.uuid4()),
+                timestamp=datetime.now(),
+                is_final=True,
+                error=str(e)
+            )
+            return
 
-        logger.error(f"Exceeded max tool call iterations ({MAX_TOOL_CALL_ITERATIONS}) for chat ID {history.id}.")
-        return self._create_error_response("AI processing loop exceeded maximum iterations.", "loop_error")
+        # Save user message to database
+        user_message_payload = PrincipalChatHistory.create_user_message_payload(content=validated_content)
+        if not await history.insert_message(user_message_payload):
+            logger.error(f"Failed to save user message for chat ID {history.id}")
+            
+            # Restore original model if we switched
+            if model_id and original_model != self.model_config.model_id:
+                self.update_model(original_model)
+                
+            yield StreamChunk(
+                content="",
+                message_id=str(uuid.uuid4()),
+                timestamp=datetime.now(),
+                is_final=True,
+                error="Failed to save user message"
+            )
+            return
+
+        try:
+            # Convert database messages to LangChain format
+            langchain_messages = await self._convert_db_messages_to_langchain(history.messages)
+            
+            # Create a message ID for tracking
+            message_id = str(uuid.uuid4())
+            
+            # Create callback handler for streaming
+            stream_handler = StreamingCallbackHandler(websocket)
+            
+            # Create an empty placeholder message in the database
+            assistant_message_payload = PrincipalChatHistory.create_assistant_message_payload(
+                text_content="",
+                calls_content=[],
+                request_message_id=user_message_payload["message_id"],
+                message_id=message_id
+            )
+            await history.insert_message(assistant_message_payload)
+            
+            # Set up the streaming chain
+            streaming_chain = self.streaming_llm.bind(tools=self.tools)
+            
+            # Process the stream with buffering
+            async for chunk in stream_with_buffer(
+                streaming_chain.astream(
+                    langchain_messages,
+                    config={"callbacks": [stream_handler]}
+                ),
+                message_id=message_id,
+                buffer_size=self.model_config.cache_size,
+                websocket=websocket
+            ):
+                # Update the message in the database if this is the final chunk
+                if chunk.is_final and not chunk.error:
+                    await history.update_message_content(
+                        message_id=message_id,
+                        new_content={"text": chunk.content, "courses": []}
+                    )
+                yield chunk
+            
+        except Exception as e:
+            logger.error(f"Error in LangChain streaming for chat ID {history.id}: {e}")
+            yield StreamChunk(
+                content="",
+                message_id=message_id,
+                timestamp=datetime.now(),
+                is_final=True,
+                error=f"AI streaming error: {str(e)}"
+            )
+        finally:
+            # Restore original model if we switched
+            if model_id and original_model != self.model_config.model_id:
+                self.update_model(original_model)
 
     async def get_history_messages(self, limit: Optional[int] = None, offset: int = 0) -> list:
         """
@@ -335,104 +597,90 @@ class Chat:
         Returns:
             A list of message dictionaries.
         """
-        history = await self._get_or_create_history_instance() # Ensures history is loaded/created
+        history = await self._get_or_create_history_instance()  # Ensures history is loaded/created
         if not history.messages:
             return []
         
         if limit:
-            return history.messages[offset : offset + limit]
+            return history.messages[offset: offset + limit]
         return history.messages[offset:]
 
-# Example Usage (Illustrative - would typically be in a Sanic route or service layer)
-async def example_chat_flow():
+
+# Example usage
+async def example_langchain_chat_flow():
     if not OPENAI_API_KEY:
-        print("OPENAI_API_KEY environment variable not set. Example cannot run OpenAI calls.")
-        print("Set it and ensure your ai_engine.db models and database are initialized.")
+        logger.error("OPENAI_API_KEY environment variable not set. Example cannot run.")
         return
 
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
-    logger_ai_engine = logging.getLogger('ai_engine')
-    logger_ai_engine.setLevel(logging.DEBUG) # More detailed logs from our chat module
-
-    # --- Database Setup (minimal for example, replace with your app's setup) ---
+    # --- Database Setup (minimal for example) ---
     from tortoise import Tortoise
     try:
         await Tortoise.init(
-            db_url='sqlite://:memory:', # Use in-memory SQLite for this example
-            modules={'models': ['ai_engine.db', 'app.models']} # Ensure all models are found
+            db_url='sqlite://:memory:',  # Use in-memory SQLite for this example
+            modules={'models': ['ai_engine.db']}  # Ensure all models are found
         )
-        await Tortoise.generate_schemas() # Create tables
-        print("In-memory SQLite DB initialized and schemas generated.")
+        await Tortoise.generate_schemas()  # Create tables
+        logger.info("In-memory SQLite DB initialized and schemas generated.")
 
         # Create a dummy user for the chat
         try:
-            user = await User.get_or_create(username="testuser_fn_caller", defaults={"email":"fn@example.com", "password_hash":" बदलना "})
-            user = user[0] # get_or_create returns a tuple (object, created_bool)
-            print(f"Using User ID: {user.id}")
+            user = await User.get_or_create(username="testuser_langchain", defaults={"email":"langchain@example.com", "password_hash":"placeholder"})
+            user = user[0]  # get_or_create returns a tuple (object, created_bool)
+            logger.info(f"Using User ID: {user.id}")
         except Exception as e:
-            print(f"Could not create/get dummy user: {e}")
+            logger.error(f"Could not create/get dummy user: {e}")
             await Tortoise.close_connections()
             return
         
-        # --- Scenario 1: Chat that might use a function call ---
-        print("\n--- Starting Chat with Function Call Potential ---")
-        chat_session = Chat(user=user) # API key from env
+        # Create a chat session with default model
+        logger.info("Starting LangChain Chat")
+        chat_session = Chat(user=user)  # API key from env
+        logger.info(f"Using model: {chat_session.model_config.name}")
         
-        # Message that should trigger the function call
-        user_query1 = "Can you tell me about 'Introduction to Python Programming' course?"
-        print(f"User: {user_query1}")
-        response1 = await chat_session.send_message(user_query1)
+        # List available models
+        logger.info("Available models:")
+        for model_id, model_info in get_model_config().items():
+            logger.info(f"  - {model_id}: {model_info['name']} - {model_info['description']}")
         
-        if response1.get("error"):
-            print(f"AI Error: {response1['error']}")
-        elif response1.get("content") and isinstance(response1["content"], dict):
-            print(f"AI Response (Text): {response1['content'].get('text')}")
-            if response1['content'].get('calls'):
-                 print(f"AI Response (Calls Made by AI): {response1['content'].get('calls')}")
+        # Send a message with default model
+        user_query = "Can you tell me about 'Introduction to Python Programming' course?"
+        logger.info(f"User: {user_query}")
+        response = await chat_session.send_message(user_query)
+        
+        if response.get("error"):
+            logger.error(f"AI Error: {response['error']}")
+        elif response.get("content") and isinstance(response["content"], dict):
+            logger.info(f"AI Response (Text): {response['content'].get('text')}")
+            if response['content'].get('calls'):
+                logger.info(f"AI Response (Calls Made by AI): {response['content'].get('calls')}")
         else:
-            print(f"AI Response: {response1}")
+            logger.info(f"AI Response: {response}")
 
-        # --- Scenario 2: Follow-up message ---
-        print("\n--- Follow-up Message ---")
-        user_query2 = "What about ancient history courses?"
-        print(f"User: {user_query2}")
-        response2 = await chat_session.send_message(user_query2)
-        if response2.get("error"):
-            print(f"AI Error: {response2['error']}")
-        elif response2.get("content") and isinstance(response2["content"], dict):
-             print(f"AI Response (Text): {response2['content'].get('text')}")
-        else:
-            print(f"AI Response: {response2}")
+        # Test streaming with a different model
+        logger.info("Testing Streaming Response with Different Model")
+        user_query2 = "What about history courses for beginners?"
+        logger.info(f"User: {user_query2}")
+        logger.info("Switching to gpt-3.5-turbo for this message...")
+        logger.info("AI (streaming): ", end="", flush=True)
+        
+        async for chunk in chat_session.stream_message(user_query2, model_id="gpt-3.5-turbo"):
+            if chunk.get("type") == "text" and chunk.get("content"):
+                logger.info(chunk["content"], end="", flush=True)
+            elif chunk.get("type") == "done":
+                logger.info("\n[Stream completed]")
+            elif chunk.get("error"):
+                logger.error(f"\nError: {chunk['error']}")
+                
+        logger.info(f"Current model after streaming: {chat_session.model_config.name}")  # Should be back to default
 
-
-        # --- Scenario 3: Get all history for this chat session ---
-        if chat_session.chat_history_id:
-            print(f"\n--- Full History for Chat ID: {chat_session.chat_history_id} ---")
-            all_msgs = await chat_session.get_history_messages()
-            for i, msg_data in enumerate(all_msgs):
-                role = msg_data.get('role')
-                content = msg_data.get('content')
-                print(f"  Msg {i+1} Role: {role}")
-                if role == 'user':
-                    print(f"    Content: {content}")
-                elif role == 'assistant':
-                    print(f"    Text: {content.get('text')}")
-                    if content.get('calls'):
-                        print(f"    Calls: {content.get('calls')}")
-            print(f"Total messages in DB for this chat: {len(all_msgs)}")
-
-    except ValueError as ve: # Catch API key error specifically
-        print(f"Configuration Error: {ve}")
     except Exception as e:
-        print(f"An error occurred during the example chat flow: {e}")
-        import traceback
-        traceback.print_exc()
+        logger.error(f"An error occurred: {e}")
+        logger.exception("Full traceback:")
     finally:
-        if Tortoise._connections: # Check if connections were made
+        if Tortoise._connections:  # Check if connections were made
             await Tortoise.close_connections()
-            print("DB connections closed.")
+            logger.info("DB connections closed.")
 
 if __name__ == '__main__':
-    print("Running ai.py example_chat_flow (requires OPENAI_API_KEY). Ensure DB models are compatible.")
-    # This example now includes its own Tortoise init/close for standalone testing.
-    asyncio.run(example_chat_flow())
+    logger.info("Running LangChain example chat flow (requires OPENAI_API_KEY).")
+    asyncio.run(example_langchain_chat_flow()) 

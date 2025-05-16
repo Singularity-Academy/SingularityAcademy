@@ -1,0 +1,47 @@
+{
+    "default_model": "deepseek-v3",
+    "models": {
+        "gpt-4": {
+            "name": "GPT-4",
+            "model_id": "gpt-4",
+            "api_key": null,
+            "api_base": "https://api.openai.com/v1",
+            "temperature": 0.7,
+            "max_tokens": 4000,
+            "streaming": true,
+            "cache_size": 30,
+            "timeout": 60,
+            "retry_attempts": 3,
+            "retry_delay": 1.0,
+            "description": "OpenAI's most capable model, optimized for complex tasks"
+        },
+        "gpt-4-turbo": {
+            "name": "GPT-4 Turbo",
+            "model_id": "gpt-4-1106-preview",
+            "api_key": null,
+            "api_base": "https://api.openai.com/v1",
+            "temperature": 0.7,
+            "max_tokens": 4000,
+            "streaming": true,
+            "cache_size": 30,
+            "timeout": 60,
+            "retry_attempts": 3,
+            "retry_delay": 1.0,
+            "description": "Latest GPT-4 model with improved performance and lower cost"
+        },
+        "deepseek-v3": {
+            "name": "Deepseek Chat v3",
+            "model_id": "deepseek-chat",
+            "api_key": "sk-851c7c66c0e444b1822c113ff9314ba8",
+            "api_base": "https://api.deepseek.com/v1",
+            "temperature": 0.7,
+            "max_tokens": 4000,
+            "streaming": true,
+            "cache_size": 30,
+            "timeout": 60,
+            "retry_attempts": 3,
+            "retry_delay": 1.0,
+            "description": "Deepseek's latest model with strong performance on coding and reasoning tasks"
+        }
+    }
+} 
