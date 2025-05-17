@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Engine API Documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.5;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #2980b9;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        h3 {
+            color: #2c3e50;
+            margin-top: 25px;
+        }
+        .highlight {
+            background-color: #f8f8f8;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 15px 0;
+        }
+        th, td {
+            text-align: left;
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .note {
+            background-color: #e7f2fa;
+            padding: 10px;
+            border-left: 4px solid #2980b9;
+            margin: 15px 0;
+        }
+        .warning {
+            background-color: #fff3cd;
+            padding: 10px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+        }
+        .parameter {
+            font-weight: bold;
+        }
+        .method {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        .ws {
+            font-weight: bold;
+            color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+    <h1>AI Engine API Documentation</h1>
+    
+    <div class="section">
+        <h2>Overview</h2>
+        <p>
+            The AI Engine provides a set of APIs for frontend applications to interact with AI functionalities.
+            This documentation is intended for frontend developers who need to integrate with the AI Engine.
+        </p>
+        <div class="note">
+            <p>
+                <strong>Note:</strong> All AI Engine routes are under the "/ai" prefix due to the application running behind a Caddy proxy.
+            </p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Authentication</h2>
+        <p>
+            Most endpoints require authentication using JWT tokens. The token should be included in the request headers or as specified in individual endpoint documentation.
+        </p>
+        
+        <h4>HTTP Request Authentication</h4>
+        <p>For HTTP endpoints, include the JWT token in the Authorization header using the Bearer scheme:</p>
+        <div class="highlight">
+            <pre>
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJRCI6IjEyMzQ1Njc4OTAiLCJleHAiOjE3MTYyMzkwMjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</pre>
+        </div>
+        
+        <h4>Example HTTP Request with Authentication</h4>
+        <div class="highlight">
+            <pre>
+GET /ai/ai/health/ HTTP/1.1
+Host: api.example.com
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJRCI6IjEyMzQ1Njc4OTAiLCJleHAiOjE3MTYyMzkwMjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+Accept: application/json</pre>
+        </div>
+        
+        <div class="note">
+            <p>
+                <strong>Note:</strong> WebSocket connections require sending an authentication message after establishing the connection.
+            </p>
+        </div>
+        
+        <h4>WebSocket Authentication Message Example</h4>
+        <div class="highlight">
+            <pre>
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJRCI6IjEyMzQ1Njc4OTAiLCJleHAiOjE3MTYyMzkwMjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+}</pre>
+        </div>
+        
+        <div class="note">
+            <p>
+                <strong>Important:</strong> The JWT token shown in these examples is for illustration only. Your actual tokens will be provided by the authentication system.
+            </p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>HTTP Endpoints</h2>
+
+        <h3><span class="method">GET</span> /ai/health</h3>
+        <p>Health check endpoint to verify if the API is operational.</p>
+        <p><strong>Authentication required:</strong> No</p>
+        <p><strong>Response:</strong></p>
+        <div class="highlight">
+            <pre>
+{
+    "status": "healthy"
+}</pre>
+        </div>
+
+        <h3><span class="method">GET</span> /ai/health/</h3>
+        <p>AI-specific health check endpoint to verify if AI components are operational.</p>
+        <p><strong>Authentication required:</strong> Yes</p>
+        <p><strong>Response (Success):</strong></p>
+        <div class="highlight">
+            <pre>
+{
+    "health": "ok",
+    "user_id": "user_id_value",
+    "message": "AI components are healthy"
+}</pre>
+        </div>
+        <p><strong>Response (Unauthorized):</strong></p>
+        <div class="highlight">
+            <pre>
+{
+    "error": "Authentication required for AI health check"
+}</pre>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>WebSocket Endpoints</h2>
+
+        <h3><span class="ws">WebSocket</span> /ai/chat</h3>
+        <p>WebSocket endpoint for streaming chat responses from the AI.</p>
+        <p><strong>Authentication required:</strong> Yes (via initial message)</p>
+        
+        <h4>Connection Flow</h4>
+        <ol>
+            <li>Establish WebSocket connection</li>
+            <li>Send authentication message</li>
+            <li>Receive authentication response</li>
+            <li>Receive chat history (if available)</li>
+            <li>Send and receive messages</li>
+        </ol>
+
+        <h4>Authentication Message Format</h4>
+        <div class="highlight">
+            <pre>
+{
+    "token": "your_jwt_token"
+}</pre>
+        </div>
+
+        <h4>Authentication Response (Success)</h4>
+        <div class="highlight">
+            <pre>
+{
+    "type": "auth_success",
+    "message": "Authentication successful",
+    "user_id": "user_id_value"
+}</pre>
+        </div>
+
+        <h4>Authentication Response (Error)</h4>
+        <div class="highlight">
+            <pre>
+{
+    "type": "error",
+    "error": "Error message",
+    "error_code": "ERROR_CODE",
+    "status_code": 401
+}</pre>
+        </div>
+
+        <h4>History Messages (Sent after successful authentication)</h4>
+        <div class="highlight">
+            <pre>
+{
+    "type": "history_messages",
+    "messages": [
+        {
+            "role": "user",
+            "content": "User message content"
+        },
+        {
+            "role": "assistant",
+            "content": "Assistant response content"
+        },
+        // Up to 10 most recent messages
+    ]
+}</pre>
+        </div>
+
+        <h4>Sending Messages</h4>
+        <p>To send a message to the AI, use the following format:</p>
+        <div class="highlight">
+            <pre>
+{
+    "type": "message",
+    "content": "Your message here"
+}</pre>
+        </div>
+
+        <h4>Receiving Responses</h4>
+        <p>Responses from the AI are streamed in chunks with the following format:</p>
+        <div class="highlight">
+            <pre>
+{
+    "type": "message_chunk",
+    "content": "Partial response content",
+    "is_final": false
+}</pre>
+        </div>
+        <p>The final chunk will have <code>is_final</code> set to <code>true</code>.</p>
+
+        <h4>Error Response</h4>
+        <div class="highlight">
+            <pre>
+{
+    "type": "error",
+    "error": "Error message",
+    "error_code": "ERROR_CODE",
+    "status_code": 400
+}</pre>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Error Codes</h2>
+        <table>
+            <tr>
+                <th>Error Code</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>INVALID_AUTH_FORMAT</td>
+                <td>Invalid authentication message format</td>
+            </tr>
+            <tr>
+                <td>INVALID_TOKEN</td>
+                <td>Invalid or expired token</td>
+            </tr>
+            <tr>
+                <td>INVALID_TOKEN_CLAIMS</td>
+                <td>Invalid token claims</td>
+            </tr>
+            <tr>
+                <td>USER_NOT_FOUND</td>
+                <td>User not found in database</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Courses API</h2>
+        <p>The AI Engine provides endpoints for course-related operations. These endpoints are available under the <code>/ai/courses</code> prefix.</p>
+        
+        <h3><span class="method">GET</span> /ai/courses/all</h3>
+        <p>Get all courses for the authenticated user.</p>
+        <p><strong>Authentication required:</strong> Yes</p>
+        <p><strong>Response:</strong></p>
+        <div class="highlight">
+            <pre>
+{
+    "courses": [
+        {
+            "id": 1,
+            "name": "Introduction to AI",
+            "description": "Learn the basics of artificial intelligence",
+            "created_at": "2023-01-15T12:00:00Z",
+            "owner_id": 123
+        },
+        {
+            "id": 2,
+            "name": "Machine Learning Fundamentals",
+            "description": "Understanding core ML concepts",
+            "created_at": "2023-02-20T09:30:00Z",
+            "owner_id": 123
+        }
+    ],
+    "count": 2,
+    "timestamp": "2023-05-10T14:30:00Z"
+}</pre>
+        </div>
+        
+        <h3><span class="method">POST</span> /ai/courses/create</h3>
+        <p>Create a new course.</p>
+        <p><strong>Authentication required:</strong> Yes</p>
+        <p><strong>Request Body:</strong></p>
+        <div class="highlight">
+            <pre>
+{
+    "name": "Introduction to Deep Learning",
+    "description": "Explore the fundamentals of neural networks and deep learning"
+}</pre>
+        </div>
+        <p><strong>Response:</strong></p>
+        <div class="highlight">
+            <pre>
+{
+    "id": 3,
+    "name": "Introduction to Deep Learning",
+    "description": "Explore the fundamentals of neural networks and deep learning",
+    "created_at": "2023-06-15T10:45:00Z",
+    "owner_id": 123
+}</pre>
+        </div>
+        
+        <h3><span class="method">GET</span> /ai/courses/{course_id}</h3>
+        <p>Get a specific course by ID.</p>
+        <p><strong>Authentication required:</strong> Yes</p>
+        <p><strong>Parameters:</strong></p>
+        <ul>
+            <li><span class="parameter">course_id</span> - The unique identifier of the course (integer)</li>
+        </ul>
+        <p><strong>Response:</strong></p>
+        <div class="highlight">
+            <pre>
+{
+    "id": 1,
+    "name": "Introduction to AI",
+    "description": "Learn the basics of artificial intelligence",
+    "created_at": "2023-01-15T12:00:00Z",
+    "owner_id": 123
+}</pre>
+        </div>
+        
+        <h3><span class="method">PUT</span> /ai/courses/{course_id}</h3>
+        <p>Update a specific course.</p>
+        <p><strong>Authentication required:</strong> Yes</p>
+        <p><strong>Parameters:</strong></p>
+        <ul>
+            <li><span class="parameter">course_id</span> - The unique identifier of the course (integer)</li>
+        </ul>
+        <p><strong>Request Body:</strong></p>
+        <div class="highlight">
+            <pre>
+{
+    "name": "Updated Course Title",
+    "description": "Updated course description"
+}</pre>
+        </div>
+        <p><strong>Response:</strong></p>
+        <div class="highlight">
+            <pre>
+{
+    "id": 1,
+    "name": "Updated Course Title",
+    "description": "Updated course description",
+    "created_at": "2023-01-15T12:00:00Z",
+    "owner_id": 123
+}</pre>
+        </div>
+        
+        <h3><span class="method">DELETE</span> /ai/courses/{course_id}</h3>
+        <p>Delete a specific course.</p>
+        <p><strong>Authentication required:</strong> Yes</p>
+        <p><strong>Parameters:</strong></p>
+        <ul>
+            <li><span class="parameter">course_id</span> - The unique identifier of the course (integer)</li>
+        </ul>
+        <p><strong>Response:</strong></p>
+        <div class="highlight">
+            <pre>
+{
+    "message": "Course deleted successfully"
+}</pre>
+        </div>
+    </div>
+
+    <footer style="margin-top: 50px; border-top: 1px solid #eee; padding-top: 20px; color: #777;">
+        <p>AI Engine API Documentation - Generated for frontend developers</p>
+    </footer>
+</body>
+</html> 
