@@ -7,12 +7,10 @@ import uuid
 from loguru import logger
 from sanic import Request, Websocket
 from tortoise.exceptions import DoesNotExist
-from tortoise.expressions import Q
 
 from ..ai import Chat
 from ..db import User, PrincipalChatHistory
-from .errors import WebSocketError
-from .utils import handle_ws_connection_error, send_ws_response, send_ws_error
+from .utils import send_ws_error
 
 async def process_message(ws: Websocket, chat: Chat, content: str, session_id: str) -> None:
     """

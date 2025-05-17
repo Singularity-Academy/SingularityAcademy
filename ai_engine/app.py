@@ -2,22 +2,13 @@
 Main application module for AI Engine.
 """
 
-import threading
-from sanic import Sanic, json, Blueprint, Request, Websocket
+from sanic import Sanic, json, Blueprint
 from sanic.response import json as json_response
-from sanic.exceptions import NotFound, ServerError
 from loguru import logger
-from tortoise.exceptions import DoesNotExist
-from tortoise.contrib.sanic import register_tortoise
-from .db import init_db, User, PrincipalChatHistory, load_db_config
-from .ai import Chat
+from .db import init_db
 from .websocket import bp as ws_bp
-from .websocket.errors import WebSocketError
-from .websocket.utils import send_ws_error, handle_ws_connection_error
-from .auth import init_auth, authentication_middleware
+from .auth import init_auth
 from .courses import bp as courses_bp
-from typing import Optional
-from sanic_cors import CORS
 import sys
 
 logger.info("Starting AI Engine application")

@@ -2,13 +2,12 @@
 WebSocket utility functions for AI Engine.
 """
 
-from typing import Optional, Dict, Any, Union
+from typing import Optional, Dict, Any
 from datetime import datetime
 import ujson as json
 from loguru import logger
 from sanic import Websocket
 
-from .errors import WebSocketError
 
 async def send_ws_error(
     ws: Websocket,
@@ -43,31 +42,6 @@ async def send_ws_error(
         
     await send_ws_message(ws, error_data, error_type, "error")
 
-async def send_ws_response(
-    ws: Websocket,
-    data: Dict[str, Any],
-    message_type: str = "message"
-) -> None:
-    """
-    Send a standardized success response through WebSocket.
-    
-    Args:
-        ws: WebSocket connection
-        data: Response data
-        message_type: Type of message
-    """
-    try:
-        await send_ws_message(ws, data, message_type, "success")
-    except Exception as e:
-        logger.error(f"Failed to send WebSocket response: {e}")
-        await send_ws_error(
-            ws,
-            "Failed to send response",
-            "send_error",
-            500,
-            exception=e
-        )
-
 async def send_ws_message(
     ws: Websocket,
     data: Dict[str, Any],
@@ -100,24 +74,4 @@ async def send_ws_message(
             
         await ws.send(json.dumps(message))
     except Exception as e:
-        logger.error(f"Failed to send WebSocket message: {e}")
-
-async def handle_ws_connection_error(ws: Websocket, error: Exception) -> None:
-    """Handle WebSocket connection errors."""
-    if isinstance(error, WebSocketError):
-        await send_ws_error(
-            ws,
-            error.message,
-            error.error_type,
-            error.status_code,
-            error.details
-        )
-    else:
-        await send_ws_error(
-            ws,
-            "Connection error occurred",
-            "connection_error",
-            500,
-            exception=error
-        )
-    await ws.close() 
+        logger.error(f"Failed to send WebSocket message: {e}") 
