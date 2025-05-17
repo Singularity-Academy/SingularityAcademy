@@ -324,3 +324,5 @@ backend/backend.exe
 backend/config/config.yml
 frames/
 backend/sa_database.db
+
+ai_engine/config/models.json
