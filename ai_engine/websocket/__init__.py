@@ -5,10 +5,10 @@ WebSocket module for AI Engine.
 from sanic import Blueprint
 from .chat import chat_stream
 
-# Create WebSocket blueprint
-bp = Blueprint("websocket", url_prefix="/ws")
+# Create WebSocket blueprint for PrincipalAI
+bp = Blueprint("principal_ai_ws", url_prefix="/principal-ai/ws")
 
 # Register WebSocket routes
-bp.add_websocket_route(chat_stream, "/chat/<chat_id:int>")
+bp.add_websocket_route(chat_stream, "/chat")
 
 __all__ = ["bp", "chat_stream"] 

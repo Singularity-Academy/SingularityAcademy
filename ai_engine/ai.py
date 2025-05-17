@@ -25,7 +25,7 @@ from tortoise.exceptions import DoesNotExist
 
 from .db import PrincipalChatHistory, User, Course
 from .model_config import ModelConfig, model_manager, get_model_config
-from .streaming import stream_with_buffer, StreamChunk
+from .streaming import stream_with_buffer
 
 # Load OpenAI API key from environment variable
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -128,22 +128,27 @@ class StreamingCallbackHandler(AsyncCallbackHandler):
         self.active_websockets: Set[Websocket] = set()
         if websocket:
             self.active_websockets.add(websocket)
+        super().__init__()
         logger.debug("Initialized StreamingCallbackHandler")
-    
-    def add_websocket(self, websocket: Websocket) -> None:
-        """Add a websocket to receive stream updates."""
-        self.active_websockets.add(websocket)
-        logger.debug("Added websocket to handler")
-    
-    def remove_websocket(self, websocket: Websocket) -> None:
-        """Remove a websocket from stream updates."""
-        self.active_websockets.discard(websocket)
-        logger.debug("Removed websocket from handler")
-    
+  
     async def on_llm_new_token(self, token: str, **kwargs) -> None:
         """Run on new LLM token."""
-        # This is now just a pass-through as streaming is handled by stream_with_buffer
-        pass
+        logger.debug(f"[TRACE] StreamingCallbackHandler: on_llm_new_token: token={token}")
+        if not self.websocket:
+            return
+            
+        try:
+            # Send token directly to websocket
+            message_id = kwargs.get("message_id", str(uuid.uuid4()))
+            await self.websocket.send(json.dumps({
+                "type": "token",
+                "message_id": message_id,
+                "content": token,
+                "timestamp": datetime.now().isoformat(),
+                "is_final": False
+            }))
+        except Exception as e:
+            logger.error(f"Error sending token to websocket: {e}")
 
 class Chat:
     """
@@ -166,6 +171,7 @@ class Chat:
         self.chat_history_id: Optional[int] = chat_history_id
         self.history_instance: Optional[PrincipalChatHistory] = None
         self._is_new_history = True
+        self._langchain_messages = []  # Cache for LangChain messages
         
         # Get model configuration
         self.model_config = get_model_config(model_id) if model_id else model_manager.get_default_model()
@@ -182,25 +188,19 @@ class Chat:
             
         # Initialize LangChain components
         self._init_langchain()
-    
+        
+        # Initialize chat history and message cache asynchronously
+        # This will be properly awaited when the history is first accessed
+
     def _init_langchain(self):
         """Initialize LangChain components."""
         if not self.model_config.api_key and not os.getenv("OPENAI_API_KEY"):
             raise ValueError("OpenAI API key not configured")
         
-        # Initialize LLM with model configuration
+        # Initialize streaming LLM (will be used for both streaming and non-streaming)
         self.llm = ChatOpenAI(
             api_key=self.model_config.api_key or os.getenv("OPENAI_API_KEY"),
-            temperature=self.model_config.temperature,
-            model=self.model_config.model_id,
-            max_tokens=self.model_config.max_tokens,
-            streaming=False,
-            timeout=self.model_config.timeout
-        )
-        
-        # Initialize streaming LLM
-        self.streaming_llm = ChatOpenAI(
-            api_key=self.model_config.api_key or os.getenv("OPENAI_API_KEY"),
+            base_url=self.model_config.api_base,
             temperature=self.model_config.temperature,
             model=self.model_config.model_id,
             max_tokens=self.model_config.max_tokens,
@@ -231,16 +231,11 @@ class Chat:
             
         self.model_config = new_config
         
-        # Update LLM instances with new configuration
+        # Update LLM instance with new configuration
         self.llm.model_name = new_config.model_id
         self.llm.temperature = new_config.temperature
         self.llm.max_tokens = new_config.max_tokens
-        self.llm.timeout = new_config.timeout
-        
-        self.streaming_llm.model_name = new_config.model_id
-        self.streaming_llm.temperature = new_config.temperature
-        self.streaming_llm.max_tokens = new_config.max_tokens
-        self.streaming_llm.timeout = new_config.timeout
+        #self.llm.timeout = new_config.timeout
         
         logger.info(f"Updated chat model to {new_config.name}")
         return True
@@ -258,6 +253,10 @@ class Chat:
                 self.history_instance = await PrincipalChatHistory.get(id=self.chat_history_id, user=self.user)
                 self._is_new_history = False
                 logger.info(f"Loaded existing chat history ID: {self.chat_history_id} for user ID: {self.user.id}")
+                
+                # Initialize the LangChain message cache from existing history
+                self._langchain_messages = await self._create_langchain_messages(self.history_instance.messages)
+                
                 return self.history_instance
             except DoesNotExist:
                 logger.warning(f"Chat history ID {self.chat_history_id} not found for user ID: {self.user.id}. Creating a new one.")
@@ -278,6 +277,10 @@ class Chat:
                 "timestamp": datetime.now(timezone.utc).isoformat(timespec='seconds') + "Z"
             }
             await self.history_instance.insert_message(system_message)
+            
+            # Add system message to LangChain cache
+            self._langchain_messages.append(SystemMessage(content=self.system_prompt))
+            
             logger.info(f"Created new chat history ID: {self.history_instance.id} with system prompt for user ID: {self.user.id}")
             
         except Exception as e:
@@ -285,37 +288,9 @@ class Chat:
             raise  # Re-raise for now, as saving history is critical
         return self.history_instance
 
-    def _validate_user_input(self, user_message_content: str) -> tuple[bool, str]:
+    async def _create_langchain_messages(self, db_messages: List[Dict]) -> List[Any]:
         """
-        Validates the user's message content.
-
-        Args:
-            user_message_content: The raw text input from the user.
-
-        Returns:
-            A tuple (is_valid, error_message_or_sanitized_content).
-            If valid, error_message is the sanitized content (e.g. stripped).
-            If invalid, error_message contains a description of the error.
-        """
-        if not isinstance(user_message_content, str):
-            return False, "Input must be a string."
-        
-        stripped_content = user_message_content.strip()
-        if not stripped_content:
-            return False, "Message content cannot be empty or just whitespace."
-        
-        # Add any other validation rules here (e.g., length limits)
-        # For now, basic non-empty check is sufficient.
-        
-        return True, stripped_content
-
-    def _create_error_response(self, message: str, error_type: str, role: str = "system") -> Dict[str, Any]:
-        """Creates a standardized error response dictionary."""
-        return {"error": message, "role": role, "type": error_type}
-
-    async def _convert_db_messages_to_langchain(self, db_messages: List[Dict]) -> List[Any]:
-        """
-        Convert database messages to LangChain message types.
+        Create LangChain message objects from database message records.
         
         Args:
             db_messages: List of message dictionaries from the database
@@ -344,8 +319,74 @@ class Chat:
                     langchain_messages.append(AIMessage(content=content))
             # Tool messages would be handled here if needed
             
-        logger.debug(f"Converted {len(langchain_messages)} messages for LangChain")
+        logger.debug(f"Created {len(langchain_messages)} LangChain messages from database")
         return langchain_messages
+
+    async def _add_message_to_langchain_cache(self, message: Dict) -> None:
+        """
+        Add a new message to the LangChain message cache.
+        
+        Args:
+            message: The message dictionary to add
+        """
+        role = message.get('role')
+        content = message.get('content')
+        
+        if role == 'system':
+            self._langchain_messages.append(SystemMessage(content=content))
+        elif role == 'user':
+            self._langchain_messages.append(HumanMessage(content=content))
+        elif role == 'assistant':
+            # For assistant messages with a dictionary content
+            if isinstance(content, dict):
+                # Extract text content
+                text_content = content.get('text', '')
+                self._langchain_messages.append(AIMessage(content=text_content))
+            # For legacy assistant messages with string content
+            elif isinstance(content, str):
+                self._langchain_messages.append(AIMessage(content=content))
+        # Tool messages would be handled here if needed
+
+    async def _convert_db_messages_to_langchain(self, db_messages: List[Dict]) -> List[Any]:
+        """
+        Return the cached LangChain message list.
+        This maintains backward compatibility with the existing code.
+        
+        Args:
+            db_messages: List of message dictionaries from the database (no longer used directly)
+            
+        Returns:
+            List of LangChain message objects from the cache
+        """
+        return self._langchain_messages
+
+    def _validate_user_input(self, user_message_content: str) -> tuple[bool, str]:
+        """
+        Validates the user's message content.
+
+        Args:
+            user_message_content: The raw text input from the user.
+
+        Returns:
+            A tuple (is_valid, error_message_or_sanitized_content).
+            If valid, error_message is the sanitized content (e.g. stripped).
+            If invalid, error_message contains a description of the error.
+        """
+        if not isinstance(user_message_content, str):
+            return False, "Input must be a string."
+        
+        stripped_content = user_message_content.strip()
+        if not stripped_content:
+            return False, "Message content cannot be empty or just whitespace."
+        
+        # Add any other validation rules here (e.g., length limits)
+        # For now, basic non-empty check is sufficient.
+        
+        return True, stripped_content
+
+    def _create_error_response(self, message: str, error_type: str, role: str = "system") -> Dict[str, Any]:
+        """Creates a standardized error response dictionary."""
+        return {"error": message, "role": role, "type": error_type}
 
     async def send_message(self, user_message_content: str, model_id: Optional[str] = None) -> Dict[str, Any]:
         """
@@ -391,9 +432,12 @@ class Chat:
                 
             return self._create_error_response("Failed to save user message.", "db_error")
 
+        # Add user message to LangChain cache
+        await self._add_message_to_langchain_cache(user_message_payload)
+
         try:
-            # Convert database messages to LangChain format
-            langchain_messages = await self._convert_db_messages_to_langchain(history.messages)
+            # Get LangChain messages from cache 
+            langchain_messages = self._langchain_messages
             
             # Create a message ID for the assistant response
             assistant_message_id = f"prinmsg-{uuid.uuid4()}"
@@ -401,14 +445,22 @@ class Chat:
             # Set up the chain with tools
             chain = self.llm.bind(tools=self.tools)
             
-            # Run the chain
-            response = await chain.ainvoke(
+            # Collect the full response (non-streaming, but using the streaming model)
+            response_content = []
+            tool_calls = []
+            
+            # Get the initial response
+            async for chunk in chain.astream(
                 langchain_messages,
                 config={"tool_choice": "auto"}
-            )
+            ):
+                if hasattr(chunk, 'content') and chunk.content is not None:
+                    response_content.append(chunk.content)
+                # Check for tool calls
+                if hasattr(chunk, 'tool_calls') and chunk.tool_calls:
+                    tool_calls.extend(chunk.tool_calls)
             
-            ai_response_text = response.content
-            tool_calls = getattr(response, "tool_calls", None)
+            ai_response_text = "".join(response_content)
             
             # Process tool calls if present
             db_calls_to_save = []
@@ -423,7 +475,8 @@ class Chat:
                     if tool_function:
                         tool_result = await tool_function.ainvoke(tool_args)
                         # Add tool result as a message
-                        langchain_messages.append(ToolMessage(content=str(tool_result), name=tool_name))
+                        tool_msg = ToolMessage(content=str(tool_result), name=tool_name)
+                        langchain_messages.append(tool_msg)
                     
                     # Save call details for database
                     db_calls_to_save.append({
@@ -434,8 +487,11 @@ class Chat:
                 
                 # Get final response after tool calls
                 if db_calls_to_save:
-                    final_response = await chain.ainvoke(langchain_messages)
-                    ai_response_text = final_response.content
+                    final_response_content = []
+                    async for chunk in chain.astream(langchain_messages):
+                        if hasattr(chunk, 'content') and chunk.content is not None:
+                            final_response_content.append(chunk.content)
+                    ai_response_text = "".join(final_response_content)
             
             # Save assistant message to database
             assistant_message_payload = PrincipalChatHistory.create_assistant_message_payload(
@@ -448,6 +504,9 @@ class Chat:
             if not await history.insert_message(assistant_message_payload):
                 logger.error(f"Failed to save assistant message for chat ID {history.id}")
                 return self._create_error_response("Failed to save assistant's response.", "db_error")
+            
+            # Add assistant message to LangChain cache
+            await self._add_message_to_langchain_cache(assistant_message_payload)
             
             return assistant_message_payload
             
@@ -464,7 +523,7 @@ class Chat:
         user_message_content: str, 
         model_id: Optional[str] = None,
         websocket: Optional[Websocket] = None
-    ) -> AsyncGenerator[StreamChunk, None]:
+    ) -> Dict[str, Any]:
         """
         Processes a user's message and streams the response using LangChain.
         
@@ -474,20 +533,21 @@ class Chat:
                      If provided, temporarily switches to this model.
             websocket: Optional WebSocket connection to stream responses to.
             
-        Yields:
-            StreamChunk objects containing the assistant's response
+        Returns:
+            A dictionary containing the final response
         """
         is_valid, validated_content = self._validate_user_input(user_message_content)
         if not is_valid:
             logger.warning(f"User input validation failed for user {self.user.id}: {validated_content}")
-            yield StreamChunk(
-                content="",
-                message_id=str(uuid.uuid4()),
-                timestamp=datetime.now(),
-                is_final=True,
-                error=validated_content
-            )
-            return
+            if websocket:
+                await websocket.send(json.dumps({
+                    "message_id": str(uuid.uuid4()),
+                    "content": "",
+                    "timestamp": datetime.now().isoformat(),
+                    "is_final": True,
+                    "error": validated_content
+                }))
+            return self._create_error_response(validated_content, "validation_error")
 
         # Handle optional model switching
         original_model = self.model_config.model_id
@@ -505,14 +565,15 @@ class Chat:
             if model_id and original_model != self.model_config.model_id:
                 self.update_model(original_model)
                 
-            yield StreamChunk(
-                content="",
-                message_id=str(uuid.uuid4()),
-                timestamp=datetime.now(),
-                is_final=True,
-                error=str(e)
-            )
-            return
+            if websocket:
+                await websocket.send(json.dumps({
+                    "message_id": str(uuid.uuid4()),
+                    "content": "",
+                    "timestamp": datetime.now().isoformat(),
+                    "is_final": True,
+                    "error": str(e)
+                }))
+            return self._create_error_response(str(e), "init_error")
 
         # Save user message to database
         user_message_payload = PrincipalChatHistory.create_user_message_payload(content=validated_content)
@@ -523,24 +584,22 @@ class Chat:
             if model_id and original_model != self.model_config.model_id:
                 self.update_model(original_model)
                 
-            yield StreamChunk(
-                content="",
-                message_id=str(uuid.uuid4()),
-                timestamp=datetime.now(),
-                is_final=True,
-                error="Failed to save user message"
-            )
-            return
+            if websocket:
+                await websocket.send(json.dumps({
+                    "message_id": str(uuid.uuid4()),
+                    "content": "",
+                    "timestamp": datetime.now().isoformat(),
+                    "is_final": True,
+                    "error": "Failed to save user message"
+                }))
+            return self._create_error_response("Failed to save user message.", "db_error")
+
+        # Add user message to LangChain cache
+        await self._add_message_to_langchain_cache(user_message_payload)
 
         try:
-            # Convert database messages to LangChain format
-            langchain_messages = await self._convert_db_messages_to_langchain(history.messages)
-            
             # Create a message ID for tracking
             message_id = str(uuid.uuid4())
-            
-            # Create callback handler for streaming
-            stream_handler = StreamingCallbackHandler(websocket)
             
             # Create an empty placeholder message in the database
             assistant_message_payload = PrincipalChatHistory.create_assistant_message_payload(
@@ -551,36 +610,113 @@ class Chat:
             )
             await history.insert_message(assistant_message_payload)
             
-            # Set up the streaming chain
-            streaming_chain = self.streaming_llm.bind(tools=self.tools)
+            # Create a callback handler for streaming tokens to WebSocket
+            class WebSocketStreamer(AsyncCallbackHandler):
+                def __init__(self, ws: Websocket, msg_id: str):
+                    self.ws = ws
+                    self.msg_id = msg_id
+                    self.collected_tokens = []
+                    self.token_count = 0
+                    logger.debug(f"[TRACE] WebSocketStreamer: Initialized with message_id={msg_id}")
+                    super().__init__()
+                
+                async def on_llm_new_token(self, token: str, **kwargs) -> None:
+                    #logger.debug(f"[TRACE] WebSocketStreamer: on_llm_new_token: token={token}")
+                    if not self.ws:
+                        return
+                    
+                    self.collected_tokens.append(token)
+                    self.token_count += 1
+                    
+                    # Log every 10 tokens to avoid excessive logging
+                    if self.token_count <= 5 or self.token_count % 50 == 0:
+                        logger.debug(f"[TRACE] WebSocketStreamer: Received token #{self.token_count}: '{token[:10]}...' ({len(token)} chars)")
+                    
+                    try:
+                        await self.ws.send(json.dumps({
+                            "type": "token",
+                            "message_id": self.msg_id,
+                            "content": token,
+                            "timestamp": datetime.now().isoformat(),
+                            "is_final": False
+                        }))
+                    except Exception as e:
+                        logger.error(f"Error sending token to websocket: {e}")
+                
+                def get_content(self) -> str:
+                    full_content = "".join(self.collected_tokens)
+                    logger.debug(f"[TRACE] WebSocketStreamer: Completed with {self.token_count} tokens, total length: {len(full_content)} chars")
+                    return full_content
             
-            # Process the stream with buffering
-            async for chunk in stream_with_buffer(
-                streaming_chain.astream(
-                    langchain_messages,
-                    config={"callbacks": [stream_handler]}
-                ),
-                message_id=message_id,
-                buffer_size=self.model_config.cache_size,
-                websocket=websocket
-            ):
-                # Update the message in the database if this is the final chunk
-                if chunk.is_final and not chunk.error:
-                    await history.update_message_content(
-                        message_id=message_id,
-                        new_content={"text": chunk.content, "courses": []}
-                    )
-                yield chunk
+            # Initialize WebSocket streaming if available
+            callback_handlers = []
+            streamer = None
+            
+            if websocket:
+                streamer = WebSocketStreamer(websocket, message_id)
+                callback_handlers.append(streamer)
+                logger.debug(f"[TRACE] stream_message: Set up WebSocketStreamer with message_id={message_id}")
+                
+            # Use the existing LLM but with our custom callbacks
+            logger.debug(f"[TRACE] stream_message: Starting agenerate with {len(self._langchain_messages)} messages")
+            response = await self.llm.agenerate(
+                [self._langchain_messages],
+                callbacks=callback_handlers
+            )
+            logger.debug(f"[TRACE] stream_message: Completed agenerate")
+            
+            # Send completion signal if using WebSocket
+            if websocket:
+                try:
+                    await websocket.send(json.dumps({
+                        "type": "token",
+                        "message_id": message_id,
+                        "content": "",
+                        "timestamp": datetime.now().isoformat(),
+                        "is_final": True
+                    }))
+                except Exception as e:
+                    logger.error(f"Error sending completion signal: {e}")
+            
+            # Get the final content from either the collected tokens or response
+            final_content = ""
+            if streamer:
+                final_content = streamer.get_content()
+            else:
+                # If no websocket, get content from the response
+                final_content = response.generations[0][0].text
+            
+            # Update the message in the database with final content
+            try:
+                await history.update_message_content(
+                    message_id=message_id,
+                    new_content={"text": final_content, "calls": []}
+                )
+                logger.debug(f"[TRACE] stream_message: Updated message in database with {len(final_content)} chars")
+            except Exception as content_error:
+                logger.error(f"Error updating message content: {str(content_error)}")
+            
+            # Update assistant message in the LangChain cache
+            assistant_message_payload["content"] = {"text": final_content, "calls": []}
+            await self._add_message_to_langchain_cache(assistant_message_payload)
+            
+            # Return the final message payload
+            return assistant_message_payload
             
         except Exception as e:
             logger.error(f"Error in LangChain streaming for chat ID {history.id}: {e}")
-            yield StreamChunk(
-                content="",
-                message_id=message_id,
-                timestamp=datetime.now(),
-                is_final=True,
-                error=f"AI streaming error: {str(e)}"
-            )
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            
+            if websocket:
+                await websocket.send(json.dumps({
+                    "message_id": message_id,
+                    "content": "",
+                    "timestamp": datetime.now().isoformat(),
+                    "is_final": True,
+                    "error": f"AI streaming error: {str(e)}"
+                }))
+            return self._create_error_response(f"AI service error: {str(e)}", "langchain_error")
         finally:
             # Restore original model if we switched
             if model_id and original_model != self.model_config.model_id:
@@ -661,16 +797,14 @@ async def example_langchain_chat_flow():
         user_query2 = "What about history courses for beginners?"
         logger.info(f"User: {user_query2}")
         logger.info("Switching to gpt-3.5-turbo for this message...")
-        logger.info("AI (streaming): ", end="", flush=True)
+        logger.info("AI (streaming): ")
         
-        async for chunk in chat_session.stream_message(user_query2, model_id="gpt-3.5-turbo"):
-            if chunk.get("type") == "text" and chunk.get("content"):
-                logger.info(chunk["content"], end="", flush=True)
-            elif chunk.get("type") == "done":
-                logger.info("\n[Stream completed]")
-            elif chunk.get("error"):
-                logger.error(f"\nError: {chunk['error']}")
-                
+        # Use a mock websocket for example purposes
+        mock_websocket = MockWebsocket()
+        response = await chat_session.stream_message(user_query2, model_id="gpt-3.5-turbo", websocket=mock_websocket)
+        
+        # In a real application, the WebSocket would receive the streaming results
+        logger.info(f"Final response: {response}")
         logger.info(f"Current model after streaming: {chat_session.model_config.name}")  # Should be back to default
 
     except Exception as e:
@@ -680,6 +814,11 @@ async def example_langchain_chat_flow():
         if Tortoise._connections:  # Check if connections were made
             await Tortoise.close_connections()
             logger.info("DB connections closed.")
+
+# Mock WebSocket for the example
+class MockWebsocket:
+    async def send(self, data):
+        logger.info(f"WebSocket sent: {data}")
 
 if __name__ == '__main__':
     logger.info("Running LangChain example chat flow (requires OPENAI_API_KEY).")

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { 
   Box, 
   Flex, 
@@ -11,21 +11,69 @@ import {
   Card,
   CardBody,
   VStack,
-  HStack
+  HStack,
+  useToast
 } from '@chakra-ui/react';
 import { FaPaperPlane, FaVideo, FaVideoSlash, FaExpand } from 'react-icons/fa';
 import Navbar from '@components/Navbar';
 import { useTranslation } from 'react-i18next';
 import './../styles/ParticleBackground.css';
+import { logger } from '../utils/logger';
 
 interface Message {
+  role: 'user' | 'assistant';
   content: string;
-  isAI: boolean;
-  timestamp: string;
+  timestamp?: string;
 }
+
+interface StreamChunk {
+  content: string;
+  messageId: string;
+  timestamp: string;
+  isFinal: boolean;
+  error?: string;
+}
+
+const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
+  const isAssistant = message.role === 'assistant';
+  
+  // Move all useColorModeValue hooks to the top level
+  const assistantBgColor = useColorModeValue('blue.50', 'blue.900');
+  const userBgColor = useColorModeValue('green.50', 'green.900');
+  const textColor = useColorModeValue('gray.800', 'white');
+  const assistantBorderColor = useColorModeValue('blue.200', 'blue.700');
+  const userBorderColor = useColorModeValue('green.200', 'green.700');
+  const timestampColor = useColorModeValue('gray.500', 'gray.400');
+
+  // Compute the actual colors based on role
+  const bgColor = isAssistant ? assistantBgColor : userBgColor;
+  const borderColor = isAssistant ? assistantBorderColor : userBorderColor;
+
+  return (
+    <Box
+      maxW="80%"
+      alignSelf={isAssistant ? 'flex-start' : 'flex-end'}
+      bg={bgColor}
+      color={textColor}
+      p={4}
+      borderRadius="lg"
+      borderWidth="1px"
+      borderColor={borderColor}
+      boxShadow="sm"
+    >
+      <Text>{message.content}</Text>
+      {message.timestamp && (
+        <Text fontSize="xs" color={timestampColor} mt={2}>
+          {new Date(message.timestamp).toLocaleTimeString()}
+        </Text>
+      )}
+    </Box>
+  );
+};
 
 const PrincipalAIPage: React.FC = () => {
   const { t } = useTranslation();
+  const toast = useToast();
   const particleColor = useColorModeValue('#3182ce', '#90cdf4');
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -37,28 +85,190 @@ const PrincipalAIPage: React.FC = () => {
   ]);
   const [videoActive, setVideoActive] = useState(true);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSendMessage = async () => {
-    if (!inputMessage.trim()) return;
+  useEffect(() => {
+    const connectWebSocket = async () => {
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        logger.debug("WebSocket already connected");
+        return;
+      }
 
-    const newMessage = {
-      content: inputMessage,
-      isAI: false,
-      timestamp: new Date().toLocaleTimeString()
+      try {
+        // Get the auth token from cookies
+        const token = document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("token="))
+          ?.split("=")[1];
+
+        if (!token) {
+          logger.error("No auth token found in cookies");
+          setError("Authentication required. Please log in.");
+          return;
+        }
+
+        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+        const wsUrl = `${protocol}//${window.location.host}/ai/principal-ai/ws/chat`;
+        logger.debug(`Connecting to WebSocket at ${wsUrl}`);
+
+        // Create WebSocket
+        const ws = new WebSocket(wsUrl);
+        wsRef.current = ws;
+
+        ws.onopen = () => {
+          logger.info("WebSocket connection opened, sending authentication");
+          // Send authentication message
+          ws.send(JSON.stringify({
+            type: "auth",
+            token: token
+          }));
+        };
+
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            logger.debug("Received WebSocket message:", data);
+
+            // Handle different message types
+            switch (data.type) {
+              case "auth_success":
+                logger.info("Authentication successful:", data.message);
+                setError(null);
+                setIsConnected(true);
+                break;
+              case "history_messages":
+                // Handle history messages
+                logger.info(`Received ${data.messages.length} history messages`);
+                if (data.messages && Array.isArray(data.messages)) {
+                  // Process and add history messages to the chat
+                  const formattedMessages = data.messages.map((msg: any) => ({
+                    role: msg.role === 'user' ? 'user' : 'assistant',
+                    content: msg.role === 'assistant' && typeof msg.content === 'object' 
+                      ? msg.content.text || ''  // Handle assistant messages with content object
+                      : msg.content,            // Handle user messages with string content
+                    timestamp: msg.timestamp
+                  }));
+                  setMessages(formattedMessages);
+                }
+                break;
+              case "error":
+                logger.error("WebSocket error:", data.error);
+                setError(data.error);
+                if (data.status_code === 401) {
+                  // Handle authentication errors
+                  ws.close();
+                  // Optionally redirect to login
+                  // window.location.href = "/login";
+                }
+                break;
+              case "token":
+                // Handle token streaming (similar to chunk handling)
+                setMessages(prev => {
+                  const lastMessage = prev[prev.length - 1];
+                  if (lastMessage && lastMessage.role === "assistant") {
+                    // Append token to existing assistant message
+                    return [
+                      ...prev.slice(0, -1),
+                      { ...lastMessage, content: lastMessage.content + data.content }
+                    ];
+                  } else if (!data.is_final) {
+                    // Create new assistant message if this is the first token
+                    return [...prev, { role: "assistant", content: data.content }];
+                  }
+                  return prev; // If is_final with empty content, don't change anything
+                });
+                break;
+              case "chunk":
+                // Handle streaming chunks
+                setMessages(prev => {
+                  const lastMessage = prev[prev.length - 1];
+                  if (lastMessage && lastMessage.role === "assistant") {
+                    return [
+                      ...prev.slice(0, -1),
+                      { ...lastMessage, content: lastMessage.content + data.content }
+                    ];
+                  }
+                  return [...prev, { role: "assistant", content: data.content }];
+                });
+                break;
+              default:
+                logger.warn("Unknown message type:", data.type);
+            }
+          } catch (e) {
+            logger.error("Error parsing WebSocket message:", e);
+          }
+        };
+
+        ws.onerror = (error) => {
+          logger.error("WebSocket error:", error);
+          setError("Connection error occurred");
+          setIsConnected(false);
+        };
+
+        ws.onclose = (event) => {
+          logger.info(`WebSocket closed with code ${event.code}`);
+          setIsConnected(false);
+          if (event.code === 1008) {
+            // Policy Violation (auth error)
+            setError("Authentication failed. Please log in again.");
+          } else if (event.code !== 1000) {
+            // Not a normal closure
+            setError("Connection closed unexpectedly");
+          }
+        };
+
+      } catch (error) {
+        logger.error("Error setting up WebSocket:", error);
+        setError("Failed to establish connection");
+        setIsConnected(false);
+      }
     };
 
-    setMessages(prev => [...prev, newMessage]);
-    setInputMessage('');
+    connectWebSocket();
 
-    // Simulate AI response
-    setTimeout(() => {
-      const aiResponse = {
-        content: t('PrincipalAI.response', { goal: inputMessage }),
-        isAI: true,
-        timestamp: new Date().toLocaleTimeString()
-      };
-      setMessages(prev => [...prev, aiResponse]);
-    }, 1000);
+    return () => {
+      if (wsRef.current) {
+        logger.debug("Cleaning up WebSocket connection");
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+    };
+  }, []); // Empty dependency array since we only want to connect once
+
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim() || !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
+
+    const message: Message = {
+        role: 'user',
+        content: inputMessage,
+        timestamp: new Date().toISOString()
+    };
+
+    setMessages(prev => [...prev, message]);
+    setInputMessage('');
+    setIsLoading(true);
+
+    try {
+        wsRef.current.send(JSON.stringify({
+            type: "message",
+            content: inputMessage,
+            model_id: "deepseek-v3"  // Using default model
+        }));
+        logger.debug("Sent message to WebSocket:", { type: "message", content: inputMessage, model_id: "deepseek-v3" });
+    } catch (error) {
+        logger.error('Error sending message:', error);
+        toast({
+            title: t('PrincipalAI.sendError'),
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+        });
+    } finally {
+        setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -203,62 +413,31 @@ const PrincipalAIPage: React.FC = () => {
               p={4}
             >
               <VStack spacing={4} align="stretch">
-                {messages.map((msg, index) => (
-                  <Flex
-                    key={index}
-                    direction={msg.isAI ? 'row' : 'row-reverse'}
-                    gap={3}
-                    align="flex-start"
-                  >
-                    <Avatar
-                      name={msg.isAI ? t('PrincipalAI.name') : 'You'}
-                      src={msg.isAI ? '/ai-principal-avatar.png' : ''}
-                      size="sm"
-                    />
-                    <Box
-                      p={3}
-                      borderRadius="lg"
-                      bg={msg.isAI ? 'blue.50' : 'purple.50'}
-                      maxW="80%"
-                      position="relative"
-                      _before={{
-                        content: '""',
-                        position: 'absolute',
-                        top: '10px',
-                        [msg.isAI ? 'left' : 'right']: '-8px',
-                        w: '0',
-                        h: '0',
-                        borderTop: '8px solid transparent',
-                        borderBottom: '8px solid transparent',
-                        borderLeft: msg.isAI ? '8px solid #BEE3F8' : 'none',
-                        borderRight: !msg.isAI ? '8px solid #E9D8FD' : 'none'
-                      }}
-                    >
-                      <Text fontSize="sm" color="gray.500" mb={1}>
-                        {msg.timestamp}
-                      </Text>
-                      <Text>{msg.content}</Text>
-                    </Box>
-                  </Flex>
+                {messages.map((message, index) => (
+                  <MessageBubble key={index} message={message} />
                 ))}
               </VStack>
             </Box>
 
-            <HStack>
-              <Input
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                placeholder={t('PrincipalAI.placeholder')}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                bg={useColorModeValue('white', 'gray.800')}
-              />
-              <IconButton
-                colorScheme="blue"
-                aria-label="Send message"
-                icon={<FaPaperPlane />}
-                onClick={handleSendMessage}
-              />
-            </HStack>
+            <Box p={4} borderTopWidth="1px" borderColor={useColorModeValue('gray.200', 'gray.700')}>
+              <HStack>
+                <Input
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  placeholder={t('PrincipalAI.inputPlaceholder')}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                  bg={useColorModeValue('white', 'gray.800')}
+                  isDisabled={isLoading || !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN}
+                />
+                <IconButton
+                  aria-label={t('PrincipalAI.send')}
+                  icon={<FaPaperPlane />}
+                  onClick={handleSendMessage}
+                  isLoading={isLoading}
+                  isDisabled={isLoading || !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN}
+                />
+              </HStack>
+            </Box>
           </CardBody>
         </Card>
       </Flex>

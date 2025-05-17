@@ -54,26 +54,26 @@ class _AuthManager():
             claims = jwt.decode(token_string, self.secret_key, algorithms=["HS256"])
             
             if claims.get("iss") != "aiLearn":
-                logger.warning(f"Token with invalid issuer: {claims.get('iss')}")
+                logger.warning(f"Token validation failed: Invalid issuer '{claims.get('iss')}', expected 'aiLearn'")
                 return None
                 
             if "exp" in claims and claims["exp"] < int(time.time()):
-                logger.warning("Expired token received.")
+                logger.warning(f"Token validation failed: Expired at {time.ctime(claims['exp'])}, current time {time.ctime()}")
                 return None
                 
             if "ID" not in claims:
-                logger.warning("Token missing 'ID' claim.")
+                logger.warning("Token validation failed: Missing required 'ID' claim")
                 return None
             
             return claims
         except jwt.ExpiredSignatureError:
-            logger.warning("Expired token signature.")
+            logger.warning("Token validation failed: Signature has expired")
             return None
         except jwt.InvalidTokenError as e:
-            logger.warning(f"Invalid token: {e}")
+            logger.warning(f"Token validation failed: {str(e)}")
             return None
         except Exception as e:
-            logger.error(f"Unexpected error decoding token: {e}")
+            logger.error(f"Unexpected error during token validation: {str(e)}")
             return None
 
 AuthManager = _AuthManager.from_env()
@@ -81,15 +81,18 @@ AuthManager = _AuthManager.from_env()
 def init_auth(app):
     """
     Initializes authentication for the Sanic application.
-    Makes AuthManager available via `app.ctx.auth`.
+    Makes AuthManager available via `app.ctx.auth` and registers global auth middleware.
     """
     app.ctx.auth = AuthManager
+    # Register authentication middleware globally
+    app.middleware("request")(authentication_middleware)
     logger.info("Authentication Manager initialized and attached to app.ctx.auth")
+    logger.info("Global authentication middleware registered")
 
 async def authentication_middleware(request):
     """
     Sanic middleware to extract and store the raw auth token.
-    This middleware only extracts the token and stores it in request.ctx.raw_auth_token.
+    This middleware only extracts the token and stores it in request.ctx.raw_token.
     Actual token verification is done by the login_required decorator when needed.
     """
     auth_header = request.headers.get("Authorization")
@@ -102,7 +105,6 @@ async def authentication_middleware(request):
 
     parts = auth_header.split(" ")
     if len(parts) != 2 or parts[0].lower() != "bearer":
-        logger.warning(f"Invalid Authorization header format: {auth_header}")
         return
 
     # Store the raw token for later verification
@@ -130,7 +132,7 @@ def login_required(func):
         request.ctx.user_id = claims.get("ID")
         request.ctx.claims = claims
         
-        logger.info(f"User {request.ctx.user_id} authenticated successfully")
+        logger.info(f"Authorized: User {request.ctx.user_id}")
         return await func(request, *args, **kwargs)
     
     return wrapper

@@ -21,7 +21,7 @@ func main() {
 
 	// 连接 SMTP 和数据库
 	config.ConnectSMTP()
-	config.ConnectDatabase()
+	config.ConnectDatabaseMySQL()
 
 	// 执行数据库自动迁移
 	err := config.DB.AutoMigrate(&models.User{})

@@ -440,6 +440,37 @@ class PrincipalChatHistory(models.Model):
                 self.messages.insert(actual_index, deleted_message) 
                 return False
 
+    async def update_message_content(self, message_id: str, new_content: dict) -> bool:
+        """
+        Updates the content of a message in the chat history by its message_id.
+
+        Args:
+            message_id: The unique ID of the message to update.
+            new_content: The new content to set for the message.
+
+        Returns:
+            True if the message was successfully updated, False otherwise.
+        """
+        if not isinstance(self.messages, list) or not self.messages:
+            logger.warning(f"History ID {self.id if self.id else 'New'}: No messages to update.")
+            return False
+        
+        # Find the message with the matching ID
+        for i, message in enumerate(self.messages):
+            if message.get("message_id") == message_id:
+                # Update the content field
+                self.messages[i]["content"] = new_content
+                try:
+                    await self.save(update_fields=['messages'])
+                    logger.info(f"History ID {self.id if self.id else 'Saved'}: Updated message content for {message_id}")
+                    return True
+                except Exception as e:
+                    logger.error(f"History ID {self.id if self.id else 'New'}: Error updating message content: {e}")
+                    return False
+        
+        logger.warning(f"History ID {self.id if self.id else 'New'}: No message found with ID {message_id}")
+        return False
+
     def __str__(self):
         """
         Returns a string representation of the PrincipalChatHistory instance.
