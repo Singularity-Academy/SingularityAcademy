@@ -44,68 +44,77 @@ const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
   const assistantBorderColor = useColorModeValue('blue.200', 'blue.700');
   const userBorderColor = useColorModeValue('green.200', 'green.700');
   const timestampColor = useColorModeValue('gray.500', 'gray.400');
-  const coursesBgColor = useColorModeValue('gray.50', 'gray.700');
-  const coursesBorderColor = useColorModeValue('blue.100', 'blue.800');
   
   // Compute the actual colors based on role
   const bgColor = isAssistant ? assistantBgColor : userBgColor;
   const borderColor = isAssistant ? assistantBorderColor : userBorderColor;
   
-  // Process the message content
-  let displayContent = '';
-  let courses = null;
-  
-  if (isAssistant) {
-    // For assistant messages, try to parse JSON and extract text field
-    if (typeof message.content === 'object') {
-      // If it's already an object, just get the text field
-      displayContent = message.content.text || JSON.stringify(message.content);
-      
-      // Check multiple possible locations for course data
-      if (message.content.courses) {
-        courses = message.content.courses;
-      } else if (message.content.data && message.content.data.courses) {
-        courses = message.content.data.courses;
-      } else if (message.content.result && message.content.result.courses) {
-        courses = message.content.result.courses;
-      }
-    } else {
-      // If it's a string, try to parse it as JSON
+  // Helper function to check if content is XML
+  const isXmlContent = (content: string): boolean => {
+    return content.trim().startsWith('<') && content.trim().endsWith('>');
+  };
+
+  // Helper function to extract XML from JSON if needed
+  const extractRawContent = (content: any): string => {
+    if (typeof content === 'string') {
+      // Check if this might be a stringified JSON containing XML
       try {
-        const jsonContent = JSON.parse(message.content as string);
-        displayContent = jsonContent.text || JSON.stringify(jsonContent);
-        
-        // Check multiple possible locations for course data
-        if (jsonContent.courses) {
-          courses = jsonContent.courses;
-        } else if (jsonContent.data && jsonContent.data.courses) {
-          courses = jsonContent.data.courses;
-        } else if (jsonContent.result && jsonContent.result.courses) {
-          courses = jsonContent.result.courses;
+        const parsed = JSON.parse(content);
+        if (parsed && typeof parsed === 'object') {
+          // Look in common fields where XML might be stored
+          if (typeof parsed.text === 'string' && isXmlContent(parsed.text)) {
+            return parsed.text;
+          }
+          if (typeof parsed.content === 'string' && isXmlContent(parsed.content)) {
+            return parsed.content;
+          }
+          // If no XML found in sub-fields, stringify the whole object
+          return JSON.stringify(parsed, null, 2);
         }
       } catch (e) {
-        // If parsing fails, just use the content directly
-        displayContent = message.content as string;
+        // Not JSON, return as is
+        return content;
       }
+    } else if (typeof content === 'object') {
+      // Direct object, check fields for XML
+      if (typeof content.text === 'string' && isXmlContent(content.text)) {
+        return content.text;
+      }
+      if (typeof content.content === 'string' && isXmlContent(content.content)) {
+        return content.content;
+      }
+      // No XML fields found, stringify the whole object
+      return JSON.stringify(content, null, 2);
     }
     
-    // If courses is empty array or invalid, set to null
-    if (courses) {
-      if (Array.isArray(courses) && courses.length === 0) {
-        courses = null;
-      } else if (courses.courses && Array.isArray(courses.courses) && courses.courses.length === 0) {
-        courses = null;
-      }
-    }
+    // Default case: return as string
+    return String(content);
+  };
+  
+  // Display raw content, but extract XML if it's wrapped in JSON
+  const displayContent = extractRawContent(message.content);
+
+  // Format timestamp safely
+  const formatTimestamp = (timestamp: string | undefined): string => {
+    if (!timestamp) return '';
     
-    // Debug the courses data
-    console.log('Courses data:', courses);
-  } else {
-    // For user messages, just display the content directly
-    displayContent = typeof message.content === 'object' 
-      ? JSON.stringify(message.content, null, 2) 
-      : message.content as string;
-  }
+    try {
+      // Fix the invalid format with both offset and Z suffix
+      let fixedTimestamp = timestamp;
+      if (timestamp.includes('+') && timestamp.endsWith('Z')) {
+        // Remove the Z at the end if there's already a timezone offset
+        fixedTimestamp = timestamp.slice(0, -1);
+      }
+      
+      const date = new Date(fixedTimestamp);
+      return isNaN(date.getTime()) 
+        ? 'Invalid Time' 
+        : date.toLocaleTimeString();
+    } catch (e) {
+      console.error('Error formatting timestamp:', e);
+      return 'Invalid Time';
+    }
+  };
 
   return (
     <Box
@@ -123,85 +132,9 @@ const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
         {displayContent}
       </Text>
       
-      {/* Display courses if available */}
-      {isAssistant && courses && (
-        <Box 
-          mt={4} 
-          pt={2}
-          borderTop="1px" 
-          borderColor={borderColor}
-        >
-          <Text fontWeight="bold" mb={2}>Recommended Courses:</Text>
-          
-          {/* If courses is an array, map through it */}
-          {Array.isArray(courses) && courses.length > 0 ? (
-            <VStack align="stretch" spacing={2}>
-              {courses.map((course: any, index: number) => (
-                <Box 
-                  key={index} 
-                  p={2} 
-                  bg={coursesBgColor} 
-                  borderRadius="md" 
-                  borderWidth="1px"
-                  borderColor={coursesBorderColor}
-                >
-                  <Text fontWeight="bold">
-                    {course.title || course.name || (typeof course === 'string' ? course : `Course ${index + 1}`)}
-                  </Text>
-                  {course.description && (
-                    <Text fontSize="sm" mt={1}>{course.description}</Text>
-                  )}
-                  {course.desc && !course.description && (
-                    <Text fontSize="sm" mt={1}>{course.desc}</Text>
-                  )}
-                  {course.id && (
-                    <Text fontSize="xs" color="gray.500" mt={1}>ID: {course.id}</Text>
-                  )}
-                  {course.course_id && !course.id && (
-                    <Text fontSize="xs" color="gray.500" mt={1}>ID: {course.course_id}</Text>
-                  )}
-                </Box>
-              ))}
-            </VStack>
-          ) : (
-            // If it's an object with a courses property that is an array
-            courses.courses && Array.isArray(courses.courses) && courses.courses.length > 0 ? (
-              <VStack align="stretch" spacing={2}>
-                {courses.courses.map((course: any, index: number) => (
-                  <Box 
-                    key={index} 
-                    p={2} 
-                    bg={coursesBgColor} 
-                    borderRadius="md" 
-                    borderWidth="1px"
-                    borderColor={coursesBorderColor}
-                  >
-                    <Text fontWeight="bold">
-                      {course.title || course.name || (typeof course === 'string' ? course : `Course ${index + 1}`)}
-                    </Text>
-                    {course.description && (
-                      <Text fontSize="sm" mt={1}>{course.description}</Text>
-                    )}
-                    {course.desc && !course.description && (
-                      <Text fontSize="sm" mt={1}>{course.desc}</Text>
-                    )}
-                    {course.id && (
-                      <Text fontSize="xs" color="gray.500" mt={1}>ID: {course.id}</Text>
-                    )}
-                    {course.course_id && !course.id && (
-                      <Text fontSize="xs" color="gray.500" mt={1}>ID: {course.course_id}</Text>
-                    )}
-                  </Box>
-                ))}
-              </VStack>
-            ) : null // Don't show anything if no valid courses
-          )}
-        </Box>
-      )}
-      
       {message.timestamp && (
         <Text fontSize="xs" color={timestampColor} mt={2}>
-          {new Date(message.timestamp).toLocaleTimeString()}
+          {formatTimestamp(message.timestamp)}
         </Text>
       )}
     </Box>
@@ -280,22 +213,18 @@ const PrincipalAIPage: React.FC = () => {
                 // Handle history messages
                 logger.info(`Received ${data.messages.length} history messages`);
                 if (data.messages && Array.isArray(data.messages)) {
-                  // Process and add history messages to the chat
+                  // Before we process messages, add a debug log to see the raw format
+                  logger.debug("Raw history messages:", JSON.stringify(data.messages.slice(0, 2)));
+                  
+                  // Process and add history messages to the chat - maintain original content structure
                   const formattedMessages = data.messages.map((msg: any) => {
-                    // Parse content correctly
-                    let messageContent = msg.content;
-                    if (msg.role === 'assistant') {
-                      if (typeof msg.content === 'object') {
-                        messageContent = msg.content.text || '';
-                      }
-                    }
-                    
                     return {
                       role: msg.role === 'user' ? 'user' : 'assistant',
-                      content: messageContent,
+                      content: msg.content, // Keep content as is without parsing
                       timestamp: msg.timestamp
                     };
                   });
+                  
                   setMessages(formattedMessages);
                 }
                 break;
@@ -310,40 +239,87 @@ const PrincipalAIPage: React.FC = () => {
                 }
                 break;
               case "token":
-                // Handle token streaming (similar to chunk handling)
+                // Handle token streaming by updating the existing empty assistant message
                 setMessages(prev => {
                   const lastMessage = prev[prev.length - 1];
                   if (lastMessage && lastMessage.role === "assistant") {
-                    // Append token to existing assistant message
+                    // Get current content - could be string or object
+                    const currentContent = lastMessage.content;
+                    let updatedContent: string | { text: string; [key: string]: any };
+                    
+                    if (typeof currentContent === 'object') {
+                      // If current content is an object, append to text property or create one
+                      updatedContent = {
+                        ...currentContent,
+                        text: (currentContent.text || '') + data.content
+                      };
+                    } else {
+                      // If string, just append
+                      updatedContent = currentContent + data.content;
+                    }
+
+                    // Update existing assistant message
                     return [
                       ...prev.slice(0, -1),
                       { 
                         ...lastMessage, 
-                        content: lastMessage.content + data.content 
+                        content: updatedContent
                       }
                     ];
-                  } else if (!data.is_final) {
-                    // Create new assistant message if this is the first token
-                    return [...prev, { role: "assistant", content: data.content }];
                   }
-                  return prev; // If is_final with empty content, don't change anything
+                  return prev;
                 });
                 break;
               case "chunk":
-                // Handle streaming chunks
+                // Handle chunk streaming by updating the existing empty assistant message
                 setMessages(prev => {
                   const lastMessage = prev[prev.length - 1];
-                  const contentToAdd = typeof data.content === 'object' 
-                    ? data.content.text || '' 
-                    : data.content;
+                  // Keep content as is without extracting text field
+                  const contentToAdd = data.content;
                     
                   if (lastMessage && lastMessage.role === "assistant") {
+                    // Log the content types for debugging
+                    logger.debug("Content types:", {
+                      lastMessageContentType: typeof lastMessage.content,
+                      contentToAddType: typeof contentToAdd
+                    });
+                    
+                    let updatedContent: string | { text: string; [key: string]: any };
+                    
+                    // Combine the contents appropriately
+                    if (typeof lastMessage.content === 'object' && typeof contentToAdd === 'object') {
+                      // Both objects - merge them
+                      updatedContent = {
+                        ...lastMessage.content,
+                        ...contentToAdd,
+                        text: (lastMessage.content.text || '') + 
+                              ((contentToAdd as any).text || '')
+                      };
+                    } else if (typeof lastMessage.content === 'object') {
+                      // Last message is object, content to add is string
+                      updatedContent = {
+                        ...lastMessage.content,
+                        text: (lastMessage.content.text || '') + 
+                              (typeof contentToAdd === 'string' ? contentToAdd : '')
+                      };
+                    } else if (typeof contentToAdd === 'object') {
+                      // Last message is string, content to add is object
+                      const textContent = typeof lastMessage.content === 'string' ? lastMessage.content : '';
+                      updatedContent = {
+                        ...(contentToAdd as { [key: string]: any }),
+                        text: textContent + ((contentToAdd as any).text || '')
+                      };
+                    } else {
+                      // Both are strings
+                      updatedContent = (lastMessage.content || '') + (contentToAdd || '');
+                    }
+                    
                     return [
                       ...prev.slice(0, -1),
-                      { ...lastMessage, content: lastMessage.content + contentToAdd }
+                      { ...lastMessage, content: updatedContent }
                     ];
                   }
-                  return [...prev, { role: "assistant", content: contentToAdd }];
+                  return prev;
                 });
                 break;
               default:
@@ -399,7 +375,19 @@ const PrincipalAIPage: React.FC = () => {
         timestamp: new Date().toISOString()
     };
 
+    // Add user message first
     setMessages(prev => [...prev, message]);
+    
+    // Immediately add an empty assistant message
+    setMessages(prev => [
+      ...prev, 
+      { 
+        role: 'assistant', 
+        content: '',
+        timestamp: new Date().toISOString()
+      }
+    ]);
+    
     setInputMessage('');
     setIsLoading(true);
 
