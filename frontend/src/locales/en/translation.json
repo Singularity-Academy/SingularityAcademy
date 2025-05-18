@@ -96,11 +96,13 @@
     "name": "Principal AI",
     "you": "You",
     "placeholder": "Describe your learning goals...",
+    "inputPlaceholder": "Ask me anything about your education...",
     "response": "Understood! Let's build your path to achieve: {goal}. Here's your customized study plan:",
     "studyPlan": "Your Learning Path",
     "physics": "Fundamental Physics",
     "mathematics": "Advanced Mathematics",
     "engineering": "Engineering Principles",
-    "computerScience": "Computer Science Basics"
+    "computerScience": "Computer Science Basics",
+    "send": "Send message"
   }
 }

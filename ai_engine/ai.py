@@ -185,6 +185,8 @@ class Chat:
         if not self.system_prompt:
             logger.warning("Failed to load system prompt, using default")
             self.system_prompt = "You are an assistant that helps with educational queries."
+        else:
+            logger.info(f"Loaded system prompt: {self.system_prompt}")
             
         # Initialize LangChain components
         self._init_langchain()
@@ -256,6 +258,33 @@ class Chat:
                 
                 # Initialize the LangChain message cache from existing history
                 self._langchain_messages = await self._create_langchain_messages(self.history_instance.messages)
+                
+                # Check if first message is system message, if not, insert system message
+                if not self._langchain_messages or not isinstance(self._langchain_messages[0], SystemMessage):
+                    logger.info(f"System message not found at first position for chat ID: {self.chat_history_id}. Adding system message.")
+                    
+                    # Create system message
+                    system_message = {
+                        "message_id": f"system-{uuid.uuid4()}",
+                        "role": "system",
+                        "content": self.system_prompt,
+                        "timestamp": datetime.now(timezone.utc).isoformat(timespec='seconds') + "Z"
+                    }
+                    
+                    # Insert at position 0 in the database
+                    if self.history_instance.messages:
+                        # If there are existing messages, insert at the beginning
+                        self.history_instance.messages.insert(0, system_message)
+                        # Update the full messages array in the database
+                        await self.history_instance.save()
+                        logger.info(f"Inserted system message at first position for chat ID: {self.chat_history_id}")
+                    else:
+                        # If no messages, just add it
+                        await self.history_instance.insert_message(system_message)
+                        logger.info(f"Added system message to empty history for chat ID: {self.chat_history_id}")
+                    
+                    # Update LangChain message cache - insert at beginning
+                    self._langchain_messages.insert(0, SystemMessage(content=self.system_prompt))
                 
                 return self.history_instance
             except DoesNotExist:
@@ -656,6 +685,13 @@ class Chat:
                 streamer = WebSocketStreamer(websocket, message_id)
                 callback_handlers.append(streamer)
                 logger.debug(f"[TRACE] stream_message: Set up WebSocketStreamer with message_id={message_id}")
+                
+            # Log detailed message history before calling LLM
+            logger.info(f"[TRACE] Message history before agenerate call:")
+            for i, msg in enumerate(self._langchain_messages):
+                msg_type = msg.__class__.__name__
+                msg_content = str(msg.content)[:100] + "..." if len(msg.content) > 100 else msg.content
+                logger.info(f"[TRACE] Message [{i}] - {msg_type}: \"{msg_content}\"")
                 
             # Use the existing LLM but with our custom callbacks
             logger.debug(f"[TRACE] stream_message: Starting agenerate with {len(self._langchain_messages)} messages")

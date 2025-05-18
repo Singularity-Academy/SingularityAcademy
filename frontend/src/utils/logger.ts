@@ -9,6 +9,13 @@ const LOG_LEVELS = {
     ERROR: 3
 };
 
+interface Logger {
+    debug: (message: string, data?: any) => void;
+    info: (message: string, data?: any) => void;
+    warn: (message: string, data?: any) => void;
+    error: (message: string, data?: any) => void;
+}
+
 const CURRENT_LOG_LEVEL = LOG_LEVELS.DEBUG;  // Set to DEBUG for development
 
 const formatMessage = (level: string, message: string, data?: any): string => {
@@ -17,7 +24,7 @@ const formatMessage = (level: string, message: string, data?: any): string => {
     return `[${timestamp}] ${level}: ${message}${dataStr}`;
 };
 
-export const logger = {
+export const logger: Logger = {
     debug: (message: string, data?: any) => {
         if (CURRENT_LOG_LEVEL <= LOG_LEVELS.DEBUG) {
             console.debug(formatMessage('DEBUG', message, data));
@@ -41,4 +48,6 @@ export const logger = {
             console.error(formatMessage('ERROR', message, data));
         }
     }
-}; 
+};
+
+export default logger; 

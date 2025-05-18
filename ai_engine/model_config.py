@@ -20,7 +20,7 @@ class ModelConfig:
     api_base: str = "https://api.openai.com/v1"  # API base URL
     api_version: Optional[str] = None  # API version if needed
     temperature: float = 0.7
-    max_tokens: int = 4000
+    max_tokens: int = 1500
     streaming: bool = True
     cache_size: int = 30  # Number of characters to cache before sending
     timeout: int = 30  # Request timeout in seconds
@@ -101,7 +101,7 @@ class ModelManager:
                 api_key=None,
                 api_base="https://api.openai.com/v1",
                 temperature=0.7,
-                max_tokens=4000,
+                max_tokens=1500,
                 streaming=True,
                 cache_size=30,
                 timeout=60,

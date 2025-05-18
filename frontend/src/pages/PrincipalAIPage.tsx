@@ -18,16 +18,16 @@ import { FaPaperPlane, FaVideo, FaVideoSlash, FaExpand } from 'react-icons/fa';
 import Navbar from '@components/Navbar';
 import { useTranslation } from 'react-i18next';
 import './../styles/ParticleBackground.css';
-import { logger } from '../utils/logger';
+import logger from '@utils/logger';
 
 interface Message {
   role: 'user' | 'assistant';
-  content: string;
+  content: string | { text: string; [key: string]: any };
   timestamp?: string;
 }
 
 interface StreamChunk {
-  content: string;
+  content: string | { text: string; [key: string]: any };
   messageId: string;
   timestamp: string;
   isFinal: boolean;
@@ -48,6 +48,11 @@ const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
   // Compute the actual colors based on role
   const bgColor = isAssistant ? assistantBgColor : userBgColor;
   const borderColor = isAssistant ? assistantBorderColor : userBorderColor;
+  
+  // Ensure content is properly extracted if it's an object
+  const displayContent = typeof message.content === 'object' 
+    ? message.content.text || JSON.stringify(message.content) 
+    : message.content;
 
   return (
     <Box
@@ -61,7 +66,7 @@ const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
       borderColor={borderColor}
       boxShadow="sm"
     >
-      <Text>{message.content}</Text>
+      <Text>{displayContent}</Text>
       {message.timestamp && (
         <Text fontSize="xs" color={timestampColor} mt={2}>
           {new Date(message.timestamp).toLocaleTimeString()}
@@ -144,13 +149,21 @@ const PrincipalAIPage: React.FC = () => {
                 logger.info(`Received ${data.messages.length} history messages`);
                 if (data.messages && Array.isArray(data.messages)) {
                   // Process and add history messages to the chat
-                  const formattedMessages = data.messages.map((msg: any) => ({
-                    role: msg.role === 'user' ? 'user' : 'assistant',
-                    content: msg.role === 'assistant' && typeof msg.content === 'object' 
-                      ? msg.content.text || ''  // Handle assistant messages with content object
-                      : msg.content,            // Handle user messages with string content
-                    timestamp: msg.timestamp
-                  }));
+                  const formattedMessages = data.messages.map((msg: any) => {
+                    // Parse content correctly
+                    let messageContent = msg.content;
+                    if (msg.role === 'assistant') {
+                      if (typeof msg.content === 'object') {
+                        messageContent = msg.content.text || '';
+                      }
+                    }
+                    
+                    return {
+                      role: msg.role === 'user' ? 'user' : 'assistant',
+                      content: messageContent,
+                      timestamp: msg.timestamp
+                    };
+                  });
                   setMessages(formattedMessages);
                 }
                 break;
@@ -172,7 +185,10 @@ const PrincipalAIPage: React.FC = () => {
                     // Append token to existing assistant message
                     return [
                       ...prev.slice(0, -1),
-                      { ...lastMessage, content: lastMessage.content + data.content }
+                      { 
+                        ...lastMessage, 
+                        content: lastMessage.content + data.content 
+                      }
                     ];
                   } else if (!data.is_final) {
                     // Create new assistant message if this is the first token
@@ -185,13 +201,17 @@ const PrincipalAIPage: React.FC = () => {
                 // Handle streaming chunks
                 setMessages(prev => {
                   const lastMessage = prev[prev.length - 1];
+                  const contentToAdd = typeof data.content === 'object' 
+                    ? data.content.text || '' 
+                    : data.content;
+                    
                   if (lastMessage && lastMessage.role === "assistant") {
                     return [
                       ...prev.slice(0, -1),
-                      { ...lastMessage, content: lastMessage.content + data.content }
+                      { ...lastMessage, content: lastMessage.content + contentToAdd }
                     ];
                   }
-                  return [...prev, { role: "assistant", content: data.content }];
+                  return [...prev, { role: "assistant", content: contentToAdd }];
                 });
                 break;
               default:
@@ -411,6 +431,21 @@ const PrincipalAIPage: React.FC = () => {
               borderRadius="md"
               bg={useColorModeValue('blackAlpha.50', 'whiteAlpha.50')}
               p={4}
+              maxH="60vh"
+              h="60vh"
+              css={{
+                '&::-webkit-scrollbar': {
+                  width: '8px',
+                },
+                '&::-webkit-scrollbar-track': {
+                  background: useColorModeValue('gray.100', 'gray.700'),
+                  borderRadius: '8px',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  background: useColorModeValue('gray.300', 'gray.600'),
+                  borderRadius: '8px',
+                },
+              }}
             >
               <VStack spacing={4} align="stretch">
                 {messages.map((message, index) => (
