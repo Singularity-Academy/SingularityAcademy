@@ -44,15 +44,68 @@ const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
   const assistantBorderColor = useColorModeValue('blue.200', 'blue.700');
   const userBorderColor = useColorModeValue('green.200', 'green.700');
   const timestampColor = useColorModeValue('gray.500', 'gray.400');
-
+  const coursesBgColor = useColorModeValue('gray.50', 'gray.700');
+  const coursesBorderColor = useColorModeValue('blue.100', 'blue.800');
+  
   // Compute the actual colors based on role
   const bgColor = isAssistant ? assistantBgColor : userBgColor;
   const borderColor = isAssistant ? assistantBorderColor : userBorderColor;
   
-  // Ensure content is properly extracted if it's an object
-  const displayContent = typeof message.content === 'object' 
-    ? message.content.text || JSON.stringify(message.content) 
-    : message.content;
+  // Process the message content
+  let displayContent = '';
+  let courses = null;
+  
+  if (isAssistant) {
+    // For assistant messages, try to parse JSON and extract text field
+    if (typeof message.content === 'object') {
+      // If it's already an object, just get the text field
+      displayContent = message.content.text || JSON.stringify(message.content);
+      
+      // Check multiple possible locations for course data
+      if (message.content.courses) {
+        courses = message.content.courses;
+      } else if (message.content.data && message.content.data.courses) {
+        courses = message.content.data.courses;
+      } else if (message.content.result && message.content.result.courses) {
+        courses = message.content.result.courses;
+      }
+    } else {
+      // If it's a string, try to parse it as JSON
+      try {
+        const jsonContent = JSON.parse(message.content as string);
+        displayContent = jsonContent.text || JSON.stringify(jsonContent);
+        
+        // Check multiple possible locations for course data
+        if (jsonContent.courses) {
+          courses = jsonContent.courses;
+        } else if (jsonContent.data && jsonContent.data.courses) {
+          courses = jsonContent.data.courses;
+        } else if (jsonContent.result && jsonContent.result.courses) {
+          courses = jsonContent.result.courses;
+        }
+      } catch (e) {
+        // If parsing fails, just use the content directly
+        displayContent = message.content as string;
+      }
+    }
+    
+    // If courses is empty array or invalid, set to null
+    if (courses) {
+      if (Array.isArray(courses) && courses.length === 0) {
+        courses = null;
+      } else if (courses.courses && Array.isArray(courses.courses) && courses.courses.length === 0) {
+        courses = null;
+      }
+    }
+    
+    // Debug the courses data
+    console.log('Courses data:', courses);
+  } else {
+    // For user messages, just display the content directly
+    displayContent = typeof message.content === 'object' 
+      ? JSON.stringify(message.content, null, 2) 
+      : message.content as string;
+  }
 
   return (
     <Box
@@ -66,7 +119,86 @@ const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
       borderColor={borderColor}
       boxShadow="sm"
     >
-      <Text>{displayContent}</Text>
+      <Text whiteSpace="pre-wrap">
+        {displayContent}
+      </Text>
+      
+      {/* Display courses if available */}
+      {isAssistant && courses && (
+        <Box 
+          mt={4} 
+          pt={2}
+          borderTop="1px" 
+          borderColor={borderColor}
+        >
+          <Text fontWeight="bold" mb={2}>Recommended Courses:</Text>
+          
+          {/* If courses is an array, map through it */}
+          {Array.isArray(courses) && courses.length > 0 ? (
+            <VStack align="stretch" spacing={2}>
+              {courses.map((course: any, index: number) => (
+                <Box 
+                  key={index} 
+                  p={2} 
+                  bg={coursesBgColor} 
+                  borderRadius="md" 
+                  borderWidth="1px"
+                  borderColor={coursesBorderColor}
+                >
+                  <Text fontWeight="bold">
+                    {course.title || course.name || (typeof course === 'string' ? course : `Course ${index + 1}`)}
+                  </Text>
+                  {course.description && (
+                    <Text fontSize="sm" mt={1}>{course.description}</Text>
+                  )}
+                  {course.desc && !course.description && (
+                    <Text fontSize="sm" mt={1}>{course.desc}</Text>
+                  )}
+                  {course.id && (
+                    <Text fontSize="xs" color="gray.500" mt={1}>ID: {course.id}</Text>
+                  )}
+                  {course.course_id && !course.id && (
+                    <Text fontSize="xs" color="gray.500" mt={1}>ID: {course.course_id}</Text>
+                  )}
+                </Box>
+              ))}
+            </VStack>
+          ) : (
+            // If it's an object with a courses property that is an array
+            courses.courses && Array.isArray(courses.courses) && courses.courses.length > 0 ? (
+              <VStack align="stretch" spacing={2}>
+                {courses.courses.map((course: any, index: number) => (
+                  <Box 
+                    key={index} 
+                    p={2} 
+                    bg={coursesBgColor} 
+                    borderRadius="md" 
+                    borderWidth="1px"
+                    borderColor={coursesBorderColor}
+                  >
+                    <Text fontWeight="bold">
+                      {course.title || course.name || (typeof course === 'string' ? course : `Course ${index + 1}`)}
+                    </Text>
+                    {course.description && (
+                      <Text fontSize="sm" mt={1}>{course.description}</Text>
+                    )}
+                    {course.desc && !course.description && (
+                      <Text fontSize="sm" mt={1}>{course.desc}</Text>
+                    )}
+                    {course.id && (
+                      <Text fontSize="xs" color="gray.500" mt={1}>ID: {course.id}</Text>
+                    )}
+                    {course.course_id && !course.id && (
+                      <Text fontSize="xs" color="gray.500" mt={1}>ID: {course.course_id}</Text>
+                    )}
+                  </Box>
+                ))}
+              </VStack>
+            ) : null // Don't show anything if no valid courses
+          )}
+        </Box>
+      )}
+      
       {message.timestamp && (
         <Text fontSize="xs" color={timestampColor} mt={2}>
           {new Date(message.timestamp).toLocaleTimeString()}
