@@ -1,0 +1,217 @@
+"""
+Config module for AI Engine.
+
+This module loads config from config.json, which provides config for Sanic.
+"""
+import ujson as json
+from sanic import Sanic
+from typing import Dict, Any, Optional
+from urllib.parse import quote_plus
+from ..logging import logger
+from pathlib import Path
+
+# Get the directory where this file is located
+CONFIG_DIR = Path(__file__).parent.absolute()
+
+# Define absolute paths for config files
+APP_CONFIG_PATH = CONFIG_DIR / "config.json"
+DB_CONFIG_PATH = CONFIG_DIR / "db.json"
+LLM_CONFIG_PATH = CONFIG_DIR / "models.json"
+
+def load_app_config(app: Sanic) -> None:
+    """Load application configuration from config.json."""
+    try:
+        with open(APP_CONFIG_PATH, "r") as f:
+            CONFIG = json.load(f)
+        app.config.update(CONFIG)
+    except FileNotFoundError:
+        logger.warning(f"Config file not found at {APP_CONFIG_PATH}")
+        app.config.update({})
+    except json.JSONDecodeError as e:
+        logger.error(f"Invalid JSON in config file {APP_CONFIG_PATH}: {e}")
+        raise
+
+def load_db_config() -> Dict[str, Any]:
+    """Load database configuration from db.json."""
+    try:
+        with open(DB_CONFIG_PATH, "r") as f:
+            CONFIG = json.load(f)
+        return CONFIG
+    except FileNotFoundError:
+        logger.error(f"Database config file not found at {DB_CONFIG_PATH}")
+        raise
+    except json.JSONDecodeError as e:
+        logger.error(f"Invalid JSON in database config file {DB_CONFIG_PATH}: {e}")
+        raise
+
+def construct_db_url(config: Dict[str, Any]) -> str:
+    """
+    Construct a database URL from configuration.
+    
+    Args:
+        config (Dict[str, Any]): Database configuration dictionary containing:
+            - type: str, either "mysql" or "sqlite"
+            - For MySQL:
+                - user: str, database user
+                - password: str, database password
+                - host: str, database host
+                - port: int, database port
+                - name: str, database name
+                - charset: str, optional, defaults to "utf8mb4"
+            - For SQLite:
+                - path: str, path to database file
+    
+    Returns:
+        str: Database URL in the format required by Tortoise ORM
+        
+    Raises:
+        ValueError: If required configuration is missing or invalid
+    """
+    db_type = config.get("type", "mysql").lower()
+    
+    if db_type == "mysql":
+        # Required fields for MySQL
+        required_fields = ["user", "password", "host", "port", "name"]
+        missing_fields = [field for field in required_fields if field not in config]
+        if missing_fields:
+            raise ValueError(f"Missing required MySQL configuration fields: {', '.join(missing_fields)}")
+        
+        # Optional fields with defaults
+        charset = config.get("charset", "utf8mb4")
+        
+        # Construct MySQL URL with charset parameter only
+        return (
+            f"mysql://{quote_plus(config['user'])}:{quote_plus(config['password'])}"
+            f"@{config['host']}:{config['port']}/{config['name']}"
+            f"?charset={charset}"
+        )
+        
+    elif db_type == "sqlite":
+        if "path" not in config:
+            raise ValueError("Missing required SQLite configuration field: path")
+        
+        # For SQLite, we use the sqlite:/// prefix followed by the path
+        # The path can be relative or absolute
+        path = config["path"]
+        if path == ":memory:":
+            return "sqlite://:memory:"
+        return f"sqlite:///{path}"
+        
+    else:
+        raise ValueError(f"Unsupported database type: {db_type}. Must be either 'mysql' or 'sqlite'")
+    
+def load_llm_config() -> Dict[str, Any]:
+    """
+    Load LLM configuration from models.json.
+    
+    The configuration file should contain settings for different LLM models,
+    including API keys, model parameters, and other model-specific settings.
+    
+    Expected structure:
+    {
+        "default_model": str,  # Key of the default model to use
+        "models": {
+            "model_key": {  # This key is used as the model identifier
+                "name": str,  # Display name of the model
+                "model_id": str,  # Actual model identifier for the API
+                "api_key": str | null,  # API key for the model (null if not set)
+                "api_base": str,  # Base URL for API
+                "temperature": float,  # Temperature for generation
+                "max_tokens": int,  # Maximum tokens to generate
+                "streaming": bool,  # Whether to use streaming responses
+                "timeout": int,  # API timeout in seconds
+                "retry_attempts": int,  # Number of retry attempts
+                "description": str  # Human-readable description of the model
+            }
+        }
+    }
+    
+    Returns:
+        Dict[str, Any]: Dictionary containing:
+            - "models": Dict of model configurations
+            - "default_model": str, key of the default model to use
+        
+    Raises:
+        FileNotFoundError: If models.json is not found
+        json.JSONDecodeError: If models.json contains invalid JSON
+        ValueError: If required configuration is missing or invalid
+    """
+    try:
+        with open(LLM_CONFIG_PATH, "r") as f:
+            config = json.load(f)
+            
+        # Validate default_model field
+        if "default_model" not in config or not isinstance(config["default_model"], str):
+            raise ValueError("Missing or invalid 'default_model' field in LLM configuration")
+            
+        # Validate models field
+        if "models" not in config or not isinstance(config["models"], dict):
+            raise ValueError("Missing or invalid 'models' field in LLM configuration")
+            
+        if not config["models"]:
+            raise ValueError("No models defined in configuration")
+            
+        # Validate that default_model exists in models
+        if config["default_model"] not in config["models"]:
+            raise ValueError(f"Default model '{config['default_model']}' not found in models configuration")
+            
+        # Validate each model's configuration
+        required_fields = [
+            "name", "model_id", "api_base", "temperature", "max_tokens",
+            "streaming", "timeout", "retry_attempts", "description"
+        ]
+        
+        for model_key, model_config in config["models"].items():
+            # Check for missing required fields
+            missing_fields = [field for field in required_fields if field not in model_config]
+            if missing_fields:
+                raise ValueError(f"Model '{model_key}' missing required fields: {', '.join(missing_fields)}")
+            
+            # Validate field types
+            if not isinstance(model_config["name"], str):
+                raise ValueError(f"Model '{model_key}' 'name' must be a string")
+            if not isinstance(model_config["model_id"], str):
+                raise ValueError(f"Model '{model_key}' 'model_id' must be a string")
+            if not isinstance(model_config["api_base"], str):
+                raise ValueError(f"Model '{model_key}' 'api_base' must be a string")
+            if not isinstance(model_config["temperature"], (int, float)):
+                raise ValueError(f"Model '{model_key}' 'temperature' must be a number")
+            if not isinstance(model_config["max_tokens"], int):
+                raise ValueError(f"Model '{model_key}' 'max_tokens' must be an integer")
+            if not isinstance(model_config["streaming"], bool):
+                raise ValueError(f"Model '{model_key}' 'streaming' must be a boolean")
+            if not isinstance(model_config["timeout"], int):
+                raise ValueError(f"Model '{model_key}' 'timeout' must be an integer")
+            if not isinstance(model_config["retry_attempts"], int):
+                raise ValueError(f"Model '{model_key}' 'retry_attempts' must be an integer")
+            if not isinstance(model_config["description"], str):
+                raise ValueError(f"Model '{model_key}' 'description' must be a string")
+            
+            # Validate numeric ranges
+            if not 0 <= model_config["temperature"] <= 2:
+                raise ValueError(f"Model '{model_key}' 'temperature' must be between 0 and 2")
+            if model_config["max_tokens"] <= 0:
+                raise ValueError(f"Model '{model_key}' 'max_tokens' must be positive")
+            if model_config["timeout"] <= 0:
+                raise ValueError(f"Model '{model_key}' 'timeout' must be positive")
+            if model_config["retry_attempts"] < 0:
+                raise ValueError(f"Model '{model_key}' 'retry_attempts' must be non-negative")
+            
+        logger.info(f"Successfully loaded LLM configuration with {len(config['models'])} models")
+        return {
+            "models": config["models"],
+            "default_model": config["default_model"]
+        }
+        
+    except FileNotFoundError:
+        logger.error(f"LLM configuration file not found at {LLM_CONFIG_PATH}")
+        raise
+    except json.JSONDecodeError as e:
+        logger.error(f"Invalid JSON in LLM configuration file {LLM_CONFIG_PATH}: {e}")
+        raise
+    except ValueError as e:
+        logger.error(f"Invalid LLM configuration: {e}")
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error loading LLM configuration: {e}")
+        raise

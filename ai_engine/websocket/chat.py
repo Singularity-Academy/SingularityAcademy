@@ -4,12 +4,14 @@ Chat WebSocket endpoint for AI Engine.
 
 import ujson as json
 import uuid
+from datetime import datetime, timezone
 from loguru import logger
 from sanic import Request, Websocket
 from tortoise.exceptions import DoesNotExist
 
 from ..ai import Chat
-from ..db import User, PrincipalChatHistory
+from ..db import User
+from ..db import PrincipalChatHistory
 from .utils import send_ws_error
 
 async def process_message(ws: Websocket, chat: Chat, content: str, session_id: str) -> None:

@@ -1,14 +1,14 @@
 """
-Run script for AI Engine.
+Run script for AI Engine Rewrite.
 """
 
 import argparse
-from ai_engine import app
-#from ai_engine.logging import logger
+from ai_engine_rewrite import app
+from ai_engine_rewrite.logging import logger
 
 def parse_args():
     """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description="AI Engine Server")
+    parser = argparse.ArgumentParser(description="AI Engine Rewrite Server")
     parser.add_argument(
         "--log-level",
         default="DEBUG",  # Changed default to DEBUG for development
@@ -32,7 +32,7 @@ if __name__ == "__main__":
     # Parse command line arguments
     args = parse_args()
 
-    #logger.info(f"Starting AI Engine in development mode on {args.host}:{args.port}")
+    logger.info(f"Starting AI Engine Rewrite in development mode on {args.host}:{args.port}")
     app.run(
         host=args.host,
         port=args.port,
@@ -40,4 +40,4 @@ if __name__ == "__main__":
         auto_reload=True,
         access_log=True,
         workers=2  # Use single worker in development
-    )
+    ) 
