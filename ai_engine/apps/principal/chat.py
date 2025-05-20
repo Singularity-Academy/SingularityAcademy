@@ -69,7 +69,7 @@ class PrincipalChat:
     async def _load_history(self):
         """Load chat history into langchain message format."""
         for message in self.history.messages:
-            logger.info(f"{message}")
+            #logger.info(f"{message}")
             role = message.get("role")
             content = message.get("content")
             
