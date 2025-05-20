@@ -2,6 +2,7 @@ import base64
 import json
 import os
 from datetime import datetime
+import av.video
 import numpy as np
 import av
 import asyncio
@@ -10,8 +11,8 @@ from typing import Optional
 
 @dataclass
 class StreamState:
-    video_writer: Optional[av.StreamWriter] = None
-    audio_writer: Optional[av.StreamWriter] = None
+    video_writer: Optional[av.VideoStream] = None
+    audio_writer: Optional[av.AudioStream] = None
     output_dir: str = ""
     is_recording: bool = False
 
