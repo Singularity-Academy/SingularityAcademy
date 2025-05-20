@@ -145,29 +145,7 @@ const PrincipalAIPage: React.FC = () => {
   const { t } = useTranslation();
   const toast = useToast();
   const particleColor = useColorModeValue('#3182ce', '#90cdf4');
-  const [messages, setMessages] = useState<Message[]>([
-    // 添加测试消息
-    { role: 'user', content: '测试消息1', timestamp: new Date().toISOString() },
-    { role: 'assistant', content: '这是回复1', timestamp: new Date().toISOString() },
-    { role: 'user', content: '测试消息2', timestamp: new Date().toISOString() },
-    { role: 'assistant', content: '这是回复2', timestamp: new Date().toISOString() },
-    { role: 'user', content: '测试消息3', timestamp: new Date().toISOString() },
-    { role: 'assistant', content: '这是回复3', timestamp: new Date().toISOString() },
-    { role: 'user', content: '测试消息4', timestamp: new Date().toISOString() },
-    { role: 'assistant', content: '这是回复4', timestamp: new Date().toISOString() },
-    { role: 'user', content: '测试消息5', timestamp: new Date().toISOString() },
-    { role: 'assistant', content: '这是回复5', timestamp: new Date().toISOString() },
-    { role: 'user', content: '测试消息6', timestamp: new Date().toISOString() },
-    { role: 'assistant', content: '这是回复6', timestamp: new Date().toISOString() },
-    { role: 'user', content: '测试消息7', timestamp: new Date().toISOString() },
-    { role: 'assistant', content: '这是回复7', timestamp: new Date().toISOString() },
-    { role: 'user', content: '测试消息8', timestamp: new Date().toISOString() },
-    { role: 'assistant', content: '这是回复8', timestamp: new Date().toISOString() },
-    { role: 'user', content: '测试消息9', timestamp: new Date().toISOString() },
-    { role: 'assistant', content: '这是回复9', timestamp: new Date().toISOString() },
-    { role: 'user', content: '测试消息10', timestamp: new Date().toISOString() },
-    { role: 'assistant', content: '这是回复10', timestamp: new Date().toISOString() },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [studyPlan] = useState<string[]>([
     t('PrincipalAI.physics'),
