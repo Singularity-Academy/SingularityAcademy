@@ -326,3 +326,6 @@ frames/
 backend/sa_database.db
 
 ai_engine/config/models.json
+
+# Other
+.DS_Store
