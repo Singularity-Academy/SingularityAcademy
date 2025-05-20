@@ -119,89 +119,80 @@ async def websocket(request: Request, ws: Websocket):
         }))
         
         # Get or create chat instance
+        chat = await PrincipalChat.get_by_user(user.id)
+        if not chat:
+            await send_ws_error(ws, "Failed to initialize chat", 4004)
+            return
+        
+        # Send chat history
         try:
-            chat = await PrincipalChat.get_by_user(user.id)
-            if not chat:
-                await send_ws_error(ws, "Failed to initialize chat", 4004)
-                return
-            
-            # Send chat history
-            try:
-                # Convert messages to client format
-                history_messages = []
-                for msg in chat.langchain_messages:
-                    # Skip system messages
-                    if isinstance(msg, SystemMessage):
-                        continue
-                        
-                    # Convert to dict format
-                    history_messages.append({
-                        "role": "user" if isinstance(msg, HumanMessage) else "assistant",
-                        "content": msg.content,
-                        "timestamp": datetime.now(timezone.utc).isoformat()
-                    })
+            # Convert messages to client format
+            history_messages = []
+            for msg in chat.langchain_messages:
+                # Skip system messages
+                if isinstance(msg, SystemMessage):
+                    continue
                     
-                # Send only last 10 messages
-                await ws.send(json.dumps({
-                    "type": "history_messages",
-                    "messages": history_messages[-10:]
-                }))
-            except WebsocketClosed:
-                logger.info(f"WebSocket closed while sending history (session: {session_id})")
-                return
-            except Exception as e:
-                logger.error(f"Error sending chat history: {e}")
-                try:
-                    await send_ws_error(ws, "Error sending chat history", 4007)
-                except WebsocketClosed:
-                    logger.info(f"WebSocket closed while sending error (session: {session_id})")
-                return
+                # Convert to dict format
+                history_messages.append({
+                    "role": "user" if isinstance(msg, HumanMessage) else "assistant",
+                    "content": msg.content,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                })
                 
-            # Process messages
-            while True:
-                try:
-                    message = await ws.recv()
-                    try:
-                        data = json.loads(message)
-                        if not isinstance(data, dict):
-                            logger.info(f"[{session_id}] Invalid message format: {message[:50]}...")
-                            await send_ws_error(ws, "Invalid message format", 400)
-                            continue
-                            
-                        if "type" not in data:
-                            logger.info(f"[{session_id}] Missing message type")
-                            await send_ws_error(ws, "Message must include 'type' field", 400)
-                            continue
-                            
-                        if data["type"] != "message":
-                            logger.info(f"[{session_id}] Unexpected message type: {data.get('type')}")
-                            await send_ws_error(ws, f"Unexpected message type: {data.get('type')}", 400)
-                            continue
-                            
-                        if "content" not in data or not data["content"].strip():
-                            logger.info(f"[{session_id}] Empty message content")
-                            await send_ws_error(ws, "Message content cannot be empty", 400)
-                            continue
-
-                        # Process the message with all required arguments
-                        await process_message(ws, chat, llm, data["content"], session_id)
-                        
-                    except json.JSONDecodeError:
-                        logger.info(f"[{session_id}] Invalid JSON message format")
-                        await send_ws_error(ws, "Invalid message format", 400)
-                    except Exception as e:
-                        logger.error(f"[{session_id}] Error processing message: {e}")
-                        await send_ws_error(ws, "Internal server error", 500)
-                        
-                except WebsocketClosed:
-                    logger.info(f"WebSocket closed during chat (session: {session_id})")
-                    return
-                    
+            # Send only last 10 messages
+            await ws.send(json.dumps({
+                "type": "history_messages",
+                "messages": history_messages[-10:]
+            }))
+        except WebsocketClosed:
+            logger.info(f"WebSocket closed while sending history (session: {session_id})")
+            return
         except Exception as e:
-            raise
-                        
+            logger.error(f"Error sending chat history: {e}")
+            try:
+                await send_ws_error(ws, "Error sending chat history", 4007)
+            except WebsocketClosed:
+                logger.info(f"WebSocket closed while sending error (session: {session_id})")
+            return
+            
+        # Process messages
+        while True:
+            message = await ws.recv()
+            try:
+                data = json.loads(message)
+                            
+            except json.JSONDecodeError:
+                logger.info(f"[{session_id}] Invalid JSON message format")
+                await send_ws_error(ws, "Invalid message format", 400)
+            if not isinstance(data, dict):
+                logger.info(f"[{session_id}] Invalid message format: {message[:50]}...")
+                await send_ws_error(ws, "Invalid message format", 400)
+                continue
+                
+            if "type" not in data:
+                logger.info(f"[{session_id}] Missing message type")
+                await send_ws_error(ws, "Message must include 'type' field", 400)
+                continue
+                
+            if data["type"] != "message":
+                logger.info(f"[{session_id}] Unexpected message type: {data.get('type')}")
+                await send_ws_error(ws, f"Unexpected message type: {data.get('type')}", 400)
+                continue
+                
+            if "content" not in data or not data["content"].strip():
+                logger.info(f"[{session_id}] Empty message content")
+                await send_ws_error(ws, "Message content cannot be empty", 400)
+                continue
+
+            # Process the message with all required arguments
+            await process_message(ws, chat, llm, data["content"], session_id)
+
+
     except WebsocketClosed:
         logger.info(f"WebSocket connection closed (session: {session_id})")
+    except RuntimeError as e:
+        logger.info(f"WebSocket unexpectedly closed (session: {session_id})")
     except Exception as e:
         logger.error(f"Unexpected error in WebSocket handler: {e}")
         try:

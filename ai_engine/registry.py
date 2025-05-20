@@ -47,7 +47,7 @@ def get_modules() -> Dict[str, List[str]]:
     
     try:
         # Import the apps package
-        apps_package = importlib.import_module("ai_engine_rewrite.apps")
+        apps_package = importlib.import_module("ai_engine.apps")
         
         # Walk through all packages in apps/
         for _, package_name, is_pkg in pkgutil.iter_modules([str(apps_dir)]):
@@ -71,7 +71,7 @@ def get_modules() -> Dict[str, List[str]]:
                     continue
                     
                 # Add the fully qualified module name
-                full_module_name = f"ai_engine_rewrite.apps.{package_name}.{py_file.stem}"
+                full_module_name = f"ai_engine.apps.{package_name}.{py_file.stem}"
                 modules[package_name].append(full_module_name)
                 
         logger.info(f"Discovered {len(modules)} modules")

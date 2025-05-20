@@ -21,10 +21,10 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from ai_engine_rewrite.apps.principal.models import PrincipalChatHistory
-from ai_engine_rewrite.apps.principal.chat import PrincipalChat
-from ai_engine_rewrite.apps.auth.models import User
-from ai_engine_rewrite.config import load_db_config, construct_db_url
+from ai_engine.apps.principal.models import PrincipalChatHistory
+from ai_engine.apps.principal.chat import PrincipalChat
+from ai_engine.apps.auth.models import User
+from ai_engine.config import load_db_config, construct_db_url
 from tortoise import Tortoise
 
 async def init_db_connection():
@@ -37,8 +37,8 @@ async def init_db_connection():
             db_url=db_url,
             modules={
                 "models": [
-                    "ai_engine_rewrite.apps.auth.models",
-                    "ai_engine_rewrite.apps.principal.models"
+                    "ai_engine.apps.auth.models",
+                    "ai_engine.apps.principal.models"
                 ]
             }
         )
