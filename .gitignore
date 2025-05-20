@@ -324,6 +324,6 @@ backend/config/config.yml
 frames/
 backend/sa_database.db
 
-ai_engine/config/models.json
+//ai_engine/config/models.json
 backend/.DS_Store
 .DS_Store
