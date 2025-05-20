@@ -48,7 +48,7 @@ graph TD
   - WebSocket Integration
 
 - **AI Engine (Python)**:
-  - FastAPI 0.95+ with WebSockets
+  - Sanic v25.3.0
   - LangChain 0.0.340+ for AI agent orchestration
   - Manim Community 0.17+ for mathematical visualizations
   - Document Processing: PyMuPDF, python-docx, python-pptx
@@ -125,7 +125,6 @@ graph TD
 
 #### AI Engine Setup
 ```bash
-cd backend/ai_engine
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
@@ -151,9 +150,7 @@ go run cmd/migrate/main.go
 ### Running the System
 ```bash
 # Start AI Engine
-uvicorn main:app --reload --port 8000
-uvicorn main:app --reload --port 8000
-
+python3 run.py
 # Start Go Backend
 go run .
 

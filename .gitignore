@@ -250,7 +250,6 @@ _testmain.go
 
 # Project specific
 backend/materials/*
-backend/ai_engine/config/config.json
 backend/main.exe
 
 # System Generated Files
@@ -326,6 +325,5 @@ frames/
 backend/sa_database.db
 
 ai_engine/config/models.json
-
-# Other
+backend/.DS_Store
 .DS_Store
