@@ -19,7 +19,8 @@ from loguru import logger
 from tortoise import Tortoise
 from tortoise.exceptions import OperationalError
 
-from ai_engine.db import load_db_config
+from ai_engine.config import load_db_config
+from ai_engine.registry import get_modules
 
 # Configure logger
 logger.remove()  # Remove default handler
@@ -37,9 +38,15 @@ async def init_db():
         db_url = f"mysql://{db_config['user']}:{db_config['password']}@{db_config['host']}:{db_config['port']}/{db_config['name']}"
         
         logger.info(f"Connecting to database at {db_config['host']}:{db_config['port']}")
+        modules = get_modules()
+        l = []
+        for key, items in modules.items():
+            for item in items:
+                if item.endswith("models"):
+                    l.append(item)
         await Tortoise.init(
             db_url=db_url,
-            modules={"models": ["ai_engine.db"]}
+            modules={"models": l}
         )
         logger.info("Database connection established")
     except Exception as e:
