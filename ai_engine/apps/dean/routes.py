@@ -9,8 +9,8 @@ from .stream_handlers import StreamHandler
 
 bp = Blueprint("dean", url_prefix="/dean")
 
-@bp.websocket("/ws")
-async def stream(request, ws):
+@bp.websocket("/ws/<course_id>")
+async def stream(request, ws, course_id):
     session_id = str(uuid.uuid4())[:8]
     stream_handler = None
     remote = request.remote_addr or request.ip
