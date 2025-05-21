@@ -1,3 +1,4 @@
+from typing import Optional
 from sanic.exceptions import WebsocketClosed
 from tortoise.exceptions import DoesNotExist
 import ujson as json
@@ -5,7 +6,7 @@ import ujson as json
 from .models import User
 from ai_engine.logging import logger
 
-async def handle_ws_login(request, ws, session_id):
+async def handle_ws_login(request, ws, session_id) -> Optional[User]:
     try:
         auth_message = await ws.recv()
     except WebsocketClosed:

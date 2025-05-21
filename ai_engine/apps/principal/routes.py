@@ -47,6 +47,10 @@ async def websocket(request: Request, ws: Websocket):
     try:
         # Wait for authentication message
         user = await handle_ws_login(request, ws, session_id)
+        if not user:
+            logger.info(f"WebSocket authentication unsuccessful (session: {session_id})")
+            return
+        
         # Get or create chat instance
         chat = await PrincipalChat.get_by_user(user.id)
         if not chat:

@@ -83,12 +83,14 @@ const CourseInteractionPage: React.FC = () => {
             reader.onloadend = () => {
               // Get base64 data
               const base64data = reader.result as string;
-              // Send audio data in JSON format, similar to video
+              // Extract just the base64 part (remove the data:audio/wav;base64, prefix)
+              const base64EncodedAudio = base64data.split(',')[1];
+              // Send audio data in JSON format
               const audioPacket = {
                 packet_id: audioPacketId++,
                 time: Date.now(),
                 video: null,
-                audio: base64data,
+                audio: base64EncodedAudio,
               };
               
               // Send as JSON string
@@ -149,7 +151,7 @@ const CourseInteractionPage: React.FC = () => {
     const video = studentVideoRef.current;
     const base_url = window.location.host;
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const ws = new WebSocket(`${protocol}//${base_url}/ai/ws/stream`);
+    const ws = new WebSocket(`${protocol}//${base_url}/ai/dean/ws`);
 
     ws.onopen = () => {
       console.log('Dean AI WebSocket connected');

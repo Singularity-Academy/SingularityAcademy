@@ -4,7 +4,7 @@ Run script for AI Engine Rewrite.
 
 import argparse
 from ai_engine import app
-from ai_engine.logging import logger
+from ai_engine.logging import logger, log_routes
 
 def parse_args():
     """Parse command line arguments."""
@@ -31,8 +31,10 @@ def parse_args():
 if __name__ == "__main__":
     # Parse command line arguments
     args = parse_args()
+    if args.log_level == "TRACE":
+        log_routes(app)
 
-    logger.info(f"Starting AI Engine Rewrite in development mode on {args.host}:{args.port}")
+    logger.info(f"Starting AI Engine in development mode on {args.host}:{args.port}")
     app.run(
         host=args.host,
         port=args.port,
