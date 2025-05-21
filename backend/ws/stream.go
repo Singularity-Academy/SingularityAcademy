@@ -69,5 +69,20 @@ func VideoHandler(conn *websocket.Conn, user models.User) {
 				return
 			}
 		}
+		if utils.IsImage(msg) {
+			fmt.Println("收到视频数据")
+			err = aiConn.WriteMessage(websocket.BinaryMessage, msg)
+			if err != nil {
+				fmt.Println("Error forwarding to AI engine:", err)
+				return
+			}
+		} else if utils.IsAudio(msg) {
+			fmt.Println("收到音频数据")
+			err = aiConn.WriteMessage(websocket.BinaryMessage, msg)
+			if err != nil {
+				fmt.Println("Error forwarding to AI engine:", err)
+				return
+			}
+		}
 	}
 }

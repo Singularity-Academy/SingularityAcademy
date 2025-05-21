@@ -21,6 +21,7 @@ qodana.yaml
 
 # Environment and local files
 .DS_Store
+.DS_Store
 .env
 .env.local
 .env.development.local
@@ -232,11 +233,7 @@ _testmain.go
 *.p7b
 *.p7c
 *.keystore
-*.jks
-*secret*
-*credential*
-*password*
-*token*
+*.jks 
 .ssh/
 
 # Backup and temporary files
@@ -321,3 +318,5 @@ Temporary Items
 # Go compiled
 backend/backend
 backend/backend.exe
+.DS_Store
+.DS_Store

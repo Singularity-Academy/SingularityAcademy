@@ -73,6 +73,7 @@ const CourseInteractionPage: React.FC = () => {
     navigator.mediaDevices.getUserMedia({ audio: true })
         .then((stream) => {
           setAudioStream(stream);
+          // audio stream logic
           const mediaRecorder = new MediaRecorder(stream);
           mediaRecorder.ondataavailable = (event) => {
             if (websocketRef.current?.readyState !== WebSocket.OPEN) return;
@@ -80,6 +81,8 @@ const CourseInteractionPage: React.FC = () => {
             const reader = new FileReader();
             reader.onloadend = () => {
               const buffer = reader.result;
+              // 测试是否在发送音频数据
+              // console.log("发送音频数据，字节长度:", buffer ? (buffer as ArrayBuffer).byteLength : 0);
               // Send the audio buffer via WebSocket
               websocketRef.current?.send(buffer || "")
             };
@@ -100,8 +103,25 @@ const CourseInteractionPage: React.FC = () => {
     .then((stream) => {
       if (studentVideoRef.current) {
         studentVideoRef.current.srcObject = stream;
+        // 日志：每次分配流时输出当前 srcObject
+        console.log("[startVideo] studentVideoRef.current.srcObject:", studentVideoRef.current.srcObject);
+        // 新增：持续监控 srcObject 是否被清空
+        setInterval(() => {
+          if (studentVideoRef.current) {
+            console.log("[monitor] studentVideoRef.current.srcObject:", studentVideoRef.current.srcObject);
+          }
+        }, 2000);
+      } else {
+        console.warn("[startVideo] studentVideoRef.current 不存在");
       }
       setVideoStream(stream);
+      // 新增：持续监控 videoStream 的 track 状态
+      stream.getTracks().forEach(track => {
+        track.onended = () => {
+          console.warn("[monitor] videoStream track ended:", track);
+        };
+      });
+      return stream;
     })
     .catch((error) => toast({
         title: "error accessing media devices",
@@ -117,7 +137,8 @@ const CourseInteractionPage: React.FC = () => {
     startVideo();
     startAudio();
     setConnecting(true);
-    const ws = new WebSocket(AI_ENDPOINTS.DEAN_AI(Cookies.get('token') || "token", materialRef.current));
+    const video = studentVideoRef.current;
+    const ws = new WebSocket(`ws://localhost:8080/api/ws/stream?token=${Cookies.get('token')}`);
 
     ws.onopen = () => {
       console.log('Dean AI WebSocket connected');
@@ -128,22 +149,44 @@ const CourseInteractionPage: React.FC = () => {
       });
       setConnecting(false);
       setRecording(true);
+      // 定期捕获视频帧，降低帧率，压缩分辨率，使用 toBlob 发送二进制数据
+      if (video) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        sendingVideoTask.current = setInterval(() => {
+          if (!video || !ctx || websocketRef.current?.readyState !== WebSocket.OPEN) return;
+          // 降低分辨率
+          const targetWidth = 320;
+          const targetHeight = 240;
+          canvas.width = targetWidth;
+          canvas.height = targetHeight;
+          ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
+          canvas.toBlob((blob) => {
+            if (blob && websocketRef.current?.readyState === WebSocket.OPEN) {
+              blob.arrayBuffer().then(buffer => {
+                websocketRef.current?.send(buffer);
+              });
+            }
+          }, 'image/jpeg', 0.7);
+        }, 200); // 200ms 一帧
+        // 新增：监控 setInterval 是否持续运行
+        setInterval(() => {
+          console.log("[monitor] sendingVideoTask.current:", sendingVideoTask.current);
+        }, 2000);
+      }
     };
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       const aiMessage = { role: 'assistant', content: data.message };
       setMessages(prev => [...prev, aiMessage]);
-
       // 如果有 manim_script，可以在前端显示或发送到后端处理
       if (data.manim_script) {
         // 处理 manim_script，例如发送到后端渲染
       }
-
       // 如果有 notes，可以显示给用户
       if (data.notes) {
         // 显示 notes，例如更新一个笔记区域
       }
-
       // Use Web Speech API to read the message aloud
       if ('speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(data.message);
@@ -152,7 +195,6 @@ const CourseInteractionPage: React.FC = () => {
         console.warn('Speech Synthesis not supported in this browser.');
       }
     }
-
     ws.onclose = (closeEvent) => {
       if (closeEvent.code != 1000){
         toast({
@@ -172,13 +214,13 @@ const CourseInteractionPage: React.FC = () => {
       websocketRef.current = null; // 清空 WebSocket 实例
       disconnectWebSocket()
     };
-
     websocketRef.current = ws;
   };
 
   // 断开 WebSocket
   const disconnectWebSocket = () => {
     console.log('disconnectWebSocket');
+    // 日志：disconnectWebSocket 被调用
     stopVideo()
     stopAudio();
     setRecording(false);
@@ -203,16 +245,25 @@ const CourseInteractionPage: React.FC = () => {
   const stopVideo = () => {
     if (videoStream) {
       // 停止所有的视频流轨道
-      videoStream.getTracks().forEach(track => track.stop());
+      videoStream.getTracks().forEach(track => {
+        track.stop();
+        // 日志：track.stop 被调用
+        console.log("[stopVideo] track.stop 被调用:", track);
+      });
       setVideoStream(null);
+      // 日志：stopVideo 被调用时输出
+      console.log("[stopVideo] setVideoStream(null) 已调用");
     }
     // 清除视频元素的 srcObject
     if (studentVideoRef.current) {
       studentVideoRef.current.srcObject = null;
+      console.log("[stopVideo] studentVideoRef.current.srcObject 已清空");
     }
     if (!sendingVideoTask.current) return;
     clearInterval(sendingVideoTask.current)
     sendingVideoTask.current = null
+    // 日志：stopVideo 完成所有清理
+    console.log("[stopVideo] 完成所有清理");
   };
 
 
@@ -234,12 +285,12 @@ const CourseInteractionPage: React.FC = () => {
     };
   }, []);
 
- useEffect(() => {
-   // Check if user is authenticated
-   if (!Cookies.get('token')) {
-     navigate('/login'); // Redirect to login page if not authenticated
-   }
- }, [Cookies.get('token')]);
+  useEffect(() => {
+    // Check if user is authenticated
+    if (!Cookies.get('token')) {
+      navigate('/login'); // Redirect to login page if not authenticated
+    }
+  }, [Cookies.get('token')]);
 
   useEffect(() => {
     // Scroll to bottom when messages update
@@ -295,38 +346,7 @@ const CourseInteractionPage: React.FC = () => {
       }
     };
   }, [mediaRecorder]);
-
-  useEffect(() => {
-    const intervalId = setInterval(async () => {
-      if (!recording) clearInterval(intervalId);
-      if (!videoStream) return;
-
-      const videoTrack = videoStream.getVideoTracks()[0];
-
-      // Check if the video track is still active and enabled
-      if (!videoTrack || videoTrack.readyState !== 'live' || !videoTrack.enabled) {
-        console.warn("Video track is not in a valid state");
-        return;
-      }
-
-      const imageCapture = new ImageCapture(videoTrack);
-
-      // Check WebSocket connection
-      if (websocketRef.current?.readyState !== WebSocket.OPEN) return;
-
-      // Capture image and send it
-      try {
-        const blob = await imageCapture.takePhoto();
-        websocketRef.current?.send(await blob.arrayBuffer());
-      } catch (error) {
-        console.error("Error capturing photo:", error);
-      }
-    }, 1000 / 2);
-
-    // Clean up the interval on component unmount
-    return () => clearInterval(intervalId);
-  }, [videoStream]);
-
+ 
   const handleFileUpload = async (acceptedFiles: File[]) => {
     const formData = new FormData();
 
