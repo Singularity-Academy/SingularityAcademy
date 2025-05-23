@@ -22,16 +22,23 @@ import logger from '@utils/logger';
 
 interface Message {
   role: 'user' | 'assistant';
-  content: string | { text: string; [key: string]: any };
+  content: string;  // Simplified to just string for markdown content
+  metadata?: any;   // Optional metadata object
   timestamp?: string;
 }
 
-interface StreamChunk {
-  content: string | { text: string; [key: string]: any };
-  messageId: string;
+interface WSMessage {
+  type: 'metadata' | 'error' | 'complete' | 'auth_success' | 'history_messages';  // Removed 'markdown' as it's sent directly
+  message_id: string;
+  content: any;
   timestamp: string;
-  isFinal: boolean;
-  error?: string;
+  message?: string;  // For auth_success
+  messages?: Array<{  // For history_messages
+    role: 'user' | 'assistant';
+    content: string;
+    metadata?: any;
+    timestamp: string;
+  }>;
 }
 
 const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
@@ -44,65 +51,19 @@ const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
   const assistantBorderColor = useColorModeValue('blue.200', 'blue.700');
   const userBorderColor = useColorModeValue('green.200', 'green.700');
   const timestampColor = useColorModeValue('gray.500', 'gray.400');
+  const metadataBgColor = useColorModeValue('whiteAlpha.600', 'blackAlpha.600');
   
   // Compute the actual colors based on role
   const bgColor = isAssistant ? assistantBgColor : userBgColor;
   const borderColor = isAssistant ? assistantBorderColor : userBorderColor;
-  
-  // Helper function to check if content is XML
-  const isXmlContent = (content: string): boolean => {
-    return content.trim().startsWith('<') && content.trim().endsWith('>');
-  };
-
-  // Helper function to extract XML from JSON if needed
-  const extractRawContent = (content: any): string => {
-    if (typeof content === 'string') {
-      // Check if this might be a stringified JSON containing XML
-      try {
-        const parsed = JSON.parse(content);
-        if (parsed && typeof parsed === 'object') {
-          // Look in common fields where XML might be stored
-          if (typeof parsed.text === 'string' && isXmlContent(parsed.text)) {
-            return parsed.text;
-          }
-          if (typeof parsed.content === 'string' && isXmlContent(parsed.content)) {
-            return parsed.content;
-          }
-          // If no XML found in sub-fields, stringify the whole object
-          return JSON.stringify(parsed, null, 2);
-        }
-      } catch (e) {
-        // Not JSON, return as is
-        return content;
-      }
-    } else if (typeof content === 'object') {
-      // Direct object, check fields for XML
-      if (typeof content.text === 'string' && isXmlContent(content.text)) {
-        return content.text;
-      }
-      if (typeof content.content === 'string' && isXmlContent(content.content)) {
-        return content.content;
-      }
-      // No XML fields found, stringify the whole object
-      return JSON.stringify(content, null, 2);
-    }
-    
-    // Default case: return as string
-    return String(content);
-  };
-  
-  // Display raw content, but extract XML if it's wrapped in JSON
-  const displayContent = extractRawContent(message.content);
 
   // Format timestamp safely
   const formatTimestamp = (timestamp: string | undefined): string => {
     if (!timestamp) return '';
     
     try {
-      // Fix the invalid format with both offset and Z suffix
       let fixedTimestamp = timestamp;
       if (timestamp.includes('+') && timestamp.endsWith('Z')) {
-        // Remove the Z at the end if there's already a timezone offset
         fixedTimestamp = timestamp.slice(0, -1);
       }
       
@@ -129,8 +90,16 @@ const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
       boxShadow="sm"
     >
       <Text whiteSpace="pre-wrap">
-        {displayContent}
+        {message.content}
       </Text>
+      
+      {message.metadata && (
+        <Box mt={2} p={2} bg={metadataBgColor} borderRadius="md">
+          <Text fontSize="xs" color={timestampColor}>
+            Metadata: {JSON.stringify(message.metadata, null, 2)}
+          </Text>
+        </Box>
+      )}
       
       {message.timestamp && (
         <Text fontSize="xs" color={timestampColor} mt={2}>
@@ -199,134 +168,85 @@ const PrincipalAIPage: React.FC = () => {
 
         ws.onmessage = (event) => {
           try {
-            const data = JSON.parse(event.data);
-            logger.debug("Received WebSocket message:", data);
+            // First try to parse as JSON for control messages
+            try {
+              const data: WSMessage = JSON.parse(event.data);
+              logger.debug("Received WebSocket control message:", data);
 
-            // Handle different message types
-            switch (data.type) {
-              case "auth_success":
-                logger.info("Authentication successful:", data.message);
-                setError(null);
-                setIsConnected(true);
-                break;
-              case "history_messages":
-                // Handle history messages
-                logger.info(`Received ${data.messages.length} history messages`);
-                if (data.messages && Array.isArray(data.messages)) {
-                  // Before we process messages, add a debug log to see the raw format
-                  logger.debug("Raw history messages:", JSON.stringify(data.messages.slice(0, 2)));
-                  
-                  // Process and add history messages to the chat - maintain original content structure
-                  const formattedMessages = data.messages.map((msg: any) => {
-                    return {
-                      role: msg.role === 'user' ? 'user' : 'assistant',
-                      content: msg.content, // Keep content as is without parsing
+              switch (data.type) {
+                case "auth_success":
+                  logger.info("Authentication successful:", data.message);
+                  setError(null);
+                  setIsConnected(true);
+                  break;
+
+                case "history_messages":
+                  logger.info(`Received ${data.messages?.length || 0} history messages`);
+                  if (data.messages && Array.isArray(data.messages)) {
+                    const formattedMessages: Message[] = data.messages.map((msg) => ({
+                      role: msg.role,
+                      content: msg.content,
+                      metadata: msg.metadata,
                       timestamp: msg.timestamp
-                    };
+                    }));
+                    setMessages(formattedMessages);
+                  }
+                  break;
+
+                case "metadata":
+                  // Update metadata for the current assistant message
+                  setMessages(prev => {
+                    const lastMessage = prev[prev.length - 1];
+                    if (lastMessage && lastMessage.role === "assistant") {
+                      return [
+                        ...prev.slice(0, -1),
+                        { 
+                          ...lastMessage, 
+                          metadata: data.content
+                        }
+                      ];
+                    }
+                    return prev;
                   });
-                  
-                  setMessages(formattedMessages);
-                }
-                break;
-              case "error":
-                logger.error("WebSocket error:", data.error);
-                setError(data.error);
-                if (data.status_code === 401) {
-                  // Handle authentication errors
-                  ws.close();
-                  // Optionally redirect to login
-                  // window.location.href = "/login";
-                }
-                break;
-              case "token":
-                // Handle token streaming by updating the existing empty assistant message
+                  break;
+
+                case "error":
+                  logger.error("WebSocket error:", data.content);
+                  setError(data.content.message || "An error occurred");
+                  if (data.content.status_code === 401) {
+                    ws.close();
+                  }
+                  break;
+
+                case "complete":
+                  // Message is complete, no action needed
+                  logger.debug("Message stream completed");
+                  break;
+
+                default:
+                  logger.warn("Unknown message type:", data.type);
+              }
+            } catch (e) {
+              // If JSON parsing fails, treat as direct markdown content
+              const markdownContent = event.data;
+              if (markdownContent.trim()) {
                 setMessages(prev => {
                   const lastMessage = prev[prev.length - 1];
                   if (lastMessage && lastMessage.role === "assistant") {
-                    // Get current content - could be string or object
-                    const currentContent = lastMessage.content;
-                    let updatedContent: string | { text: string; [key: string]: any };
-                    
-                    if (typeof currentContent === 'object') {
-                      // If current content is an object, append to text property or create one
-                      updatedContent = {
-                        ...currentContent,
-                        text: (currentContent.text || '') + data.content
-                      };
-                    } else {
-                      // If string, just append
-                      updatedContent = currentContent + data.content;
-                    }
-
-                    // Update existing assistant message
                     return [
                       ...prev.slice(0, -1),
                       { 
                         ...lastMessage, 
-                        content: updatedContent
+                        content: lastMessage.content + markdownContent
                       }
                     ];
                   }
                   return prev;
                 });
-                break;
-              case "chunk":
-                // Handle chunk streaming by updating the existing empty assistant message
-                setMessages(prev => {
-                  const lastMessage = prev[prev.length - 1];
-                  // Keep content as is without extracting text field
-                  const contentToAdd = data.content;
-                    
-                  if (lastMessage && lastMessage.role === "assistant") {
-                    // Log the content types for debugging
-                    logger.debug("Content types:", {
-                      lastMessageContentType: typeof lastMessage.content,
-                      contentToAddType: typeof contentToAdd
-                    });
-                    
-                    let updatedContent: string | { text: string; [key: string]: any };
-                    
-                    // Combine the contents appropriately
-                    if (typeof lastMessage.content === 'object' && typeof contentToAdd === 'object') {
-                      // Both objects - merge them
-                      updatedContent = {
-                        ...lastMessage.content,
-                        ...contentToAdd,
-                        text: (lastMessage.content.text || '') + 
-                              ((contentToAdd as any).text || '')
-                      };
-                    } else if (typeof lastMessage.content === 'object') {
-                      // Last message is object, content to add is string
-                      updatedContent = {
-                        ...lastMessage.content,
-                        text: (lastMessage.content.text || '') + 
-                              (typeof contentToAdd === 'string' ? contentToAdd : '')
-                      };
-                    } else if (typeof contentToAdd === 'object') {
-                      // Last message is string, content to add is object
-                      const textContent = typeof lastMessage.content === 'string' ? lastMessage.content : '';
-                      updatedContent = {
-                        ...(contentToAdd as { [key: string]: any }),
-                        text: textContent + ((contentToAdd as any).text || '')
-                      };
-                    } else {
-                      // Both are strings
-                      updatedContent = (lastMessage.content || '') + (contentToAdd || '');
-                    }
-                    
-                    return [
-                      ...prev.slice(0, -1),
-                      { ...lastMessage, content: updatedContent }
-                    ];
-                  }
-                  return prev;
-                });
-                break;
-              default:
-                logger.warn("Unknown message type:", data.type);
+              }
             }
           } catch (e) {
-            logger.error("Error parsing WebSocket message:", e);
+            logger.error("Error processing WebSocket message:", e);
           }
         };
 

@@ -18,7 +18,7 @@ from langchain.schema import LLMResult
 from ..ai.llm import LLM
 from .chat import PrincipalChat
 
-class WSStreamingCallback(AsyncCallbackHandler):
+class PlaintextWSStreamingCallback(AsyncCallbackHandler):
     """
     Callback handler for streaming LLM responses through WebSocket.
     
@@ -95,6 +95,108 @@ class WSStreamingCallback(AsyncCallbackHandler):
     def get_content(self) -> str:
         """Get the complete collected response."""
         return "".join(self.collected_tokens)
+    
+class NewWSStreamingCallback(AsyncCallbackHandler):
+    """
+    Callback handler for streaming LLM responses through WebSocket.
+    Streams markdown content until delimiter, then streams JSON metadata.
+    """
+    
+    def __init__(self, ws: Websocket, session_id: str):
+        super().__init__()
+        self.ws = ws
+        self.session_id = session_id
+        self.message_id = str(uuid.uuid4())
+        self.buffer = ""
+        self.markdown_content = ""
+        self.found_delimiter = False
+        self.finalized = False
+        logger.debug(f"[TRACE] NewWSStreamingCallback: Initialized with message_id={self.message_id}")
+
+    def __clean_buffer(self) -> str:
+        """Clean the buffer for JSON parsing."""
+        clean = self.buffer.strip()
+        if clean.startswith("---"):
+            clean = clean[3:].strip()
+        return clean
+        
+    async def on_llm_new_token(self, token: str, **kwargs) -> None:
+        """Handle new token from LLM."""
+        try:
+            if not self.found_delimiter:
+                if "---" in token:
+                    # Split at delimiter
+                    markdown, metadata = token.split("---", 1)
+                    if markdown:
+                        await self.__send_message("markdown", markdown)
+                        self.markdown_content += markdown
+                    if metadata:
+                        self.buffer = metadata.strip()  # Remove any leading/trailing whitespace
+                    self.found_delimiter = True
+                else:
+                    await self.__send_message("markdown", token)
+                    self.markdown_content += token
+            if self.found_delimiter:
+                # After delimiter, just buffer metadata
+                self.buffer += token
+                # Only try parsing if we see a closing brace
+                if "}" in token:
+                    await self.__try_parse_metadata()
+            
+        except Exception as e:
+            logger.error(f"[{self.session_id}] Error streaming token: {e}")
+            await self.__send_error("Error processing token")
+
+    async def __try_parse_metadata(self) -> None:
+        """Try to parse and stream buffered metadata."""
+        try:
+            metadata = json.loads(self.__clean_buffer())
+            await self.__send_message("metadata", metadata)
+            self.buffer = ""  # Clear buffer on successful parse
+        except json.JSONDecodeError as e:
+            if self.finalized:
+                logger.error(f"[{self.session_id}] Invalid JSON metadata at stream end: {e}")
+                logger.error(f"[{self.session_id}] Buffer content: {self.buffer}")
+                await self.__send_error("Invalid JSON metadata received from LLM")
+
+    async def __send_message(self, msg_type: str, content: Any) -> None:
+        """Send a message to the WebSocket client."""
+        if msg_type == "markdown":
+            await self.ws.send(content)
+            return
+        
+        await self.ws.send(json.dumps({
+            "type": msg_type,
+            "message_id": self.message_id,
+            "content": content,
+            "timestamp": datetime.now().isoformat()
+        }))
+
+    async def __send_error(self, error: str) -> None:
+        """Send an error message to the WebSocket client."""
+        await self.__send_message("error", {
+            "message": error,
+            "session_id": self.session_id
+        })
+
+    def get_content(self) -> str:
+        """Get the complete markdown content for chat history."""
+        return self.markdown_content
+            
+    async def on_llm_end(self, response: LLMResult, **kwargs) -> None:
+        """Handle end of LLM response."""
+        try:
+            self.finalized = True
+            # Try to parse any remaining buffered metadata
+            if self.buffer:
+                await self.__try_parse_metadata()
+            
+            # Send completion signal
+            await self.__send_message("complete", None)
+            
+        except Exception as e:
+            logger.error(f"[{self.session_id}] Error in stream end: {e}")
+            await self.__send_error("Error at stream end")
 
 async def send_ws_error(ws: Websocket, error: str, status_code: int = 400) -> None:
     """
@@ -140,7 +242,7 @@ async def process_message(ws: Websocket, chat: PrincipalChat, llm: LLM, content:
         await chat.add_message(content, "user")
         
         # Create streaming callback
-        callback = WSStreamingCallback(ws, session_id)
+        callback = NewWSStreamingCallback(ws, session_id)
         
         # Get messages and generate streaming response using the LLM class
         messages = chat.langchain_messages
