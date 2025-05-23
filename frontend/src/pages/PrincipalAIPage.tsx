@@ -233,19 +233,11 @@ const PrincipalAIPage: React.FC = () => {
                 setMessages(prev => {
                   const lastMessage = prev[prev.length - 1];
                   if (lastMessage && lastMessage.role === "assistant") {
-                    // Ensure proper spacing between chunks while preserving intentional whitespace
-                    const currentContent = lastMessage.content;
-                    const needsSpace = currentContent && 
-                      !currentContent.endsWith(' ') && 
-                      !currentContent.endsWith('\n') && 
-                      !markdownContent.startsWith(' ') && 
-                      !markdownContent.startsWith('\n');
-                    
                     return [
                       ...prev.slice(0, -1),
                       { 
                         ...lastMessage, 
-                        content: currentContent + (needsSpace ? ' ' : '') + markdownContent
+                        content: lastMessage.content + markdownContent
                       }
                     ];
                   }
