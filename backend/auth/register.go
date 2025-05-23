@@ -15,7 +15,7 @@ type RegisterRequest struct {
 	Email    string `json:"email" binding:"required"`
 }
 
-// 错误响应函数
+
 func registerError(c *gin.Context, errorMessage, detailMessage string) {
 	if detailMessage == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
