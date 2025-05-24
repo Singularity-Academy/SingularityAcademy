@@ -1,0 +1,15 @@
+database:
+  user: "root"
+  password: "PivotHack.0269"  
+  host: "livestream.kevinwang.top" 
+  port: 25600
+  name: "test1"
+  charset: "utf8mb4"
+  parseTime: true
+  loc: "Local"
+
+email:
+  email: admin@dicloud.vip
+  password: 6kziffhAngtWsJas
+  host: smtp.exmail.qq.com
+  port: 465
