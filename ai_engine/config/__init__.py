@@ -7,7 +7,7 @@ import ujson as json
 from sanic import Sanic
 from typing import Dict, Any, Optional
 from urllib.parse import quote_plus
-from ..logging import logger
+from ..logging import logger, log_exception
 from pathlib import Path
 
 # Get the directory where this file is located
@@ -28,8 +28,7 @@ def load_app_config(app: Sanic) -> None:
         logger.warning(f"Config file not found at {APP_CONFIG_PATH}")
         app.config.update({})
     except json.JSONDecodeError as e:
-        logger.error(f"Invalid JSON in config file {APP_CONFIG_PATH}: {e}")
-        raise
+        log_exception(e, f"Invalid JSON in config file {APP_CONFIG_PATH}")
 
 def load_db_config() -> Dict[str, Any]:
     """Load database configuration from db.json."""
@@ -38,10 +37,10 @@ def load_db_config() -> Dict[str, Any]:
             CONFIG = json.load(f)
         return CONFIG
     except FileNotFoundError:
-        logger.error(f"Database config file not found at {DB_CONFIG_PATH}")
+        log_exception(FileNotFoundError(f"Database config file not found at {DB_CONFIG_PATH}"))
         raise
     except json.JSONDecodeError as e:
-        logger.error(f"Invalid JSON in database config file {DB_CONFIG_PATH}: {e}")
+        log_exception(e, f"Invalid JSON in database config file {DB_CONFIG_PATH}")
         raise
 
 def construct_db_url(config: Dict[str, Any]) -> str:
@@ -204,14 +203,14 @@ def load_llm_config() -> Dict[str, Any]:
         }
         
     except FileNotFoundError:
-        logger.error(f"LLM configuration file not found at {LLM_CONFIG_PATH}")
+        log_exception(FileNotFoundError(f"LLM configuration file not found at {LLM_CONFIG_PATH}"))
         raise
     except json.JSONDecodeError as e:
-        logger.error(f"Invalid JSON in LLM configuration file {LLM_CONFIG_PATH}: {e}")
+        log_exception(e, f"Invalid JSON in LLM configuration file {LLM_CONFIG_PATH}")
         raise
     except ValueError as e:
-        logger.error(f"Invalid LLM configuration: {e}")
+        log_exception(e, "Invalid LLM configuration")
         raise
     except Exception as e:
-        logger.error(f"Unexpected error loading LLM configuration: {e}")
+        log_exception(e, "Unexpected error loading LLM configuration")
         raise

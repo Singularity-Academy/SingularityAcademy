@@ -14,6 +14,7 @@ from loguru import logger
 from sanic import Blueprint, Sanic
 from tortoise.contrib.sanic import register_tortoise
 from .config import load_db_config, construct_db_url
+from ai_engine.logging import log_exception
 
 def get_modules() -> Dict[str, List[str]]:
     """
@@ -78,7 +79,7 @@ def get_modules() -> Dict[str, List[str]]:
         return modules
         
     except Exception as e:
-        logger.error(f"Error discovering modules: {str(e)}")
+        log_exception(e, "Error discovering modules")
         raise
 
 _MODULES = get_modules()
@@ -150,7 +151,7 @@ def register_modules(app: Sanic, url_prefix: str = "/ai") -> None:
         logger.info(f"Registered {len(route_blueprints)} blueprints under {url_prefix}: {', '.join([bp.name for bp in route_blueprints])}")
         
     except Exception as e:
-        logger.error(f"Error registering modules: {str(e)}")
+        log_exception(e, "Error registering modules")
         raise
 
 def init_db(app: Sanic) -> None:
@@ -199,6 +200,6 @@ def init_db(app: Sanic) -> None:
         logger.info(f"Registered model modules: {model_modules}")
         
     except Exception as e:
-        logger.error(f"Failed to initialize database: {str(e)}")
+        log_exception(e, "Failed to initialize database")
         raise
 

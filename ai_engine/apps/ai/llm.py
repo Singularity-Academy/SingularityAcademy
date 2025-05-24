@@ -14,6 +14,7 @@ from langchain.schema import BaseMessage, HumanMessage, AIMessage, SystemMessage
 from langchain_community.chat_models import ChatOpenAI
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.schema import LLMResult
+from ai_engine.logging import log_exception
 
 from ...config import load_llm_config
 
@@ -149,8 +150,7 @@ class LLM:
             response = self.client.invoke(messages)
             return response.content
         except Exception as e:
-            logger.error(f"Error generating response with {self.model_key}: {e}")
-            raise
+            log_exception(e, f"Error generating response with {self.model_key}")
 
     async def agenerate_response(
         self,
@@ -179,8 +179,7 @@ class LLM:
             response = await self.aclient.agenerate([messages], callbacks=callbacks)
             return response.generations[0][0].text
         except Exception as e:
-            logger.error(f"Error generating async response with {self.model_key}: {e}")
-            raise
+            log_exception(e, f"Error generating async response with {self.model_key}")
 
     def __repr__(self) -> str:
         """

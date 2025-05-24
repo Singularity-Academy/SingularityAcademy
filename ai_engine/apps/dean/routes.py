@@ -4,7 +4,7 @@ from sanic.exceptions import WebsocketClosed
 import ujson as json
 
 from ai_engine.apps.auth.utils import handle_ws_login
-from ai_engine.logging import logger
+from ai_engine.logging import logger, log_exception
 from .stream_handlers import StreamHandler
 
 bp = Blueprint("dean", url_prefix="/dean")
@@ -41,9 +41,7 @@ async def stream(request, ws, course_id):
         logger.info(f"WebSocket closed (session: {session_id})")
         return
     except Exception as e:
-        logger.error(f"Error handling WebSocket connection: {e}")
-        import traceback
-        traceback.print_exc()
+        log_exception(e, f"Error handling WebSocket connection")
         await ws.close(code=1008)
         return
     finally:

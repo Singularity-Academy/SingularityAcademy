@@ -14,6 +14,7 @@ from sanic import Websocket
 from langchain.schema import BaseMessage
 from langchain.callbacks.base import AsyncCallbackHandler
 from langchain.schema import LLMResult
+from ai_engine.logging import log_exception
 
 from .course import generate_course_outline
 from ..ai.llm import LLM
@@ -256,9 +257,7 @@ async def handle_user_message(ws: Websocket, chat: PrincipalChat, llm: LLM, cont
     except ConnectionError as e:
         logger.info(f"[{session_id}] WebSocket closed during streaming: {str(e)}")
     except Exception as e:
-        logger.error(f"[{session_id}] Error processing message: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        log_exception(e, f"[{session_id}] Error processing message")
         try:
             await send_ws_error(ws, f"Error processing message: {str(e)}", 500)
         except:
@@ -298,9 +297,7 @@ async def handle_course_req(ws: Websocket, content: str, session_id: str) -> Non
             await send_ws_error(ws, f"Unexpected course request type: {content['type']}", 400)
 
     except Exception as e:
-        logger.error(f"[{session_id}] Error processing course request: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        log_exception(e, f"[{session_id}] Error processing course request")
         try:
             await send_ws_error(ws, f"Error processing course request: {str(e)}", 500)
         except:

@@ -9,6 +9,7 @@ import av
 import asyncio
 from dataclasses import dataclass
 from typing import Optional
+from ai_engine.logging import logger, log_exception
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -65,10 +66,7 @@ class StreamHandler:
             logger.info(f"Started recording for user {self.user_id} in {output_dir}")
             
         except Exception as e:
-            logger.error(f"Failed to start recording for user {self.user_id}: {str(e)}")
-            import traceback
-            traceback.print_exc()
-            raise
+            log_exception(e, f"Failed to start recording for user {self.user_id}")
 
     async def save_video_frame(self, frame_data: str) -> None:
         """Save a video frame from the user's stream.
@@ -93,8 +91,7 @@ class StreamHandler:
                 self.state.video_writer.mux(packet)
                 
         except Exception as e:
-            logger.error(f"Error saving video frame for user {self.user_id}: {str(e)}")
-            raise
+            log_exception(e, f"Error saving video frame for user {self.user_id}")
 
     async def save_audio_frame(self, frame_data: str) -> None:
         """Save an audio frame from the user's stream.
@@ -125,8 +122,7 @@ class StreamHandler:
                 self.state.audio_writer.mux(packet)
                 
         except Exception as e:
-            logger.error(f"Error saving audio frame for user {self.user_id}: {str(e)}")
-            raise
+            log_exception(e, f"Error saving audio frame for user {self.user_id}")
 
     def stop_recording(self) -> None:
         """Stop recording the user's stream and clean up resources."""
@@ -144,8 +140,7 @@ class StreamHandler:
             logger.info(f"Stopped recording for user {self.user_id}")
             
         except Exception as e:
-            logger.error(f"Error stopping recording for user {self.user_id}: {str(e)}")
-            raise
+            log_exception(e, f"Error stopping recording for user {self.user_id}")
 
 # Example usage:
 """

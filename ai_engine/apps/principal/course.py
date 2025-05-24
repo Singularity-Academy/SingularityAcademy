@@ -2,7 +2,7 @@ from ai_engine.apps.ai.llm import LLM
 from .models import Course
 from langchain.schema import HumanMessage, SystemMessage
 from uuid import UUID
-from loguru import logger
+from ai_engine.logging import logger, log_exception
 
 from .chat import load_course_generator_prompt
 
@@ -56,5 +56,5 @@ Include practical exercises and assessments where appropriate."""
         return await llm.agenerate_response(messages)
         
     except Exception as e:
-        logger.exception(f"Error generating course outline", course_id=course_id, error=str(e))
+        log_exception(e, f"Error generating course outline for course {course_id}")
         raise
