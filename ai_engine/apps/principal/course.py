@@ -1,5 +1,5 @@
 from ai_engine.apps.ai.llm import LLM
-from .models import Course
+from ai_engine.apps.course.models import Course
 from langchain.schema import HumanMessage, SystemMessage
 from uuid import UUID
 from ai_engine.logging import logger, log_exception

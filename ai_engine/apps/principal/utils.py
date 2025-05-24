@@ -19,7 +19,7 @@ from ai_engine.logging import log_exception
 from .course import generate_course_outline
 from ..ai.llm import LLM
 from .chat import PrincipalChat
-from .models import Course
+from ..course.models import Course
 
 class PlaintextWSStreamingCallback(AsyncCallbackHandler):
     """
