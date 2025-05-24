@@ -46,42 +46,7 @@ async def create_course(request: Request) -> json:
         "outline": str      # Initially empty, will be generated asynchronously
     }
     """
-    try:
-        data = request.json
-        if not data:
-            raise BadRequest("Request body is required")
-            
-        # Validate required fields
-        if not data.get("name"):
-            raise BadRequest("Course name is required")
-        if not data.get("description"):
-            raise BadRequest("Course description is required")
-            
-        # Create course
-        course = await Course.create(
-            name=data["name"],
-            description=data["description"],
-            owner=request.ctx.user  # Set owner from authenticated user
-        )
-        
-        # Start outline generation asynchronously
-        request.app.add_task(generate_course_outline(str(course.id)))
-        
-        return json({
-            "id": str(course.id),
-            "name": course.name,
-            "description": course.description,
-            "created_at": course.created_at.isoformat(),
-            "updated_at": course.updated_at.isoformat(),
-            "outline": course.outline or "Generating..."
-        }, status=201)
-        
-    except IntegrityError as e:
-        logger.error(f"Database error creating course: {e}")
-        raise BadRequest("A course with this name already exists")
-    except Exception as e:
-        log_exception(e, "Error creating course")
-        raise BadRequest(str(e))
+    return json({"type": "error", "message": "Course creation is not available in the API, use the Websocket API"})
 
 @bp.get("/<course_id:uuid>")
 @login_required
