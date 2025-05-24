@@ -320,7 +320,7 @@ backend/backend.exe
 .DS_Store
 .DS_Store
 
-backend/config/config.yml
+
 frames/
 backend/sa_database.db
 
