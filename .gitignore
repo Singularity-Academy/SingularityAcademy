@@ -329,3 +329,8 @@ backend/.DS_Store
 .DS_Store
 
 recordings/
+
+*.mp4
+*.tex
+videos/*
+ai_generated_videos/*
