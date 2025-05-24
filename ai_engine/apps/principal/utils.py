@@ -114,6 +114,7 @@ class NewWSStreamingCallback(AsyncCallbackHandler):
         self.markdown_content = ""
         self.found_delimiter = False
         self.finalized = False
+        self.started = False
         logger.debug(f"[TRACE] NewWSStreamingCallback: Initialized with message_id={self.message_id}")
 
     def __clean_buffer(self) -> str:
@@ -125,6 +126,9 @@ class NewWSStreamingCallback(AsyncCallbackHandler):
         
     async def on_llm_new_token(self, token: str, **kwargs) -> None:
         """Handle new token from LLM."""
+        if not self.started:
+            self.started = True
+            await self.__send_message("start", None)
         try:
             if not self.found_delimiter:
                 if "---" in token:
