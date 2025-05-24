@@ -1,18 +1,17 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { 
-  Box, 
-  Flex, 
-  Heading, 
-  Text, 
-  Input, 
-  IconButton, 
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  Box,
+  Flex,
+  Heading,
+  Text,
+  Input,
+  IconButton,
   useColorModeValue,
-  Avatar,
-  Card,
-  CardBody,
   VStack,
   HStack,
-  useToast
+  Card,
+  CardBody,
+  useToast,
 } from '@chakra-ui/react';
 import { FaPaperPlane, FaVideo, FaVideoSlash, FaExpand } from 'react-icons/fa';
 import Navbar from '@components/Navbar';
@@ -22,70 +21,66 @@ import logger from '@utils/logger';
 
 interface Message {
   role: 'user' | 'assistant';
-  content: string;  // Simplified to just string for markdown content
-  metadata?: any;   // Optional metadata object
+  content: string;
+  metadata?: any;
   timestamp?: string;
 }
 
 interface WSMessage {
-  type: 'metadata' | 'error' | 'complete' | 'auth_success' | 'history_messages';  // Removed 'markdown' as it's sent directly
+  type: string;
   message_id: string;
   content: any;
   timestamp: string;
-  message?: string;  // For auth_success
-  messages?: Array<{  // For history_messages
-    role: 'user' | 'assistant';
-    content: string;
-    metadata?: any;
-    timestamp: string;
-  }>;
+  message?: string;
+  messages?: Message[];
 }
+
+const formatTimestamp = (timestamp?: string) => {
+  if (!timestamp) return '';
+  try {
+    const date = new Date(timestamp);
+    return isNaN(date.getTime()) ? 'Invalid Time' : date.toLocaleTimeString();
+  } catch {
+    return 'Invalid Time';
+  }
+};
 
 const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
   const isAssistant = message.role === 'assistant';
-  
-  // Move all useColorModeValue hooks to the top level
-  const assistantBgColor = useColorModeValue('blue.50', 'blue.900');
-  const userBgColor = useColorModeValue('green.50', 'green.900');
+  const bgColor = useColorModeValue(isAssistant ? 'blue.50' : 'green.50', isAssistant ? 'blue.900' : 'green.900');
+  const borderColor = useColorModeValue(isAssistant ? 'blue.200' : 'green.200', isAssistant ? 'blue.700' : 'green.700');
   const textColor = useColorModeValue('gray.800', 'white');
-  const assistantBorderColor = useColorModeValue('blue.200', 'blue.700');
-  const userBorderColor = useColorModeValue('green.200', 'green.700');
   const timestampColor = useColorModeValue('gray.500', 'gray.400');
   const metadataBgColor = useColorModeValue('whiteAlpha.600', 'blackAlpha.600');
-  
-  // Compute the actual colors based on role
-  const bgColor = isAssistant ? assistantBgColor : userBgColor;
-  const borderColor = isAssistant ? assistantBorderColor : userBorderColor;
+  const toast = useToast();
 
-  // Format timestamp safely
-  const formatTimestamp = (timestamp: string | undefined): string => {
-    if (!timestamp) return '';
-    
-    try {
-      let fixedTimestamp = timestamp;
-      if (timestamp.includes('+') && timestamp.endsWith('Z')) {
-        fixedTimestamp = timestamp.slice(0, -1);
-      }
-      
-      const date = new Date(fixedTimestamp);
-      return isNaN(date.getTime()) 
-        ? 'Invalid Time' 
-        : date.toLocaleTimeString();
-    } catch (e) {
-      console.error('Error formatting timestamp:', e);
-      return 'Invalid Time';
+  const handleAddCourse = (course: { name: string; description: string }) => {
+    const ws = (window as any).__principalAIWS__ as WebSocket;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({
+        type: 'course',
+        content: {
+          type: 'create',
+          name: course.name,
+          description: course.description,
+        },
+      }));
+      toast({
+        title: 'Course Added',
+        description: `${course.name} was added.`,
+        status: 'success',
+        duration: 3000,
+      });
+    } else {
+      toast({
+        title: 'WebSocket Error',
+        description: 'Connection is not open.',
+        status: 'error',
+        duration: 3000,
+      });
     }
   };
-  let visualizedMetadata = "";
-  if (message.metadata && Array.isArray(message.metadata.courses)) {
-    for (const course of message.metadata.courses) {
-      visualizedMetadata += `<div style="margin:5px;background:white;padding:10px;border-radius:15px;border:0.4px solid black;">
-        <h3 style="color:darkred;margin:0 0 4px 0;font-size:1.5em;">${course.name}</h3>
-        <div>${course.description}</div>
-        <div style="margin-top:5px;color:blue;font-size:0.9em;font-weight:2px;">+ ADD COURSE</div>
-      </div>`;
-    }
-  }
+
   return (
     <Box
       maxW="80%"
@@ -98,21 +93,29 @@ const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
       borderColor={borderColor}
       boxShadow="sm"
     >
-      <Text whiteSpace="pre-wrap">
-        {message.content}
-      </Text>
-      
-      {message.metadata && (
+      <Text whiteSpace="pre-wrap">{message.content}</Text>
+
+      {message.metadata?.courses && (
         <Box mt={2} p={2} bg={metadataBgColor} borderRadius="md">
-          <Text fontSize="xs" color={timestampColor}>
-        SUGGESTED COURSES
-          </Text>
-          <Box
-        mt={1}
-        fontSize="xs"
-        color={timestampColor}
-        dangerouslySetInnerHTML={{ __html: visualizedMetadata }}
-          />
+          <Text fontSize="xs" color={timestampColor} mb={2}>SUGGESTED COURSES</Text>
+          <VStack align="stretch">
+            {message.metadata.courses.map((course: any, index: number) => (
+              <Box key={index} p={3} bg="white" border="0.4px solid black" borderRadius="15px">
+                <Heading size="sm" color="darkred" mb={1}>{course.name}</Heading>
+                <Text>{course.description}</Text>
+                <Text
+                  mt={2}
+                  color="blue"
+                  fontSize="0.9em"
+                  fontWeight="semibold"
+                  cursor="pointer"
+                  onClick={() => handleAddCourse(course)}
+                >
+                  + ADD COURSE
+                </Text>
+              </Box>
+            ))}
+          </VStack>
         </Box>
       )}
 
@@ -131,403 +134,137 @@ const PrincipalAIPage: React.FC = () => {
   const particleColor = useColorModeValue('#3182ce', '#90cdf4');
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
-  const [studyPlan] = useState<string[]>([
-    t('PrincipalAI.physics'),
-    t('PrincipalAI.mathematics'),
-    t('PrincipalAI.engineering'),
-    t('PrincipalAI.computerScience')
-  ]);
-  const [videoActive, setVideoActive] = useState(true);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const connectWebSocket = async () => {
-      if (wsRef.current?.readyState === WebSocket.OPEN) {
-        logger.debug("WebSocket already connected");
-        return;
-      }
+    const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
+    if (!token) return;
 
-      try {
-        // Get the auth token from cookies
-        const token = document.cookie
-          .split("; ")
-          .find((row) => row.startsWith("token="))
-          ?.split("=")[1];
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const ws = new WebSocket(`${protocol}//${window.location.host}/ai/principal-ai/ws/chat`);
+    (window as any).__principalAIWS__ = ws;
+    wsRef.current = ws;
 
-        if (!token) {
-          logger.error("No auth token found in cookies");
-          setError("Authentication required. Please log in.");
-          return;
-        }
-
-        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-        const wsUrl = `${protocol}//${window.location.host}/ai/principal-ai/ws/chat`;
-        logger.debug(`Connecting to WebSocket at ${wsUrl}`);
-
-        // Create WebSocket
-        const ws = new WebSocket(wsUrl);
-        wsRef.current = ws;
-
-        ws.onopen = () => {
-          logger.info("WebSocket connection opened, sending authentication");
-          // Send authentication message
-          ws.send(JSON.stringify({
-            type: "auth",
-            token: token
-          }));
-        };
-
-        ws.onmessage = (event) => {
-          try {
-            // First try to parse as JSON for control messages
-            try {
-              const data: WSMessage = JSON.parse(event.data);
-              logger.debug("Received WebSocket control message:", data);
-
-              switch (data.type) {
-                case "auth_success":
-                  logger.info("Authentication successful:", data.message);
-                  setError(null);
-                  setIsConnected(true);
-                  break;
-
-                case "history_messages":
-                  logger.info(`Received ${data.messages?.length || 0} history messages`);
-                  if (data.messages && Array.isArray(data.messages)) {
-                    const formattedMessages: Message[] = data.messages.map((msg) => ({
-                      role: msg.role,
-                      content: msg.content,
-                      metadata: msg.metadata,
-                      timestamp: msg.timestamp
-                    }));
-                    setMessages(formattedMessages);
-                  }
-                  break;
-
-                case "metadata":
-                  // Update metadata for the current assistant message
-                  setMessages(prev => {
-                    const lastMessage = prev[prev.length - 1];
-                    if (lastMessage && lastMessage.role === "assistant") {
-                      return [
-                        ...prev.slice(0, -1),
-                        { 
-                          ...lastMessage, 
-                          metadata: data.content
-                        }
-                      ];
-                    }
-                    return prev;
-                  });
-                  break;
-
-                case "error":
-                  logger.error("WebSocket error:", data.content);
-                  setError(data.content.message || "An error occurred");
-                  if (data.content.status_code === 401) {
-                    ws.close();
-                  }
-                  break;
-
-                case "complete":
-                  // Message is complete, no action needed
-                  logger.debug("Message stream completed");
-                  break;
-
-                default:
-                  logger.warn("Unknown message type:", data.type);
-              }
-            } catch (e) {
-              // If JSON parsing fails, treat as direct markdown content
-              const markdownContent = event.data;
-              if (markdownContent.trim()) {
-                setMessages(prev => {
-                  const lastMessage = prev[prev.length - 1];
-                  if (lastMessage && lastMessage.role === "assistant") {
-                    return [
-                      ...prev.slice(0, -1),
-                      { 
-                        ...lastMessage, 
-                        content: lastMessage.content + markdownContent
-                      }
-                    ];
-                  }
-                  return prev;
-                });
-              }
-            }
-          } catch (e) {
-            logger.error("Error processing WebSocket message:", e);
-          }
-        };
-
-        ws.onerror = (error) => {
-          logger.error("WebSocket error:", error);
-          setError("Connection error occurred");
-          setIsConnected(false);
-        };
-
-        ws.onclose = (event) => {
-          logger.info(`WebSocket closed with code ${event.code}`);
-          setIsConnected(false);
-          if (event.code === 1008) {
-            // Policy Violation (auth error)
-            setError("Authentication failed. Please log in again.");
-          } else if (event.code !== 1000) {
-            // Not a normal closure
-            setError("Connection closed unexpectedly");
-          }
-        };
-
-      } catch (error) {
-        logger.error("Error setting up WebSocket:", error);
-        setError("Failed to establish connection");
-        setIsConnected(false);
-      }
+    ws.onopen = () => {
+      ws.send(JSON.stringify({ type: 'auth', token }));
     };
 
-    connectWebSocket();
+    ws.onmessage = (event) => {
+      try {
+        const data: WSMessage = JSON.parse(event.data);
+        switch (data.type) {
+          case 'auth_success': break;
+          case 'history_messages':
+            setMessages(data.messages || []);
+            break;
+          case 'metadata':
+            setMessages(prev => {
+              const updated = [...prev];
+              const last = updated.pop();
+              if (last && last.role === 'assistant') {
+                updated.push({ ...last, metadata: data.content });
+              } else if (last) {
+                updated.push(last);
+              }
+              return updated;
+            });
+            break;
+          case 'error':
+            toast({ title: 'WebSocket Error', description: data.content.message, status: 'error' });
+            break;
+          default:
+            if (data) {
+              setMessages(prev => {
+                const updated = [...prev];
+                const last = updated.pop();
+                if (last && last.role === 'assistant') {
+                  updated.push({ ...last, content: last.content + event.data });
+                } else if (last) {
+                  updated.push(last);
+                }
+                return updated;
+              });
+            }
+        }
+      } catch (err) {
+        logger.error('Message parse failed:', err);
+      }
+    };
 
     return () => {
-      if (wsRef.current) {
-        logger.debug("Cleaning up WebSocket connection");
-        wsRef.current.close();
-        wsRef.current = null;
-      }
+      ws.close();
+      wsRef.current = null;
     };
-  }, []); // Empty dependency array since we only want to connect once
+  }, []);
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = () => {
     if (!inputMessage.trim() || !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
 
-    const message: Message = {
-        role: 'user',
-        content: inputMessage,
-        timestamp: new Date().toISOString()
+    const userMessage: Message = {
+      role: 'user',
+      content: inputMessage,
+      timestamp: new Date().toISOString(),
+    };
+    const assistantPlaceholder: Message = {
+      role: 'assistant',
+      content: '',
+      timestamp: new Date().toISOString(),
     };
 
-    // Add user message first
-    setMessages(prev => [...prev, message]);
-    
-    // Immediately add an empty assistant message
-    setMessages(prev => [
-      ...prev, 
-      { 
-        role: 'assistant', 
-        content: '',
-        timestamp: new Date().toISOString()
-      }
-    ]);
-    
+    setMessages(prev => [...prev, userMessage, assistantPlaceholder]);
+    wsRef.current.send(JSON.stringify({
+      type: 'message',
+      content: inputMessage,
+      model_id: 'deepseek-v3'
+    }));
     setInputMessage('');
-    setIsLoading(true);
-
-    try {
-        wsRef.current.send(JSON.stringify({
-            type: "message",
-            content: inputMessage,
-            model_id: "deepseek-v3"  // Using default model
-        }));
-        logger.debug("Sent message to WebSocket:", { type: "message", content: inputMessage, model_id: "deepseek-v3" });
-    } catch (error) {
-        logger.error('Error sending message:', error);
-        toast({
-            title: t('PrincipalAI.sendError'),
-            status: 'error',
-            duration: 5000,
-            isClosable: true,
-        });
-    } finally {
-        setIsLoading(false);
-    }
   };
 
   useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-    }
+    chatContainerRef.current?.scrollTo(0, chatContainerRef.current.scrollHeight);
   }, [messages]);
 
-  useEffect(() => {
-    // Simple particle generator
-    const createParticle = () => {
-      const particle = document.createElement('div');
-      particle.className = 'particle';
-      
-      const size = Math.random() * 3 + 2;
-      const left = Math.random() * 100;
-      const duration = Math.random() * 5 + 5;
-
-      particle.style.width = `${size}px`;
-      particle.style.height = `${size}px`;
-      particle.style.left = `${left}%`;
-      particle.style.animationDuration = `${duration}s`;
-      particle.style.color = particleColor;
-
-      document.querySelector('.particle-container')?.appendChild(particle);
-
-      particle.addEventListener('animationend', () => {
-        particle.remove();
-      });
-    };
-
-    const interval = setInterval(createParticle, 300);
-    return () => clearInterval(interval);
-  }, [particleColor]);
-
   return (
-    <Box 
-      minH="100vh" 
-      bg={useColorModeValue('gray.50', 'gray.900')}
-      position="relative"
-    >
+    <Box minH="100vh" bg={useColorModeValue('gray.50', 'gray.900')} position="relative">
       <div className="particle-container" />
       <Navbar />
-      
-      <Flex
-        position="relative"
-        zIndex="2"
-        flex="1"
-        p={8}
-        gap={8}
-        direction={{ base: 'column', lg: 'row' }}
-      >
-        {/* Video Conference Section */}
-        <Card flex="2" bg="transparent" backdropFilter="blur(10px)" boxShadow="xl">
-          <CardBody position="relative" p={0} overflow="hidden">
-            <Box
-              bg={useColorModeValue('whiteAlpha.800', 'blackAlpha.600')}
-              p={6}
-              borderRadius="lg"
-              h="full"
-            >
-              {/* AI Video Feed */}
-              <Box
-                position="relative"
-                h="70vh"
-                borderRadius="xl"
-                overflow="hidden"
-                bg="gray.800"
-                boxShadow="2xl"
-              >
-                <video
-                  autoPlay
-                  muted
-                  loop
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  src="/ai-principal-presentation.mp4"
-                />
-                
-                {/* Screen Sharing Overlay */}
-                <Box
-                  position="absolute"
-                  bottom="20px"
-                  right="20px"
-                  w="300px"
-                  h="200px"
-                  bg="gray.900"
-                  borderRadius="md"
-                  boxShadow="dark-lg"
-                  overflow="hidden"
-                >
-                  <Box
-                    bg="gray.800"
-                    p={4}
-                    color="white"
-                    fontSize="sm"
-                    fontFamily="monospace"
-                  >
-                    <Text>📚 Study Plan Generator v1.0</Text>
-                    <Box mt={2}>
-                      {studyPlan.map((course, index) => (
-                        <Text key={index} color="green.300">› {course}</Text>
-                      ))}
-                    </Box>
-                  </Box>
-                </Box>
-
+      <Flex position="relative" zIndex={2} flex={1} p={8} gap={8} direction={{ base: 'column', lg: 'row' }}>
+        <Card flex={2} bg="transparent" backdropFilter="blur(10px)" boxShadow="xl">
+          <CardBody p={0}>
+            <Box bg={useColorModeValue('whiteAlpha.800', 'blackAlpha.600')} p={6} borderRadius="lg" h="full">
+              <Box position="relative" h="70vh" borderRadius="xl" bg="gray.800" boxShadow="2xl">
+                <video autoPlay muted loop style={{ width: '100%', height: '100%', objectFit: 'cover' }} src="/ai-principal-presentation.mp4" />
                 <HStack position="absolute" bottom="4" left="4" spacing="3">
-                  <IconButton
-                    aria-label="Toggle video"
-                    icon={videoActive ? <FaVideo /> : <FaVideoSlash />}
-                    onClick={() => setVideoActive(!videoActive)}
-                    variant="ghost"
-                    color="white"
-                  />
-                  <IconButton
-                    aria-label="Fullscreen"
-                    icon={<FaExpand />}
-                    onClick={() => document.documentElement.requestFullscreen()}
-                    variant="ghost"
-                    color="white"
-                  />
+                  <IconButton aria-label="Toggle video" icon={<FaVideo />} variant="ghost" color="white" />
+                  <IconButton aria-label="Fullscreen" icon={<FaExpand />} onClick={() => document.documentElement.requestFullscreen()} variant="ghost" color="white" />
                 </HStack>
               </Box>
             </Box>
           </CardBody>
         </Card>
-
-        {/* Chat Section */}
-        <Card flex="1" bg={useColorModeValue('whiteAlpha.800', 'blackAlpha.600')} backdropFilter="blur(10px)">
+        <Card flex={1} bg={useColorModeValue('whiteAlpha.800', 'blackAlpha.600')} backdropFilter="blur(10px)">
           <CardBody display="flex" flexDirection="column" p={4}>
-            <Heading size="lg" mb={4} color="blue.500">
-              {t('PrincipalAI.title')}
-            </Heading>
-            
-            <Box
-              ref={chatContainerRef}
-              flex="1"
-              overflowY="auto"
-              mb={4}
-              borderRadius="md"
-              bg={useColorModeValue('blackAlpha.50', 'whiteAlpha.50')}
-              p={4}
-              maxH="60vh"
-              h="60vh"
-              css={{
-                '&::-webkit-scrollbar': {
-                  width: '8px',
-                },
-                '&::-webkit-scrollbar-track': {
-                  background: useColorModeValue('gray.100', 'gray.700'),
-                  borderRadius: '8px',
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  background: useColorModeValue('gray.300', 'gray.600'),
-                  borderRadius: '8px',
-                },
-              }}
-            >
-              <VStack spacing={4} align="stretch" w="100%">
-                {messages.map((message, index) => (
-                  <MessageBubble key={index} message={message} />
-                ))}
+            <Heading size="lg" mb={4} color="blue.500">{t('PrincipalAI.title')}</Heading>
+            <Box ref={chatContainerRef} flex="1" overflowY="auto" mb={4} borderRadius="md" bg={useColorModeValue('blackAlpha.50', 'whiteAlpha.50')} p={4} maxH="60vh" h="60vh">
+              <VStack spacing={4} align="stretch">
+                {messages.map((msg, idx) => <MessageBubble key={idx} message={msg} />)}
               </VStack>
             </Box>
-
-            <Box p={4} borderTopWidth="1px" borderColor={useColorModeValue('gray.200', 'gray.700')}>
-              <HStack>
-                <Input
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  placeholder={t('PrincipalAI.inputPlaceholder')}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                  bg={useColorModeValue('white', 'gray.800')}
-                  isDisabled={isLoading || !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN}
-                />
-                <IconButton
-                  aria-label={t('PrincipalAI.send')}
-                  icon={<FaPaperPlane />}
-                  onClick={handleSendMessage}
-                  isLoading={isLoading}
-                  isDisabled={isLoading || !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN}
-                />
-              </HStack>
-            </Box>
+            <HStack>
+              <Input
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                placeholder={t('PrincipalAI.inputPlaceholder')}
+                bg={useColorModeValue('white', 'gray.800')}
+              />
+              <IconButton
+                aria-label={t('PrincipalAI.send')}
+                icon={<FaPaperPlane />}
+                onClick={handleSendMessage}
+              />
+            </HStack>
           </CardBody>
         </Card>
       </Flex>
@@ -535,4 +272,4 @@ const PrincipalAIPage: React.FC = () => {
   );
 };
 
-export default PrincipalAIPage; 
+export default PrincipalAIPage;
