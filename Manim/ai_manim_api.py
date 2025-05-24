@@ -142,7 +142,7 @@ def generate_video():
                     
                     if result.get('video_path') and os.path.exists(result['video_path']):
                         # 复制视频到API输出目录
-                        api_video_path = Path(API_CONFIG["output_dir"]) / f"{video_id}.mp4"
+                        api_video_path = f"ai-principal-presentation.mp4"
                         import shutil
                         shutil.copy2(result['video_path'], api_video_path)
                         
@@ -210,11 +210,11 @@ def generate_video():
             "error": f"服务器错误: {str(e)}"
         }), 500
 
-@app.route('/video/<video_id>', methods=['GET'])
+@app.route('/ai-principal-presentation.mp4', methods=['GET'])
 def download_video(video_id):
     """下载生成的视频"""
     try:
-        video_path = Path(API_CONFIG["output_dir"]) / f"{video_id}.mp4"
+        video_path = f"ai-principal-presentation.mp4"
         
         if not video_path.exists():
             return jsonify({"error": "视频不存在或已过期"}), 404
