@@ -244,21 +244,19 @@ const PrincipalAIPage: React.FC = () => {
             } catch (e) {
               // If JSON parsing fails, treat as direct markdown content
               const markdownContent = event.data;
-              if (markdownContent.trim()) {
-                setMessages(prev => {
-                  const lastMessage = prev[prev.length - 1];
-                  if (lastMessage && lastMessage.role === "assistant") {
-                    return [
-                      ...prev.slice(0, -1),
-                      { 
-                        ...lastMessage, 
-                        content: lastMessage.content + markdownContent
-                      }
-                    ];
-                  }
-                  return prev;
-                });
-              }
+              setMessages(prev => {
+                const lastMessage = prev[prev.length - 1];
+                if (lastMessage && lastMessage.role === "assistant") {
+                  return [
+                    ...prev.slice(0, -1),
+                    { 
+                      ...lastMessage, 
+                      content: lastMessage.content + markdownContent
+                    }
+                  ];
+                }
+                return prev;
+              });
             }
           } catch (e) {
             logger.error("Error processing WebSocket message:", e);
