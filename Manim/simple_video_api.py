@@ -20,7 +20,7 @@ CORS(app)
 CONFIG = {
     "output_dir": "api_videos",
     "max_content_length": 200,
-    "python_path": "/usr/local/bin/python3.10"
+    "python_path": "python3"
 }
 
 # 创建输出目录

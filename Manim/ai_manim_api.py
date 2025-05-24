@@ -125,61 +125,76 @@ def generate_video():
         
         # 使用AI生成器生成视频
         if ai_available and ai_generator:
-            try:
-                print("🤖 使用AI生成器处理...")
-                result = ai_generator.generate_video(text)
-                
-                if result.get('video_path') and os.path.exists(result['video_path']):
-                    # 复制视频到API输出目录
-                    api_video_path = Path(API_CONFIG["output_dir"]) / f"{video_id}.mp4"
-                    import shutil
-                    shutil.copy2(result['video_path'], api_video_path)
+            prevErr = ""
+            for i in range(5):
+                try:
+                    print("🤖 使用AI生成器处理...")
+                    result = ai_generator.generate_video(prevErr+text)
+                    try:
+                        a = result.get("ERR","")
+                        if a != "":
+                            print("即将重试")
+                            prevErr = "请注意以下错误可能导致生成失败："+str(e) + "\n"
+                            continue
+                    except Exception as e:
+                        None
+                            
                     
-                    # 获取视频信息
-                    video_size = os.path.getsize(api_video_path)
-                    
-                    print(f"✅ 视频生成成功: {api_video_path}")
-                    print(f"📊 文件大小: {video_size/1024:.1f} KB")
-                    
-                    # 保存生成信息
-                    info_file = Path(API_CONFIG["output_dir"]) / f"{video_id}_info.json"
-                    with open(info_file, 'w', encoding='utf-8') as f:
-                        json.dump({
+                    if result.get('video_path') and os.path.exists(result['video_path']):
+                        # 复制视频到API输出目录
+                        api_video_path = Path(API_CONFIG["output_dir"]) / f"{video_id}.mp4"
+                        import shutil
+                        shutil.copy2(result['video_path'], api_video_path)
+                        
+                        # 获取视频信息
+                        video_size = os.path.getsize(api_video_path)
+                        
+                        print(f"✅ 视频生成成功: {api_video_path}")
+                        print(f"📊 文件大小: {video_size/1024:.1f} KB")
+                        
+                        # 保存生成信息
+                        info_file = Path(API_CONFIG["output_dir"]) / f"{video_id}_info.json"
+                        with open(info_file, 'w', encoding='utf-8') as f:
+                            json.dump({
+                                "video_id": video_id,
+                                "input_text": text,
+                                "title": title,
+                                "model_used": ai_generator.config.get("default_model", "unknown"),
+                                "generated_at": datetime.now().isoformat(),
+                                "file_size": video_size,
+                                "scene_name": result.get('scene_name', 'Unknown')
+                            }, f, ensure_ascii=False, indent=2)
+                        
+                        return jsonify({
+                            "success": True,
                             "video_id": video_id,
-                            "input_text": text,
-                            "title": title,
-                            "model_used": ai_generator.config.get("default_model", "unknown"),
+                            "download_url": f"/video/{video_id}",
+                            "video_size": f"{video_size/1024:.1f} KB",
                             "generated_at": datetime.now().isoformat(),
-                            "file_size": video_size,
+                            "input_text": text,
+                            "title": title or "AI生成视频",
+                            "model_used": ai_generator.config.get("default_model", "unknown"),
                             "scene_name": result.get('scene_name', 'Unknown')
-                        }, f, ensure_ascii=False, indent=2)
-                    
-                    return jsonify({
-                        "success": True,
-                        "video_id": video_id,
-                        "download_url": f"/video/{video_id}",
-                        "video_size": f"{video_size/1024:.1f} KB",
-                        "generated_at": datetime.now().isoformat(),
-                        "input_text": text,
-                        "title": title or "AI生成视频",
-                        "model_used": ai_generator.config.get("default_model", "unknown"),
-                        "scene_name": result.get('scene_name', 'Unknown')
-                    })
-                else:
-                    return jsonify({
+                        })
+                    else:
+                        print("即将重试")
+                        prevErr = "请注意以下错误可能导致生成失败："+str(e) + "\n"
+                        continue
+                        return jsonify({
+                            "success": False,
+                            "error": "视频生成失败，请检查输入内容",
+                            "video_id": video_id,
+                            "fallback": True
+                        }), 500
+                        
+                except Exception as e:
+                    print(f"❌ AI生成失败: {e}")
+                    prevErr = "请注意以下错误可能导致生成失败："+str(e) + "\n"
+            return jsonify({
                         "success": False,
-                        "error": "视频生成失败，请检查输入内容",
-                        "video_id": video_id,
-                        "fallback": True
+                        "error": f"AI生成失败: {str(e)}",
+                        "video_id": video_id
                     }), 500
-                    
-            except Exception as e:
-                print(f"❌ AI生成失败: {e}")
-                return jsonify({
-                    "success": False,
-                    "error": f"AI生成失败: {str(e)}",
-                    "video_id": video_id
-                }), 500
         else:
             return jsonify({
                 "success": False,

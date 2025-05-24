@@ -75,7 +75,7 @@ curl -X POST http://localhost:8888/generate \
 
 ### 1. 启动API
 ```bash
-/usr/local/bin/python3.10 ai_manim_api.py
+python3 ai_manim_api.py
 ```
 
 ### 2. 生成视频 (Python)

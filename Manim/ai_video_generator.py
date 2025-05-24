@@ -35,7 +35,7 @@ class AIVideoGenerator:
         self.output_dir.mkdir(exist_ok=True)
         
         # Python路径 (从之前的安装中获得)
-        self.python_path = "/usr/local/bin/python3.10"
+        self.python_path = "python3"
     
     def _load_config(self, config_path: str) -> Dict[str, Any]:
         """加载配置文件"""
@@ -140,6 +140,7 @@ class AIVideoGenerator:
     def _create_scene_prompt(self) -> ChatPromptTemplate:
         """创建场景规划提示词模板"""
         template = """
+常见错误：Framewidth Not Defined.
 你是一个专业的数学和物理教育动画设计师。请根据用户的输入，设计一个生动的Manim动画场景。
 
 用户输入: {user_input}
@@ -178,7 +179,10 @@ class AIVideoGenerator:
 {scene_plan}
 
 请生成一个完整的Manim Scene类，严格遵循以下要求：
-
+⚠️你生成的Python代码将直接被封装执行，无任何已知变量。请务必在调用变量前为其赋值，例如WIDTH, HEIGHT, LIGHT_BLUE, YELLOW等，都会触发NOT DEFINED错误。
+历史错误：
+TypeError: Mobject.__init__() got an unexpected keyword argument 'max_value'
+NameError: name 'FRAME_WIDTH' is not defined
 ## 1. 基本结构
 ```python
 from manim import *
@@ -610,31 +614,36 @@ class NewtonFirstLaw(Scene):
     
     def generate_video(self, user_input: str) -> Dict[str, str]:
         """主函数：根据用户输入生成视频"""
-        print(f"\n🚀 开始处理输入: '{user_input}'")
-        print("=" * 50)
-        
-        # 1. 生成场景规划
-        scene_plan = self.generate_scene_plan(user_input)
-        print("📋 场景规划完成")
-        
-        # 2. 生成Manim代码
-        code = self.generate_manim_code(scene_plan)
-        print("💻 代码生成完成")
-        
-        # 3. 提取类名
-        scene_name = self._extract_class_name(code)
-        
-        # 4. 保存并渲染
-        code_path, video_path = self.save_and_render(code, scene_name, user_input)
-        
-        return {
-            "user_input": user_input,
-            "scene_plan": scene_plan,
-            "code": code,
-            "code_path": code_path,
-            "video_path": video_path,
-            "scene_name": scene_name
-        }
+        try:
+            print(f"\n🚀 开始处理输入: '{user_input}'")
+            print("=" * 50)
+            
+            # 1. 生成场景规划
+            scene_plan = self.generate_scene_plan(user_input)
+            print("📋 场景规划完成")
+            
+            # 2. 生成Manim代码
+            code = self.generate_manim_code(scene_plan)
+            print("💻 代码生成完成")
+            
+            # 3. 提取类名
+            scene_name = self._extract_class_name(code)
+            
+            # 4. 保存并渲染
+            code_path, video_path = self.save_and_render(code, scene_name, user_input)
+            
+            return {
+                "user_input": user_input,
+                "scene_plan": scene_plan,
+                "code": code,
+                "code_path": code_path,
+                "video_path": video_path,
+                "scene_name": scene_name
+            }
+        except Exception as e:
+            return {
+                "ERR":str(e)
+            }
     
     def _extract_class_name(self, code: str) -> str:
         """从代码中提取类名"""

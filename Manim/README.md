@@ -36,13 +36,13 @@ The sample animation includes:
 
 ### Option 2: Direct command
 ```bash
-/usr/local/bin/python3.10 -m manim -p main.py SampleAnimation
+python3 -m manim -p main.py SampleAnimation
 ```
 
 ## Prerequisites
 
 - **Manim Community Edition**: Already installed via pip
-- **Python 3.10**: Located at `/usr/local/bin/python3.10`
+- **Python 3.10**: Located at `python3`
 - **LaTeX**: Required for mathematical formula rendering (automatically handled)
 
 ## Output
@@ -62,16 +62,16 @@ You can modify `main.py` to create your own animations:
 
 ```bash
 # Render without preview
-/usr/local/bin/python3.10 -m manim main.py SampleAnimation
+python3 -m manim main.py SampleAnimation
 
 # Render in low quality (faster)
-/usr/local/bin/python3.10 -m manim -ql main.py SampleAnimation
+python3 -m manim -ql main.py SampleAnimation
 
 # Render in high quality
-/usr/local/bin/python3.10 -m manim -qh main.py SampleAnimation
+python3 -m manim -qh main.py SampleAnimation
 
 # Show last frame only
-/usr/local/bin/python3.10 -m manim -s main.py SampleAnimation
+python3 -m manim -s main.py SampleAnimation
 ```
 
 ## Learn More

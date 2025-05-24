@@ -4,7 +4,7 @@
 
 ### 1. 启动API服务器
 ```bash
-/usr/local/bin/python3.10 final_api.py
+python3 final_api.py
 ```
 
 **API地址**: http://localhost:4567
@@ -148,7 +148,7 @@ generateVideo("牛顿第一定律").then(url => {
 
 ## 🎉 开始使用
 
-1. **启动API**: `/usr/local/bin/python3.10 final_api.py`
+1. **启动API**: `python3 final_api.py`
 2. **测试状态**: `curl http://localhost:4567/status`
 3. **生成视频**: 使用上述示例代码
 

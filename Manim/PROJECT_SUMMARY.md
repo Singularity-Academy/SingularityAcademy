@@ -13,7 +13,7 @@
 
 ```bash
 # 开始您的AI动画创作之旅
-/usr/local/bin/python3.10 demo.py
+python3 demo.py
 ```
 
 **输入任何数学或物理概念，AI将为您创造出精美的教育动画！** ✨

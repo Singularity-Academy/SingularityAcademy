@@ -3,7 +3,7 @@
 # Manim Render Script
 # This script uses the correct Python installation to render Manim animations
 
-PYTHON_PATH="/usr/local/bin/python3.10"
+PYTHON_PATH="python3"
 SCRIPT_NAME="main.py"
 SCENE_NAME="SampleAnimation"
 

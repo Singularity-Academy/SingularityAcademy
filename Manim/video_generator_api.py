@@ -17,7 +17,7 @@ app = Flask(__name__)
 
 # 配置
 OUTPUT_DIR = "simple_videos"
-PYTHON_PATH = "/usr/local/bin/python3.10"
+PYTHON_PATH = "python3"
 
 # 创建输出目录
 Path(OUTPUT_DIR).mkdir(exist_ok=True)

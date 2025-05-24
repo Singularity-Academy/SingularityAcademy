@@ -135,7 +135,7 @@ object.animate.scale(1.5)
 ## 🎯 实际应用效果
 
 ### API使用流程
-1. **启动API**: `/usr/local/bin/python3.10 ai_manim_api.py`
+1. **启动API**: `python3 ai_manim_api.py`
 2. **生成视频**: `POST /generate` with `{"text": "您的需求"}`
 3. **下载结果**: `GET /video/{video_id}`
 

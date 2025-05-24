@@ -4,7 +4,7 @@
 
 ### 1. 启动API服务器
 ```bash
-/usr/local/bin/python3.10 ai_manim_api.py
+python3 ai_manim_api.py
 ```
 
 **API地址**: http://localhost:8888
@@ -140,7 +140,7 @@ generateVideo("三角函数图像", "数学课程").then(downloadUrl => {
 
 ### 自动测试
 ```bash
-/usr/local/bin/python3.10 test_ai_api.py
+python3 test_ai_api.py
 ```
 
 ### 交互测试
@@ -176,7 +176,7 @@ generateVideo("三角函数图像", "数学课程").then(downloadUrl => {
 
 ## 🚀 开始使用
 
-1. **启动API**: `/usr/local/bin/python3.10 ai_manim_api.py`
+1. **启动API**: `python3 ai_manim_api.py`
 2. **测试连接**: 访问 http://localhost:8888/
 3. **生成视频**: 使用上述示例代码
 4. **享受结果**: 下载您的AI生成视频！
