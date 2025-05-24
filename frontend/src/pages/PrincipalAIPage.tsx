@@ -76,7 +76,16 @@ const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
       return 'Invalid Time';
     }
   };
-
+  let visualizedMetadata = "";
+  if (message.metadata && Array.isArray(message.metadata.courses)) {
+    for (const course of message.metadata.courses) {
+      visualizedMetadata += `<div style="margin:5px;background:white;padding:10px;border-radius:15px;border:0.4px solid black;">
+        <h3 style="color:darkred;margin:0 0 4px 0;font-size:1.5em;">${course.name}</h3>
+        <div>${course.description}</div>
+        <div style="margin-top:5px;color:blue;font-size:0.9em;font-weight:2px;">+ ADD COURSE</div>
+      </div>`;
+    }
+  }
   return (
     <Box
       maxW="80%"
@@ -96,11 +105,17 @@ const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
       {message.metadata && (
         <Box mt={2} p={2} bg={metadataBgColor} borderRadius="md">
           <Text fontSize="xs" color={timestampColor}>
-            Metadata: {JSON.stringify(message.metadata, null, 2)}
+        SUGGESTED COURSES
           </Text>
+          <Box
+        mt={1}
+        fontSize="xs"
+        color={timestampColor}
+        dangerouslySetInnerHTML={{ __html: visualizedMetadata }}
+          />
         </Box>
       )}
-      
+
       {message.timestamp && (
         <Text fontSize="xs" color={timestampColor} mt={2}>
           {formatTimestamp(message.timestamp)}
