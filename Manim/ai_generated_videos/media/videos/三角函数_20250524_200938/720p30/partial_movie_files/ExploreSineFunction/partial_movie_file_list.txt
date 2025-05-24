@@ -1,0 +1,8 @@
+# This file is used internally by FFMPEG.
+file 'file:/Users/zhaojiace/Documents/Singularity Academy/Manim/ai_generated_videos/media/videos/三角函数_20250524_200938/720p30/partial_movie_files/ExploreSineFunction/2990491934_4171430290_3040769582.mp4'
+file 'file:/Users/zhaojiace/Documents/Singularity Academy/Manim/ai_generated_videos/media/videos/三角函数_20250524_200938/720p30/partial_movie_files/ExploreSineFunction/993475044_2691881129_720559101.mp4'
+file 'file:/Users/zhaojiace/Documents/Singularity Academy/Manim/ai_generated_videos/media/videos/三角函数_20250524_200938/720p30/partial_movie_files/ExploreSineFunction/993475044_780274849_3585990627.mp4'
+file 'file:/Users/zhaojiace/Documents/Singularity Academy/Manim/ai_generated_videos/media/videos/三角函数_20250524_200938/720p30/partial_movie_files/ExploreSineFunction/993475044_2091805275_2618515147.mp4'
+file 'file:/Users/zhaojiace/Documents/Singularity Academy/Manim/ai_generated_videos/media/videos/三角函数_20250524_200938/720p30/partial_movie_files/ExploreSineFunction/993475044_1648843462_3510636614.mp4'
+file 'file:/Users/zhaojiace/Documents/Singularity Academy/Manim/ai_generated_videos/media/videos/三角函数_20250524_200938/720p30/partial_movie_files/ExploreSineFunction/993475044_2876035082_4158430202.mp4'
+file 'file:/Users/zhaojiace/Documents/Singularity Academy/Manim/ai_generated_videos/media/videos/三角函数_20250524_200938/720p30/partial_movie_files/ExploreSineFunction/993475044_59083050_2358810818.mp4'

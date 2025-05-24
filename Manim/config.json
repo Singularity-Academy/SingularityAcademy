@@ -1,0 +1,116 @@
+{
+  "default_model": "gpt-4",
+  "models": {
+    "gpt-4": {
+      "name": "GPT-4",
+      "model_id": "gpt-4",
+      "api_key": "Link_T1ZLmLhcIhZvOX9bRYFM4agbjY0CNwIpCbScjEe0GG",
+      "api_base": "https://api.link-ai.tech/v1",
+      "temperature": 0.7,
+      "max_tokens": 2000,
+      "streaming": true,
+      "timeout": 60,
+      "retry_attempts": 3,
+      "description": "OpenAI's most capable model, optimized for complex mathematical and educational content generation"
+    },
+    "gpt-4-turbo": {
+      "name": "GPT-4 Turbo",
+      "model_id": "gpt-4-1106-preview",
+      "api_key": "Link_T1ZLmLhcIhZvOX9bRYFM4agbjY0CNwIpCbScjEe0GG",
+      "api_base": "https://api.link-ai.tech/v1",
+      "temperature": 0.7,
+      "max_tokens": 2000,
+      "streaming": true,
+      "timeout": 60,
+      "retry_attempts": 3,
+      "description": "Latest GPT-4 model with improved performance and lower cost, ideal for educational animations"
+    },
+    "gpt-3.5-turbo": {
+      "name": "GPT-3.5 Turbo",
+      "model_id": "gpt-3.5-turbo",
+      "api_key": "Link_T1ZLmLhcIhZvOX9bRYFM4agbjY0CNwIpCbScjEe0GG",
+      "api_base": "https://api.link-ai.tech/v1",
+      "temperature": 0.7,
+      "max_tokens": 2000,
+      "streaming": true,
+      "timeout": 60,
+      "retry_attempts": 3,
+      "description": "Fast and cost-effective model, suitable for basic mathematical animations"
+    },
+    "deepseek-v3": {
+      "name": "Deepseek Chat v3",
+      "model_id": "deepseek-chat",
+      "api_key": "sk-f4035b1b6ee54b58871ed85d2e53e21f",
+      "api_base": "https://api.deepseek.com/v1",
+      "temperature": 0.7,
+      "max_tokens": 2000,
+      "streaming": true,
+      "timeout": 60,
+      "retry_attempts": 3,
+      "description": "Deepseek's latest model with strong performance on coding and mathematical reasoning tasks"
+    }
+  },
+  "manim_settings": {
+    "quality": "medium",
+    "preview": true,
+    "frame_rate": 30,
+    "resolution": "1080p",
+    "quality_options": {
+      "low": {
+        "flag": "-ql",
+        "resolution": "480p",
+        "frame_rate": 15,
+        "description": "Fast rendering for quick previews"
+      },
+      "medium": {
+        "flag": "-qm",
+        "resolution": "720p", 
+        "frame_rate": 30,
+        "description": "Balanced quality and rendering speed"
+      },
+      "high": {
+        "flag": "-qh",
+        "resolution": "1080p",
+        "frame_rate": 60,
+        "description": "High quality for final output"
+      },
+      "4k": {
+        "flag": "-qk",
+        "resolution": "2160p",
+        "frame_rate": 60,
+        "description": "Ultra high quality for professional use"
+      }
+    }
+  },
+  "output_settings": {
+    "output_dir": "ai_generated_videos",
+    "keep_intermediate_files": true,
+    "auto_backup": true,
+    "max_video_duration": 120,
+    "video_format": "mp4",
+    "audio_enabled": false
+  },
+  "generation_settings": {
+    "scene_planning": {
+      "include_formulas": true,
+      "include_animations": true,
+      "include_colors": true,
+      "chinese_support": true,
+      "max_scene_complexity": "medium"
+    },
+    "code_generation": {
+      "add_comments": true,
+      "use_meaningful_names": true,
+      "include_error_handling": false,
+      "optimize_for_readability": true
+    },
+    "fallback_enabled": true,
+    "debug_mode": false
+  },
+  "ui_settings": {
+    "language": "zh-CN",
+    "show_progress": true,
+    "verbose_logging": true,
+    "color_output": true
+  }
+} 
