@@ -13,11 +13,13 @@ from typing import List, Optional
 from loguru import logger
 from langchain.schema import HumanMessage, AIMessage, SystemMessage
 
+from ai_engine.apps.courses.models import Course
+
 from .models import PrincipalChatHistory
 
-def load_prompt() -> str:
+def load_principal_prompt() -> str:
     """
-    Load the system prompt from the prompt.txt file.
+    Load the Principal's prompt from the prompt.txt file.
     
     The prompt file is located in the same directory as this module.
     
@@ -41,6 +43,32 @@ def load_prompt() -> str:
         logger.error(f"Error reading prompt file: {e}")
     return ""
 
+
+def load_course_generator_prompt() -> str:
+    """
+    Load the Principal's prompt from the prompt.txt file.
+    
+    The prompt file is located in the same directory as this module.
+    
+    Returns:
+        str: The contents of the prompt file
+        
+    Raises:
+        FileNotFoundError: If prompt.txt is not found
+        IOError: If there are issues reading the file
+    """
+    # Get the directory containing this module
+    current_dir = Path(__file__).parent
+    prompt_path = current_dir / "course_prompt.txt"
+    
+    try:
+        with open(prompt_path, "r") as f:
+            return f.read()
+    except FileNotFoundError:
+        logger.error(f"Prompt file not found at {prompt_path}")
+    except IOError as e:
+        logger.error(f"Error reading prompt file: {e}")
+    return ""
 class PrincipalChat:
     """
     Wrapper around the PrincipalChatHistory model.
@@ -60,10 +88,10 @@ class PrincipalChat:
             await self._load_history()
             # If no messages exist, add the system prompt
             if not self.history.messages:
-                system_message = self.create_message("system", load_prompt(), datetime.datetime.now().isoformat())
+                system_message = self.create_message("system", load_principal_prompt(), datetime.datetime.now().isoformat())
                 self.history.messages = [system_message]
                 await self.history.save()
-                self.langchain_messages.append(SystemMessage(content=load_prompt()))
+                self.langchain_messages.append(SystemMessage(content=load_principal_prompt()))
             self.initialized = True
 
     async def _load_history(self):
@@ -148,7 +176,10 @@ class PrincipalChat:
     async def new(cls, user_id: int):
         """Create a new chat instance for a user."""
         history = await PrincipalChatHistory.create(user_id=user_id)
-        history.messages = [cls.create_message("system", load_prompt(), datetime.now().isoformat())]
+        history.messages = [cls.create_message("system", load_principal_prompt(), datetime.now().isoformat())]
         await history.save()
         obj = cls(history)
         return obj
+
+    
+    
