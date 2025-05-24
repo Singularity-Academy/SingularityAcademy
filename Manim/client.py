@@ -8,5 +8,5 @@ def post_request(url, data):
     except requests.exceptions.RequestException as e:
         print(f"An error occurred: {e}")
         return None
-post_request("http://localhost:8888/generate", {"text": "牛顿第三定律"})
+post_request("http://localhost:8888/generate", {"text": input("[TEST] Enter keyword >")})
     

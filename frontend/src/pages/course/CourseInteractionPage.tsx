@@ -679,8 +679,22 @@ const CourseInteractionPage: React.FC = () => {
               display="flex"
               alignItems="center"
               justifyContent="center"
+              overflow="hidden"
+              position="relative"
             >
-              <Text color="white">Main Course Content</Text>
+              <Text color="white" display="none">Main Course Content</Text>
+              <video
+              autoPlay
+              muted
+              loop
+              src="http://localhost:8888/ai-principal-presentation.mp4"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block'
+              }}
+              />
             </Box>
             <IconButton
               aria-label="Toggle fullscreen"
@@ -858,18 +872,42 @@ const CourseInteractionPage: React.FC = () => {
                 size="lg"
                 rows={6}
               />
-              <Text fontSize="sm" color="gray.500">
+              <Text fontSize="sm" id="txt" color="gray.500">
                 Maximum 300 characters. The video will be generated using AI animation.
               </Text>
-              <Button
+                <Button
                 colorScheme="blue"
-                onClick={startVideoGeneration}
+                id="1"
+                onClick={async () => {
+                  const text = videoGenerationText;
+                  try {
+                  await axiosInstance.post("http://localhost:8888/generate", { "text":text });
+                  toast({
+                    title: "Request sent",
+                    description: "Video generation request has been sent.",
+                    status: "success",
+                    duration: 3000,
+                  });
+                  const btn = document.getElementById("1");
+                  if (btn) {
+                    btn.innerHTML = "Loading...";
+                  }
+                  // Button loading state is managed by isLoading prop, so no need to set innerHTML
+                  } catch (error) {
+                  toast({
+                    title: "Error",
+                    description: "Failed to send video generation request.",
+                    status: "error",
+                    duration: 3000,
+                  });
+                  }
+                }}
                 isLoading={isGeneratingVideo}
                 loadingText="Generating..."
                 isDisabled={!videoGenerationText.trim() || isGeneratingVideo}
-              >
+                >
                 Generate Video
-              </Button>
+                </Button>
             </VStack>
           </ModalBody>
         </ModalContent>

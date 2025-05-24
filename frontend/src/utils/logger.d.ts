@@ -9,4 +9,5 @@ interface Logger {
     error: (message: string, data?: any) => void;
 }
 
-export const logger: Logger; 
+declare const logger: Logger;
+export default logger; 

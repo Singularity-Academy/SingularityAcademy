@@ -179,6 +179,7 @@ class AIVideoGenerator:
 {scene_plan}
 
 请生成一个完整的Manim Scene类，严格遵循以下要求：
+请为每个环境变量赋值
 ⚠️你生成的Python代码将直接被封装执行，无任何已知变量。请务必在调用变量前为其赋值，例如WIDTH, HEIGHT, LIGHT_BLUE, YELLOW等，都会触发NOT DEFINED错误。
 历史错误：
 TypeError: Mobject.__init__() got an unexpected keyword argument 'max_value'

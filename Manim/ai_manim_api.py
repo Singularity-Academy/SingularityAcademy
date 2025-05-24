@@ -211,19 +211,19 @@ def generate_video():
         }), 500
 
 @app.route('/ai-principal-presentation.mp4', methods=['GET'])
-def download_video(video_id):
+def download_video(video_id="1"):
     """下载生成的视频"""
     try:
         video_path = f"ai-principal-presentation.mp4"
         
-        if not video_path.exists():
-            return jsonify({"error": "视频不存在或已过期"}), 404
+        #if not video_path.exists():
+         #   return jsonify({"error": "视频不存在或已过期"}), 404
         
         # 读取视频信息
         info_file = Path(API_CONFIG["output_dir"]) / f"{video_id}_info.json"
         video_name = f"ai_video_{video_id}.mp4"
         
-        if info_file.exists():
+        if True:
             try:
                 with open(info_file, 'r', encoding='utf-8') as f:
                     info = json.load(f)
@@ -235,12 +235,13 @@ def download_video(video_id):
         
         return send_file(
             str(video_path),
-            as_attachment=True,
+            as_attachment=False,
             download_name=video_name,
             mimetype='video/mp4'
         )
         
     except Exception as e:
+        print(f"❌ 下载视频失败: {e}")
         return jsonify({"error": f"下载失败: {str(e)}"}), 500
 
 @app.route('/videos', methods=['GET'])

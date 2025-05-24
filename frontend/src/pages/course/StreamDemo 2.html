@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Stream Demo</title>
+    <style>
+        /* Basic styling for the demo */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .video-container {
+            position: relative;
+            width: 320px;
+            height: 240px;
+            margin: 20px 0;
+            background: #000;
+        }
+        #localVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .metrics {
+            font-family: monospace;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Media Stream Demo</h1>
+        
+        <!-- Video Preview -->
+        <div class="video-container">
+            <video id="localVideo" autoplay playsinline muted></video>
+        </div>
+
+        <!-- Connection Status -->
+        <div id="connectionStatus" class="status disconnected">
+            Disconnected
+        </div>
+
+        <!-- Stream Metrics -->
+        <div class="metrics">
+            <div>Video FPS: <span id="videoFps">0</span></div>
+            <div>Audio Packets: <span id="audioPackets">0</span></div>
+            <div>Total Data Sent: <span id="totalData">0</span> KB</div>
+            <div>Latency: <span id="latency">0</span> ms</div>
+        </div>
+
+        <!-- Control Buttons -->
+        <div class="controls">
+            <button id="startButton">Start Streaming</button>
+            <button id="stopButton" disabled>Stop Streaming</button>
+        </div>
+    </div>
+
+    <script>
+        // Constants for stream configuration
+        const STREAM_CONFIG = {
+            video: {
+                width: 320,
+                height: 240,
+                frameRate: 5,
+                codec: 'video/webm;codecs=vp8',
+                bitrate: 250000,  // 250kbps
+                chunkSize: 200    // 200ms chunks
+            },
+            audio: {
+                channelCount: 1,  // Mono
+                sampleRate: 44100,
+                codec: 'audio/webm;codecs=opus',
+                bitrate: 64000,   // 64kbps
+                chunkSize: 100    // 100ms chunks
+            },
+            websocket: {
+                url: 'ws://localhost:1298/ai/dean/ws',
+                pingInterval: 5000  // 5 seconds
+            }
+        };
+
+        // Binary protocol constants
+        const PACKET_TYPES = {
+            VIDEO: 1,
+            AUDIO: 2,
+            PING: 3,
+            PONG: 4
+        };
+
+        // Stream state management
+        class StreamManager {
+            constructor() {
+                this.videoStream = null;
+                this.audioStream = null;
+                this.videoRecorder = null;
+                this.audioRecorder = null;
+                this.websocket = null;
+                this.isConnected = false;
+                this.metrics = {
+                    videoFrames: 0,
+                    audioPackets: 0,
+                    totalData: 0,
+                    lastPingTime: 0,
+                    latency: 0
+                };
+                this.sequenceNumbers = {
+                    video: 0,
+                    audio: 0
+                };
+            }
+
+            // Initialize media streams
+            async initializeStreams() {
+                try {
+                    // Request video stream with specific constraints
+                    this.videoStream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            width: STREAM_CONFIG.video.width,
+                            height: STREAM_CONFIG.video.height,
+                            frameRate: STREAM_CONFIG.video.frameRate
+                        }
+                    });
+
+                    // Request audio stream with specific constraints
+                    this.audioStream = await navigator.mediaDevices.getUserMedia({
+                        audio: {
+                            channelCount: STREAM_CONFIG.audio.channelCount,
+                            sampleRate: STREAM_CONFIG.audio.sampleRate
+                        }
+                    });
+
+                    // Display video stream
+                    const videoElement = document.getElementById('localVideo');
+                    videoElement.srcObject = this.videoStream;
+
+                    // Initialize recorders
+                    this.initializeRecorders();
+                    
+                    return true;
+                } catch (error) {
+                    console.error('Error initializing streams:', error);
+                    this.updateStatus('Error: ' + error.message, false);
+                    return false;
+                }
+            }
+
+            // Initialize MediaRecorders with specific configurations
+            initializeRecorders() {
+                // Video recorder setup
+                this.videoRecorder = new MediaRecorder(this.videoStream, {
+                    mimeType: STREAM_CONFIG.video.codec,
+                    videoBitsPerSecond: STREAM_CONFIG.video.bitrate
+                });
+
+                // Audio recorder setup
+                this.audioRecorder = new MediaRecorder(this.audioStream, {
+                    mimeType: STREAM_CONFIG.audio.codec,
+                    audioBitsPerSecond: STREAM_CONFIG.audio.bitrate
+                });
+
+                // Set up data handlers
+                this.videoRecorder.ondataavailable = this.handleVideoData.bind(this);
+                this.audioRecorder.ondataavailable = this.handleAudioData.bind(this);
+            }
+
+            // Connect to WebSocket server
+            connect() {
+                this.websocket = new WebSocket(STREAM_CONFIG.websocket.url);
+                
+                this.websocket.onopen = () => {
+                    this.isConnected = true;
+                    this.updateStatus('Connected', true);
+                    this.startPingInterval();
+                    this.startStreaming();
+                };
+
+                this.websocket.onclose = () => {
+                    this.isConnected = false;
+                    this.updateStatus('Disconnected', false);
+                    this.stopStreaming();
+                };
+
+                this.websocket.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    this.updateStatus('Connection error', false);
+                };
+
+                this.websocket.onmessage = this.handleWebSocketMessage.bind(this);
+            }
+
+            // Start streaming media
+            startStreaming() {
+                if (this.videoRecorder && this.audioRecorder) {
+                    this.videoRecorder.start(STREAM_CONFIG.video.chunkSize);
+                    this.audioRecorder.start(STREAM_CONFIG.audio.chunkSize);
+                    this.updateMetrics();
+                }
+            }
+
+            // Stop streaming media
+            stopStreaming() {
+                if (this.videoRecorder && this.videoRecorder.state !== 'inactive') {
+                    this.videoRecorder.stop();
+                }
+                if (this.audioRecorder && this.audioRecorder.state !== 'inactive') {
+                    this.audioRecorder.stop();
+                }
+                this.stopPingInterval();
+            }
+
+            // Handle video data
+            async handleVideoData(event) {
+                if (event.data.size > 0 && this.isConnected) {
+                    const packet = this.createStreamPacket(
+                        PACKET_TYPES.VIDEO,
+                        event.data,
+                        this.sequenceNumbers.video++
+                    );
+                    this.websocket.send(packet);
+                    this.updateMetrics('video');
+                }
+            }
+
+            // Handle audio data
+            async handleAudioData(event) {
+                if (event.data.size > 0 && this.isConnected) {
+                    const packet = this.createStreamPacket(
+                        PACKET_TYPES.AUDIO,
+                        event.data,
+                        this.sequenceNumbers.audio++
+                    );
+                    this.websocket.send(packet);
+                    this.updateMetrics('audio');
+                }
+            }
+
+            // Create binary packet with header
+            createStreamPacket(type, data, sequence) {
+                // Packet structure:
+                // 1 byte: packet type
+                // 8 bytes: timestamp
+                // 4 bytes: sequence number
+                // N bytes: actual data
+                const header = new ArrayBuffer(13);
+                const view = new DataView(header);
+                
+                view.setUint8(0, type);
+                view.setBigUint64(1, BigInt(Date.now()));
+                view.setUint32(9, sequence);
+
+                return new Blob([header, data]);
+            }
+
+            // Handle incoming WebSocket messages
+            handleWebSocketMessage(event) {
+                if (event.data instanceof Blob) {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const data = new Uint8Array(reader.result);
+                        const type = data[0];
+                        
+                        if (type === PACKET_TYPES.PONG) {
+                            this.handlePong(data);
+                        }
+                    };
+                    reader.readAsArrayBuffer(event.data);
+                }
+            }
+
+            // Start periodic ping to measure latency
+            startPingInterval() {
+                this.pingInterval = setInterval(() => {
+                    if (this.isConnected) {
+                        const pingPacket = new Uint8Array([PACKET_TYPES.PING]);
+                        this.websocket.send(pingPacket);
+                        this.metrics.lastPingTime = Date.now();
+                    }
+                }, STREAM_CONFIG.websocket.pingInterval);
+            }
+
+            // Stop ping interval
+            stopPingInterval() {
+                if (this.pingInterval) {
+                    clearInterval(this.pingInterval);
+                }
+            }
+
+            // Handle pong response
+            handlePong(data) {
+                const now = Date.now();
+                this.metrics.latency = now - this.metrics.lastPingTime;
+                this.updateMetrics();
+            }
+
+            // Update UI metrics
+            updateMetrics(type) {
+                if (type === 'video') this.metrics.videoFrames++;
+                if (type === 'audio') this.metrics.audioPackets++;
+
+                // Update UI
+                document.getElementById('videoFps').textContent = 
+                    Math.round(this.metrics.videoFrames / (Date.now() - this.metrics.lastPingTime) * 1000);
+                document.getElementById('audioPackets').textContent = this.metrics.audioPackets;
+                document.getElementById('latency').textContent = this.metrics.latency;
+            }
+
+            // Update connection status UI
+            updateStatus(message, connected) {
+                const statusElement = document.getElementById('connectionStatus');
+                statusElement.textContent = message;
+                statusElement.className = `status ${connected ? 'connected' : 'disconnected'}`;
+            }
+
+            // Cleanup resources
+            cleanup() {
+                this.stopStreaming();
+                if (this.websocket) {
+                    this.websocket.close();
+                }
+                if (this.videoStream) {
+                    this.videoStream.getTracks().forEach(track => track.stop());
+                }
+                if (this.audioStream) {
+                    this.audioStream.getTracks().forEach(track => track.stop());
+                }
+            }
+        }
+
+        // Initialize the demo
+        document.addEventListener('DOMContentLoaded', () => {
+            const streamManager = new StreamManager();
+            const startButton = document.getElementById('startButton');
+            const stopButton = document.getElementById('stopButton');
+
+            startButton.addEventListener('click', async () => {
+                if (await streamManager.initializeStreams()) {
+                    streamManager.connect();
+                    startButton.disabled = true;
+                    stopButton.disabled = false;
+                }
+            });
+
+            stopButton.addEventListener('click', () => {
+                streamManager.cleanup();
+                startButton.disabled = false;
+                stopButton.disabled = true;
+            });
+
+            // Cleanup on page unload
+            window.addEventListener('beforeunload', () => {
+                streamManager.cleanup();
+            });
+        });
+    </script>
+</body>
+</html> 
