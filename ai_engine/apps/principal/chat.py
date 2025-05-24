@@ -13,8 +13,6 @@ from typing import List, Optional
 from loguru import logger
 from langchain.schema import HumanMessage, AIMessage, SystemMessage
 
-from ai_engine.apps.courses.models import Course
-
 from .models import PrincipalChatHistory
 
 def load_principal_prompt() -> str:

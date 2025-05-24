@@ -15,8 +15,10 @@ from langchain.schema import BaseMessage
 from langchain.callbacks.base import AsyncCallbackHandler
 from langchain.schema import LLMResult
 
+from .course import generate_course_outline
 from ..ai.llm import LLM
 from .chat import PrincipalChat
+from .models import Course
 
 class PlaintextWSStreamingCallback(AsyncCallbackHandler):
     """
@@ -214,9 +216,9 @@ async def send_ws_error(ws: Websocket, error: str, status_code: int = 400) -> No
         "timestamp": datetime.now().isoformat()
     }))
 
-async def process_message(ws: Websocket, chat: PrincipalChat, llm: LLM, content: str, session_id: str) -> None:
+async def handle_user_message(ws: Websocket, chat: PrincipalChat, llm: LLM, content: str, session_id: str) -> None:
     """
-    Process a message from a WebSocket client.
+    Process a user message from a WebSocket client.
     
     This function handles the complete message processing pipeline:
     1. Saves the user message to chat history
@@ -261,3 +263,63 @@ async def process_message(ws: Websocket, chat: PrincipalChat, llm: LLM, content:
             await send_ws_error(ws, f"Error processing message: {str(e)}", 500)
         except:
             pass 
+
+async def handle_course_req(ws: Websocket, content: str, session_id: str) -> None:
+    """
+    Process a course request from a WebSocket client.
+    """
+    try:
+        logger.info(f"[{session_id}] Processing course request")
+        
+        if content["type"] == "create":
+            course = await Course.create(
+                name=content["name"],
+                description=content["description"]
+            )
+            await course.save()
+            # Pre-send successful message to avoid waiting for outline generation
+            await ws.send(format_json_course_response("create_course", course))
+            outline = await generate_course_outline(course.id)
+            course.outline = outline
+            await course.save()
+            await ws.send(format_json_course_response("course_outline", course))
+        
+        elif content["type"] == "delete":
+            course = await Course.get(id=content["course_id"])
+            await course.delete()
+            await ws.send(format_json_course_response("delete_course", None))
+
+        elif content["type"] == "update":
+            course = await Course.get(id=content["course_id"])
+            await course.save()
+            await ws.send(format_json_course_response("update_course", course))
+        else:
+            logger.info(f"[{session_id}] Unexpected course request type: {content['type']}")
+            await send_ws_error(ws, f"Unexpected course request type: {content['type']}", 400)
+
+    except Exception as e:
+        logger.error(f"[{session_id}] Error processing course request: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        try:
+            await send_ws_error(ws, f"Error processing course request: {str(e)}", 500)
+        except:
+            pass
+
+    
+def format_json_course_response(msgtype: str, course: Optional[Course] = None) -> dict:
+    """
+    Format a course response for the WebSocket client.
+    """
+    if msgtype == "delete_course" and course is None:
+        return json.dumps({
+            "type": msgtype,
+            "success": True
+        })
+    return json.dumps({
+        "type": msgtype,
+        "course_id": course.id,
+        "name": course.name,
+        "description": course.description,
+        "outline": course.outline if course.outline else "Generating..."
+    })

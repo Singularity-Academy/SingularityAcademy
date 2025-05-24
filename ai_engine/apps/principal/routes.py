@@ -22,7 +22,7 @@ from ..ai.llm import LLM
 from .chat import PrincipalChat
 from .models import PrincipalChatHistory
 from ..auth.models import User
-from .utils import send_ws_error, process_message
+from .utils import handle_course_req, send_ws_error, handle_user_message
 
 bp = Blueprint("principal", url_prefix="/principal-ai")
 
@@ -107,19 +107,18 @@ async def websocket(request: Request, ws: Websocket):
                 logger.info(f"[{session_id}] Missing message type")
                 await send_ws_error(ws, "Message must include 'type' field", 400)
                 continue
-                
-            if data["type"] != "message":
+
+            # Process the message with all required arguments
+            if data["type"] == "message":
+                await handle_user_message(ws, chat, llm, data["content"], session_id)
+
+            elif data["type"] == "course":
+                await handle_course_req(ws, data["content"], session_id)
+
+            else:
                 logger.info(f"[{session_id}] Unexpected message type: {data.get('type')}")
                 await send_ws_error(ws, f"Unexpected message type: {data.get('type')}", 400)
                 continue
-                
-            if "content" not in data or not data["content"].strip():
-                logger.info(f"[{session_id}] Empty message content")
-                await send_ws_error(ws, "Message content cannot be empty", 400)
-                continue
-
-            # Process the message with all required arguments
-            await process_message(ws, chat, llm, data["content"], session_id)
 
 
     except WebsocketClosed:
