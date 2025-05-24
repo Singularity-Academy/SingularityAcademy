@@ -263,7 +263,7 @@ async def handle_user_message(ws: Websocket, chat: PrincipalChat, llm: LLM, cont
         except:
             pass 
 
-async def handle_course_req(ws: Websocket, content: str, session_id: str) -> None:
+async def handle_course_req(ws: Websocket, content: str, session_id: str, llm: LLM) -> None:
     """
     Process a course request from a WebSocket client.
     """
@@ -278,7 +278,7 @@ async def handle_course_req(ws: Websocket, content: str, session_id: str) -> Non
             await course.save()
             # Pre-send successful message to avoid waiting for outline generation
             await ws.send(format_json_course_response("create_course", course))
-            outline = await generate_course_outline(course.id)
+            outline = await generate_course_outline(course.id, llm)
             course.outline = outline
             await course.save()
             await ws.send(format_json_course_response("course_outline", course))

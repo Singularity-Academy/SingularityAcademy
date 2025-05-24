@@ -1,3 +1,4 @@
+from typing import Optional
 from ai_engine.apps.ai.llm import LLM
 from ai_engine.apps.course.models import Course
 from langchain.schema import HumanMessage, SystemMessage
@@ -6,7 +7,7 @@ from ai_engine.logging import logger, log_exception
 
 from .chat import load_course_generator_prompt
 
-async def generate_course_outline(course_id: str) -> str:
+async def generate_course_outline(course_id: str, llm: Optional[LLM] = None) -> str:
     """
     Generate a course outline for a given course ID.
     
@@ -52,7 +53,8 @@ Include practical exercises and assessments where appropriate."""
         ]
         
         # Initialize LLM and generate response
-        llm = LLM()
+        if not llm:
+            llm = LLM()
         return await llm.agenerate_response(messages)
         
     except Exception as e:

@@ -113,7 +113,7 @@ async def websocket(request: Request, ws: Websocket):
                 await handle_user_message(ws, chat, llm, data["content"], session_id)
 
             elif data["type"] == "course":
-                await handle_course_req(ws, data["content"], session_id)
+                await handle_course_req(ws, data["content"], session_id, llm)
 
             else:
                 logger.info(f"[{session_id}] Unexpected message type: {data.get('type')}")
