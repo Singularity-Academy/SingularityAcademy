@@ -1,10 +1,10 @@
 {
     "type": "mysql",
     "user": "root",
-    "password": "dl110426",
-    "host": "127.0.0.1",
-    "port": 3306,
-    "name": "school",
+    "password": "PivotHack.0269",
+    "host": "livestream.kevinwang.top",
+    "port": 25600,
+    "name": "test1",
     "charset": "utf8mb4",
     "loc": "Local"
 }

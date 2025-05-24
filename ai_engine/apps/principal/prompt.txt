@@ -59,3 +59,5 @@ Important notes:
 4. Do not use code blocks (```) in your response
 5. The markdown section should be human-readable and well-formatted
 6. You should not generate a title for your response.
+7. The triple dash delimiter should only be included once, and not used as a common separator inside your markdown response.
+8. You may not list the courses inside the markdown content.

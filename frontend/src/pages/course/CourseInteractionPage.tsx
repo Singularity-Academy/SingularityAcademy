@@ -21,6 +21,7 @@ import {useNavigate} from "react-router-dom";
 import { FaFileUpload, FaLink } from 'react-icons/fa';
 import { useDropzone } from 'react-dropzone';
 import { w3cwebsocket as W3CWebSocket } from "websocket";
+import { AxiosProgressEvent } from 'axios';
 
 declare class ImageCapture {
   constructor(track: MediaStreamTrack);
@@ -377,7 +378,7 @@ const CourseInteractionPage: React.FC = () => {
 
     try {
       const response = await axiosInstance.post(API_ENDPOINTS.COURSE.MATERIALS, formData, {
-        onUploadProgress: (progressEvent) => {
+        onUploadProgress: (progressEvent: AxiosProgressEvent) => {
           const percentCompleted = Math.round(
               (progressEvent.loaded * 100) / (progressEvent.total || 1)
           );
@@ -629,7 +630,7 @@ const CourseInteractionPage: React.FC = () => {
                         <Text fontWeight="bold">
                           {msg.role === 'user' ? 'You' : 'AI Teacher'}
                         </Text>
-                        <Text>{msg.content}</Text>
+                        <Text whiteSpace="pre-wrap">{msg.content}</Text>
                       </Box>
                   ))}
                 </VStack>
