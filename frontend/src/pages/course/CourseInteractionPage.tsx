@@ -541,7 +541,9 @@ const CourseInteractionPage: React.FC = () => {
     if (!videoGenerationStatus?.download_url) return;
 
     try {
-      const response = await axiosInstance.get(videoGenerationStatus.download_url, {
+      // Update the URL to use /ai prefix instead of /api
+      const downloadUrl = videoGenerationStatus.download_url.replace('/api/', '/ai/');
+      const response = await axiosInstance.get(downloadUrl, {
         responseType: 'blob'
       });
       
