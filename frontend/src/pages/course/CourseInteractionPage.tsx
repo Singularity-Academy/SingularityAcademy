@@ -103,11 +103,11 @@ const CourseInteractionPage: React.FC = () => {
           mediaRecorder.start(500);  // Capture every 0.5 seconds of audio
         })
         .catch((error) => toast({
-            title: "error accessing media devices",
-            description: error,
-            status: 'error',
-            duration: 3000,
-        }));
+  title: "error accessing media devices",
+  description: error.message || String(error),
+  status: 'error',
+  duration: 3000,
+}));
   };
 
   const startVideo = () => {
@@ -136,12 +136,11 @@ const CourseInteractionPage: React.FC = () => {
       return stream;
     })
     .catch((error) => toast({
-        title: "error accessing media devices",
-        description: error,
-        status: 'error',
-        duration: 3000,
-      })
-    );
+  title: "error accessing media devices",
+  description: error.message || String(error),
+  status: 'error',
+  duration: 3000,
+}));
   };
 
   const connectWebSocket = () => {
