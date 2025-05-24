@@ -35,11 +35,14 @@ if __name__ == "__main__":
         log_routes(app)
 
     logger.info(f"Starting AI Engine in development mode on {args.host}:{args.port}")
-    app.run(
-        host=args.host,
-        port=args.port,
-        debug=True,
-        auto_reload=True,
-        access_log=True,
-        workers=2  # Use single worker in development
-    ) 
+    try:
+        app.run(
+            host=args.host,
+            port=args.port,
+            debug=True,
+            auto_reload=True,
+            access_log=True,
+            workers=2  # Use single worker in development
+        ) 
+    except RuntimeError:
+        pass
