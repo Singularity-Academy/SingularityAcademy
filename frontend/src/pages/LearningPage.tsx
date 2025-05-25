@@ -5,153 +5,869 @@ import {
   Heading,
   Text,
   VStack,
+  HStack,
   SimpleGrid,
   useColorModeValue,
+  Container,
+  Icon,
+  Image,
+  Progress,
+  Badge,
+  Flex,
+  Avatar,
+  Divider,
+  Grid,
+  GridItem,
+  useToast,
+  Spinner,
 } from '@chakra-ui/react';
+import { keyframes } from '@emotion/react';
+import { 
+  FiBook, 
+  FiCalendar, 
+  FiTrendingUp, 
+  FiUser, 
+  FiStar, 
+  FiClock,
+  FiTarget,
+  FiAward,
+  FiArrowRight,
+  FiPlay
+} from 'react-icons/fi';
 import Navbar from "@components/Navbar";
-import {useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 import Cookies from 'js-cookie';
+import { getUserData } from '@utils/axios';
+
+// Import illustrations from HomePage
+import LogoIcon from '../assets/illus/illus_hero_17.png';
+import Illus18 from '../assets/illus/illus_hero_18.png';
+import Illus19 from '../assets/illus/illus_hero_19.png';
+import Illus20 from '../assets/illus/illus_hero_20.png';
+import Illus21 from '../assets/illus/illus_hero_21.png';
+import Illus22 from '../assets/illus/illus_hero_22.png';
+import Illus23 from '../assets/illus/illus_hero_23.png';
+
+// Enhanced animations
+const float = keyframes`
+  0% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-10px) rotate(1deg); }
+  66% { transform: translateY(-3px) rotate(-0.5deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+`;
+
+const fadeIn = keyframes`
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+`;
+
+const slideIn = keyframes`
+  from { transform: translateX(-30px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+`;
+
+const pulse = keyframes`
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+`;
+
+// Curve component for section transitions
+const CurveTransition: React.FC<{ 
+  topColor: string; 
+  bottomColor: string; 
+  flip?: boolean;
+  height?: string;
+}> = ({ topColor, bottomColor, flip = false, height = "60px" }) => (
+  <Box position="relative" height={height} overflow="hidden">
+    <svg
+      width="100%"
+      height="100%"
+      viewBox="0 0 1200 120"
+      preserveAspectRatio="none"
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        transform: flip ? 'scaleY(-1)' : 'none',
+      }}
+    >
+      <path
+        d="M0,0 C150,80 350,0 600,40 C850,80 1050,0 1200,40 L1200,120 L0,120 Z"
+        fill={topColor}
+      />
+    </svg>
+    <Box
+      position="absolute"
+      top="0"
+      left="0"
+      right="0"
+      bottom="0"
+      bg={bottomColor}
+      zIndex="-1"
+    />
+  </Box>
+);
+
+// User data interface
+interface UserData {
+  id: number;
+  name: string;
+  email: string;
+}
+
+// Extended user data interface for dashboard
+interface ExtendedUserData extends UserData {
+  level: string;
+  progress: number;
+  streak: number;
+  completedCourses: number;
+  totalPoints: number;
+}
 
 const LearningPage: React.FC = () => {
-  const bgColor = useColorModeValue('gray.50', 'gray.900');
-  const cardBg = useColorModeValue('white', 'gray.700');
   const navigate = useNavigate();
+  const toast = useToast();
   const [selectedSection, setSelectedSection] = useState<string>('overview');
+  const [user, setUser] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
   const { t } = useTranslation();
 
-  // Check authentication
+  // Check authentication and fetch user data
   useEffect(() => {
+    const fetchUserData = async () => {
     if (!Cookies.get('token')) {
       navigate('/login');
-    }
-  }, [navigate]);
+        return;
+      }
+
+      setLoading(true);
+      const userData = await getUserData(toast, navigate);
+      if (userData) {
+        setUser(userData);
+      }
+      setLoading(false);
+    };
+
+    fetchUserData();
+  }, [navigate, toast]);
+
+  // Create extended user data with mock additional fields
+  const getExtendedUserData = (user: UserData | null): ExtendedUserData | null => {
+    if (!user) return null;
+    
+    return {
+      ...user,
+      level: "Advanced Learner",
+      progress: 75,
+      streak: 12,
+      completedCourses: 8,
+      totalPoints: 2450
+    };
+  };
+
+  const extendedUserData = getExtendedUserData(user);
+
+  const sidebarItems = [
+    { id: 'overview', label: 'Dashboard', icon: FiTrendingUp },
+    { id: 'courses', label: 'My Courses', icon: FiBook },
+    { id: 'meeting', label: 'AI Mentors', icon: FiUser },
+    { id: 'achievements', label: 'Achievements', icon: FiAward },
+  ];
 
   const renderContent = () => {
+    if (!extendedUserData) return null;
+    
     switch (selectedSection) {
       case 'overview':
-        return (
-          <VStack spacing={10} align="center">
-            <Heading as="h1" size="2xl" textAlign="center" color="blue.500">
-              Your Learning Journey
-            </Heading>
-            <Text fontSize="xl" textAlign="center" maxW="2xl">
-              Welcome to your personalized learning dashboard. Here, you can track your progress and interact with your AI mentors.
-            </Text>
-          </VStack>
-        );
+        return <DashboardContent userData={extendedUserData} />;
       case 'meeting':
-        return (
-          <VStack spacing={6} textAlign="center">
-            <Heading color="blue.500">Schedule a Meeting</Heading>
-            <Text fontSize="lg" maxW="2xl">
-              Choose a meeting with your Principal or Dean to discuss your learning targets and schedule.
-            </Text>
-            <Button size="lg" colorScheme="blue" onClick={() => navigate("/principal-ai")}>
-              {t('LearningPage.meetPrincipal')}
-            </Button>
-            <Button size="lg" colorScheme="teal" onClick={() => navigate("/course/interaction?AI=Dean")}>
-              Meet with Dean AI
-            </Button>
-          </VStack>
-        );
+        return <MentorSection />;
       case 'courses':
-        return (
-          <VStack spacing={12}>
-            <Heading textAlign="center" color="blue.500">
-              Courses You Are Taking
-            </Heading>
-            <SimpleGrid columns={{ base: 1, md: 3 }} spacing={10}>
-              <CourseCard title="Rocket Science 101" description="An introduction to the principles of rocket science." />
-              <CourseCard title="Advanced Mathematics" description="Deep dive into calculus and linear algebra." />
-              <CourseCard title="Engineering Fundamentals" description="Learn the basics of engineering design and analysis." />
-            </SimpleGrid>
-          </VStack>
-        );
+        return <CoursesSection />;
+      case 'achievements':
+        return <AchievementsSection />;
       default:
-        return null;
+        return <DashboardContent userData={extendedUserData} />;
     }
   };
 
+  // Loading state
+  if (loading) {
+    return (
+      <Flex minH="100vh" align="center" justify="center" bg="#FFE5C4">
+        <VStack spacing={6}>
+          <Image src={LogoIcon} alt="Loading" w="80px" h="80px" animation={`${pulse} 2s infinite`} />
+          <Text color="#5D5858" fontSize="lg">Loading your dashboard...</Text>
+        </VStack>
+      </Flex>
+    );
+  }
+
+  // No user data state
+  if (!user || !extendedUserData) {
   return (
-    <Box bg={bgColor} minH="100vh" display="flex">
-      {/* Sidebar */}
-      <Box width="250px" bg={cardBg} p={5} boxShadow="md" >
-        <VStack spacing={5} align="start">
-          <Heading size="md" color="blue.500">Navigation</Heading>
-          <Button
-            variant="link"
-            onClick={() => setSelectedSection('overview')}
-            color={selectedSection === 'overview' ? 'blue.500' : 'gray.600'}
-          >
-            Overview
-          </Button>
-          <Button
-            variant="link"
-            onClick={() => setSelectedSection('meeting')}
-            color={selectedSection === 'meeting' ? 'blue.500' : 'gray.600'}
-          >
-            Schedule a Meeting
-          </Button>
-          <Button
-            variant="link"
-            onClick={() => setSelectedSection('courses')}
-            color={selectedSection === 'courses' ? 'blue.500' : 'gray.600'}
-          >
-            Courses
+      <Flex minH="100vh" align="center" justify="center" bg="#FFE5C4">
+        <VStack spacing={6}>
+          <Text color="#5D5858" fontSize="lg">Unable to load user data</Text>
+          <Button onClick={() => navigate('/login')} bg="#F47B4F" color="white">
+            Return to Login
           </Button>
         </VStack>
+      </Flex>
+    );
+  }
+
+  return (
+    <Box bg="#FFE5C4" minH="100vh">
+      <Box pt="64px">
+        {/* Hero Header */}
+        <Box
+          bgGradient="linear(135deg, #FFE5C4 0%, #FFB69B 50%, #F47B4F 100%)"
+          py={8}
+          position="relative"
+          overflow="hidden"
+        >
+          {/* Background Illustrations */}
+          <Box position="absolute" top="20%" left="5%" opacity="0.2" animation={`${float} 6s ease-in-out infinite`}>
+            <Image src={Illus22} alt="" w="80px" />
+          </Box>
+          <Box position="absolute" top="10%" right="8%" opacity="0.3" animation={`${float} 8s ease-in-out infinite 2s`}>
+            <Image src={Illus23} alt="" w="60px" />
+          </Box>
+
+          <Container maxW="container.xl">
+            <Flex align="center" justify="space-between">
+              <VStack align="flex-start" spacing={2}>
+                <HStack spacing={3}>
+                  <Image src={LogoIcon} alt="ClarifAI" w="40px" h="40px" />
+                  <Heading color="#5D5858" fontSize="2xl" fontWeight="700">
+                    Learning Dashboard
+                  </Heading>
+                </HStack>
+                <Text color="#5D5858" opacity="0.8" fontSize="lg">
+                  Welcome back, {extendedUserData.name}! Ready to continue your journey?
+                </Text>
+              </VStack>
+              
+              <HStack spacing={6} display={{ base: 'none', md: 'flex' }}>
+                <VStack spacing={1}>
+                  <Text fontSize="2xl" fontWeight="bold" color="#F47B4F">
+                    {extendedUserData.streak}
+                  </Text>
+                  <Text fontSize="sm" color="#5D5858" opacity="0.7">
+                    Day Streak
+                  </Text>
+                </VStack>
+                <VStack spacing={1}>
+                  <Text fontSize="2xl" fontWeight="bold" color="#F47B4F">
+                    {extendedUserData.totalPoints}
+                  </Text>
+                  <Text fontSize="sm" color="#5D5858" opacity="0.7">
+                    Points
+                  </Text>
+                </VStack>
+              </HStack>
+            </Flex>
+          </Container>
+        </Box>
+
+        <CurveTransition topColor="#F47B4F" bottomColor="white" />
+
+        {/* Main Content Area */}
+        <Box bg="white" minH="calc(100vh - 200px)">
+          <Container maxW="container.xl" py={8}>
+            <Grid templateColumns={{ base: "1fr", lg: "280px 1fr" }} gap={8}>
+              {/* Enhanced Sidebar */}
+              <GridItem>
+                <Box
+                  bg="white"
+                  borderRadius="20px"
+                  boxShadow="0 10px 40px rgba(93, 88, 88, 0.1)"
+                  p={6}
+                  position="sticky"
+                  top="100px"
+                >
+                  <VStack spacing={6} align="stretch">
+                    {/* User Profile Section */}
+                    <VStack spacing={4}>
+                      <Avatar 
+                        size="lg" 
+                        name={extendedUserData.name} 
+                        bg="#F47B4F" 
+                        color="white"
+                        border="3px solid #FFB69B"
+                      />
+                      <VStack spacing={1}>
+                        <Heading size="md" color="#5D5858">
+                          {extendedUserData.name}
+                        </Heading>
+                        <Badge colorScheme="orange" borderRadius="full" px={3}>
+                          {extendedUserData.level}
+                        </Badge>
+                      </VStack>
+                      
+                      {/* Progress Bar */}
+                      <Box w="full">
+                        <Flex justify="space-between" mb={2}>
+                          <Text fontSize="sm" color="#5D5858" opacity="0.7">
+                            Overall Progress
+                          </Text>
+                          <Text fontSize="sm" fontWeight="bold" color="#F47B4F">
+                            {extendedUserData.progress}%
+                          </Text>
+                        </Flex>
+                        <Progress 
+                          value={extendedUserData.progress} 
+                          colorScheme="orange" 
+                          borderRadius="full"
+                          size="md"
+                        />
+                      </Box>
+                    </VStack>
+
+                    <Divider />
+
+                    {/* Navigation Items */}
+                    <VStack spacing={2} align="stretch">
+                      {sidebarItems.map((item, index) => (
+          <Button
+                          key={item.id}
+                          variant="ghost"
+                          justifyContent="flex-start"
+                          leftIcon={<Icon as={item.icon} />}
+                          onClick={() => setSelectedSection(item.id)}
+                          bg={selectedSection === item.id ? '#FFE5C4' : 'transparent'}
+                          color={selectedSection === item.id ? '#F47B4F' : '#5D5858'}
+                          _hover={{ 
+                            bg: '#FFE5C4', 
+                            color: '#F47B4F',
+                            transform: 'translateX(5px)'
+                          }}
+                          transition="all 0.3s ease"
+                          borderRadius="12px"
+                          h="50px"
+                          fontSize="md"
+                          fontWeight="500"
+                          animation={`${slideIn} 0.5s ease-out ${index * 0.1}s both`}
+                        >
+                          {item.label}
+          </Button>
+                      ))}
+                    </VStack>
+        </VStack>
       </Box>
+              </GridItem>
 
       {/* Main Content */}
-      <Box flex="1" p={10} mt={16}>
+              <GridItem>
+                <Box animation={`${fadeIn} 0.6s ease-out`}>
         {renderContent()}
+                </Box>
+              </GridItem>
+            </Grid>
+          </Container>
+        </Box>
       </Box>
     </Box>
   );
 };
 
-interface DeanCardProps {
+// Dashboard Content Component
+const DashboardContent: React.FC<{ userData: ExtendedUserData }> = ({ userData }) => {
+  return (
+    <VStack spacing={8} align="stretch">
+      {/* Stats Cards */}
+      <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6}>
+        <StatsCard
+          title="Courses Completed"
+          value={userData.completedCourses}
+          icon={FiBook}
+          color="#F47B4F"
+          illustration={Illus18}
+        />
+        <StatsCard
+          title="Learning Streak"
+          value={`${userData.streak} days`}
+          icon={FiTarget}
+          color="#FFB69B"
+          illustration={Illus19}
+        />
+        <StatsCard
+          title="Total Points"
+          value={userData.totalPoints}
+          icon={FiStar}
+          color="#5D5858"
+          illustration={Illus20}
+        />
+        <StatsCard
+          title="Study Hours"
+          value="124h"
+          icon={FiClock}
+          color="#F47B4F"
+          illustration={Illus21}
+        />
+      </SimpleGrid>
+
+      {/* Recent Activity */}
+      <Box
+        bg="white"
+        borderRadius="20px"
+        boxShadow="0 10px 40px rgba(93, 88, 88, 0.1)"
+        p={8}
+      >
+        <Heading size="lg" color="#5D5858" mb={6}>
+          Recent Activity
+        </Heading>
+        <VStack spacing={4} align="stretch">
+          <ActivityItem
+            title="Completed Rocket Science Module 3"
+            time="2 hours ago"
+            type="completion"
+          />
+          <ActivityItem
+            title="Achieved 'Problem Solver' Badge"
+            time="1 day ago"
+            type="achievement"
+          />
+          <ActivityItem
+            title="Started Advanced Mathematics Course"
+            time="3 days ago"
+            type="start"
+          />
+        </VStack>
+      </Box>
+    </VStack>
+  );
+};
+
+// Mentor Section Component
+const MentorSection: React.FC = () => {
+  const navigate = useNavigate();
+  
+  return (
+    <VStack spacing={8} align="stretch">
+      <Box textAlign="center">
+        <Heading size="xl" color="#5D5858" mb={4}>
+          Meet Your AI Mentors
+        </Heading>
+        <Text fontSize="lg" color="#5D5858" opacity="0.8" maxW="2xl" mx="auto">
+          Connect with our specialized AI mentors to get personalized guidance and support for your learning journey.
+        </Text>
+      </Box>
+
+      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8}>
+        <MentorCard
+          name="Principal AI"
+          role="Academic Advisor"
+          description="Get guidance on course selection, academic planning, and overall learning strategy."
+          illustration={Illus18}
+          onMeet={() => navigate("/principal-ai")}
+          color="#F47B4F"
+        />
+        <MentorCard
+          name="Dean AI"
+          role="Subject Expert"
+          description="Deep dive into specific subjects with expert-level knowledge and personalized explanations."
+          illustration={Illus19}
+          onMeet={() => navigate("/course/interaction?AI=Dean")}
+          color="#FFB69B"
+        />
+      </SimpleGrid>
+    </VStack>
+  );
+};
+
+// Courses Section Component
+const CoursesSection: React.FC = () => {
+  const courses = [
+    {
+      title: "Rocket Science 101",
+      description: "Master the fundamentals of aerospace engineering and rocket propulsion systems.",
+      progress: 85,
+      illustration: Illus20,
+      difficulty: "Intermediate",
+      duration: "8 weeks"
+    },
+    {
+      title: "Advanced Mathematics",
+      description: "Deep dive into calculus, linear algebra, and differential equations.",
+      progress: 60,
+      illustration: Illus21,
+      difficulty: "Advanced",
+      duration: "12 weeks"
+    },
+    {
+      title: "Engineering Fundamentals",
+      description: "Learn the core principles of engineering design and problem-solving.",
+      progress: 40,
+      illustration: Illus22,
+      difficulty: "Beginner",
+      duration: "6 weeks"
+    }
+  ];
+
+  return (
+    <VStack spacing={8} align="stretch">
+      <Box textAlign="center">
+        <Heading size="xl" color="#5D5858" mb={4}>
+          Your Learning Path
+        </Heading>
+        <Text fontSize="lg" color="#5D5858" opacity="0.8">
+          Continue your journey with these carefully curated courses.
+        </Text>
+      </Box>
+
+      <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={8}>
+        {courses.map((course, index) => (
+          <CourseCard key={index} {...course} />
+        ))}
+      </SimpleGrid>
+    </VStack>
+  );
+};
+
+// Achievements Section Component
+const AchievementsSection: React.FC = () => {
+  const achievements = [
+    { title: "First Steps", description: "Completed your first course", earned: true },
+    { title: "Streak Master", description: "Maintained a 7-day learning streak", earned: true },
+    { title: "Problem Solver", description: "Solved 50 practice problems", earned: true },
+    { title: "Knowledge Seeker", description: "Completed 10 courses", earned: false },
+    { title: "AI Collaborator", description: "Had 20 AI mentor sessions", earned: false },
+    { title: "Expert Level", description: "Reached advanced proficiency", earned: false },
+  ];
+
+  return (
+    <VStack spacing={8} align="stretch">
+      <Box textAlign="center">
+        <Heading size="xl" color="#5D5858" mb={4}>
+          Your Achievements
+        </Heading>
+        <Text fontSize="lg" color="#5D5858" opacity="0.8">
+          Celebrate your learning milestones and unlock new badges.
+        </Text>
+      </Box>
+
+      <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+        {achievements.map((achievement, index) => (
+          <AchievementCard key={index} {...achievement} />
+        ))}
+      </SimpleGrid>
+    </VStack>
+  );
+};
+
+// Enhanced Component Definitions
+interface StatsCardProps {
   title: string;
-  description: string;
+  value: string | number;
+  icon: any;
+  color: string;
+  illustration: string;
 }
 
-const DeanCard: React.FC<DeanCardProps> = ({ title, description }) => {
+const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon, color, illustration }) => {
   return (
-    <VStack
-      p={8}
-      bg={useColorModeValue('white', 'gray.800')}
-      borderRadius="lg"
-      boxShadow="xl"
-      spacing={4}
-      align="center"
-      _hover={{ transform: 'translateY(-5px)', transition: '0.3s' }}
+    <Box
+      bg="white"
+      borderRadius="20px"
+      boxShadow="0 10px 40px rgba(93, 88, 88, 0.1)"
+      p={6}
+      position="relative"
+      overflow="hidden"
+      _hover={{ 
+        transform: 'translateY(-5px)',
+        boxShadow: '0 20px 60px rgba(93, 88, 88, 0.2)',
+        transition: 'all 0.3s ease'
+      }}
+      animation={`${pulse} 3s ease-in-out infinite`}
     >
-      <Heading size="md">{title}</Heading>
-      <Text color="gray.600" textAlign="center">{description}</Text>
+      <Flex justify="space-between" align="center">
+        <VStack align="flex-start" spacing={2}>
+          <Icon as={icon} size="24px" color={color} />
+          <Text fontSize="sm" color="#5D5858" opacity="0.7">
+            {title}
+          </Text>
+          <Text fontSize="2xl" fontWeight="bold" color="#5D5858">
+            {value}
+          </Text>
+        </VStack>
+        <Image 
+          src={illustration} 
+          alt={title} 
+          w="60px" 
+          h="60px"
+          opacity="0.8"
+          animation={`${float} 3s ease-in-out infinite`}
+        />
+      </Flex>
+    </Box>
+  );
+};
+
+interface MentorCardProps {
+  name: string;
+  role: string;
+  description: string;
+  illustration: string;
+  onMeet: () => void;
+  color: string;
+}
+
+const MentorCard: React.FC<MentorCardProps> = ({ 
+  name, 
+  role, 
+  description, 
+  illustration, 
+  onMeet, 
+  color 
+}) => {
+  return (
+    <Box
+      bg="white"
+      borderRadius="20px"
+      boxShadow="0 10px 40px rgba(93, 88, 88, 0.1)"
+      p={8}
+      _hover={{ 
+        transform: 'translateY(-5px)',
+        boxShadow: '0 20px 60px rgba(93, 88, 88, 0.2)',
+        transition: 'all 0.3s ease'
+      }}
+    >
+      <VStack spacing={6}>
+        <Image 
+          src={illustration} 
+          alt={name} 
+          w="120px" 
+          h="120px"
+          animation={`${float} 4s ease-in-out infinite`}
+        />
+        <VStack spacing={2} textAlign="center">
+          <Heading size="lg" color="#5D5858">
+            {name}
+          </Heading>
+          <Badge colorScheme="orange" borderRadius="full" px={3}>
+            {role}
+          </Badge>
+          <Text color="#5D5858" opacity="0.8" lineHeight="1.6">
+            {description}
+          </Text>
+        </VStack>
+        <Button
+          bg={color}
+          color="white"
+          size="lg"
+          borderRadius="full"
+          rightIcon={<Icon as={FiArrowRight} />}
+          _hover={{ 
+            transform: 'scale(1.05)',
+            boxShadow: `0 10px 30px ${color}40`
+          }}
+          onClick={onMeet}
+        >
+          Schedule Meeting
+        </Button>
     </VStack>
+    </Box>
   );
 };
 
 interface CourseCardProps {
   title: string;
   description: string;
+  progress: number;
+  illustration: string;
+  difficulty: string;
+  duration: string;
 }
 
-const CourseCard: React.FC<CourseCardProps> = ({ title, description }) => {
+const CourseCard: React.FC<CourseCardProps> = ({ 
+  title, 
+  description, 
+  progress, 
+  illustration, 
+  difficulty, 
+  duration 
+}) => {
+  const difficultyColor = {
+    'Beginner': 'green',
+    'Intermediate': 'orange',
+    'Advanced': 'red'
+  }[difficulty] || 'gray';
+
   return (
-    <VStack
+    <Box
+      bg="white"
+      borderRadius="20px"
+      boxShadow="0 10px 40px rgba(93, 88, 88, 0.1)"
       p={8}
-      bg={useColorModeValue('white', 'gray.800')}
-      borderRadius="lg"
-      boxShadow="xl"
-      spacing={4}
-      align="center"
-      _hover={{ transform: 'translateY(-5px)', transition: '0.3s' }}
+      _hover={{ 
+        transform: 'translateY(-5px)',
+        boxShadow: '0 20px 60px rgba(93, 88, 88, 0.2)',
+        transition: 'all 0.3s ease'
+      }}
     >
-      <Heading size="md">{title}</Heading>
-      <Text color="gray.600" textAlign="center">{description}</Text>
+      <VStack spacing={6} align="stretch">
+        <Flex justify="space-between" align="center">
+          <VStack align="flex-start" spacing={2} flex="1">
+            <Heading size="md" color="#5D5858">
+              {title}
+            </Heading>
+            <HStack spacing={3}>
+              <Badge colorScheme={difficultyColor} borderRadius="full">
+                {difficulty}
+              </Badge>
+              <Text fontSize="sm" color="#5D5858" opacity="0.7">
+                {duration}
+              </Text>
+            </HStack>
+          </VStack>
+          <Image 
+            src={illustration} 
+            alt={title} 
+            w="80px" 
+            h="80px"
+            animation={`${float} 3s ease-in-out infinite`}
+          />
+        </Flex>
+        
+        <Text color="#5D5858" opacity="0.8" lineHeight="1.6">
+          {description}
+        </Text>
+        
+        <Box>
+          <Flex justify="space-between" mb={2}>
+            <Text fontSize="sm" color="#5D5858" opacity="0.7">
+              Progress
+            </Text>
+            <Text fontSize="sm" fontWeight="bold" color="#F47B4F">
+              {progress}%
+            </Text>
+          </Flex>
+          <Progress 
+            value={progress} 
+            colorScheme="orange" 
+            borderRadius="full"
+            size="md"
+          />
+        </Box>
+        
+        <Button
+          bg="#F47B4F"
+          color="white"
+          borderRadius="full"
+          rightIcon={<Icon as={FiPlay} />}
+          _hover={{ 
+            bg: '#E85A2B',
+            transform: 'scale(1.02)'
+          }}
+        >
+          Continue Learning
+        </Button>
+      </VStack>
+    </Box>
+  );
+};
+
+interface ActivityItemProps {
+  title: string;
+  time: string;
+  type: 'completion' | 'achievement' | 'start';
+}
+
+const ActivityItem: React.FC<ActivityItemProps> = ({ title, time, type }) => {
+  const getIcon = () => {
+    switch (type) {
+      case 'completion': return FiBook;
+      case 'achievement': return FiAward;
+      case 'start': return FiPlay;
+      default: return FiBook;
+    }
+  };
+
+  const getColor = () => {
+    switch (type) {
+      case 'completion': return '#F47B4F';
+      case 'achievement': return '#FFB69B';
+      case 'start': return '#5D5858';
+      default: return '#F47B4F';
+    }
+  };
+
+  return (
+    <Flex align="center" p={4} borderRadius="12px" _hover={{ bg: '#FFE5C4' }} transition="all 0.2s">
+      <Box
+        p={2}
+        borderRadius="full"
+        bg={`${getColor()}20`}
+        mr={4}
+      >
+        <Icon as={getIcon()} color={getColor()} size="20px" />
+      </Box>
+      <Box flex="1">
+        <Text fontWeight="500" color="#5D5858">
+          {title}
+        </Text>
+        <Text fontSize="sm" color="#5D5858" opacity="0.6">
+          {time}
+        </Text>
+      </Box>
+    </Flex>
+  );
+};
+
+interface AchievementCardProps {
+  title: string;
+  description: string;
+  earned: boolean;
+}
+
+const AchievementCard: React.FC<AchievementCardProps> = ({ title, description, earned }) => {
+  return (
+    <Box
+      bg="white"
+      borderRadius="16px"
+      boxShadow="0 10px 40px rgba(93, 88, 88, 0.1)"
+      p={6}
+      opacity={earned ? 1 : 0.6}
+      _hover={{ 
+        transform: earned ? 'translateY(-3px)' : 'none',
+        transition: 'all 0.3s ease'
+      }}
+    >
+      <VStack spacing={4}>
+        <Box
+          w="60px"
+          h="60px"
+          borderRadius="full"
+          bg={earned ? '#F47B4F' : '#E2E8F0'}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <Icon 
+            as={FiAward} 
+            size="30px" 
+            color={earned ? 'white' : '#A0AEC0'} 
+          />
+        </Box>
+        <VStack spacing={2} textAlign="center">
+          <Heading size="sm" color="#5D5858">
+            {title}
+          </Heading>
+          <Text fontSize="sm" color="#5D5858" opacity="0.7">
+            {description}
+          </Text>
+          {earned && (
+            <Badge colorScheme="orange" borderRadius="full">
+              Earned
+            </Badge>
+          )}
+        </VStack>
     </VStack>
+    </Box>
   );
 };
 

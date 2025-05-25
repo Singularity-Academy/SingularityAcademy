@@ -16,17 +16,32 @@ import {
   Stack,
   Icon,
   useBreakpointValue,
+  Grid,
+  GridItem,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
-import { FiArrowRight } from 'react-icons/fi';
+import { FiArrowRight, FiBook, FiUsers, FiZap, FiTarget, FiGlobe, FiStar } from 'react-icons/fi';
 import Navbar from '@components/Navbar';
 import { useTranslation } from 'react-i18next';
-import MImage from '../assets/M.jpg';
+
+// Import all illustrations
+import LogoWithName from '../assets/illus/illus_hero_16.png';
+import LogoIcon from '../assets/illus/illus_hero_17.png';
+import Illus18 from '../assets/illus/illus_hero_18.png';
+import Illus19 from '../assets/illus/illus_hero_19.png';
+import Illus20 from '../assets/illus/illus_hero_20.png';
+import Illus21 from '../assets/illus/illus_hero_21.png';
+import Illus22 from '../assets/illus/illus_hero_22.png';
+import Illus23 from '../assets/illus/illus_hero_23.png';
+import Illus24 from '../assets/illus/illus_hero_24.png';
+import Illus25 from '../assets/illus/illus_hero_25.png';
+import Illus26 from '../assets/illus/illus_hero_26.png';
 
 interface Feature {
   title: string;
   description: string;
   icon: string;
+  illustration: string;
 }
 
 interface Founder {
@@ -41,76 +56,137 @@ interface Vision {
   color: string;
 }
 
-// Floating animation for hero elements
+// Enhanced animations
 const float = keyframes`
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
+  0% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-15px) rotate(2deg); }
+  66% { transform: translateY(-5px) rotate(-1deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
 `;
 
-// Fade in animation
 const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(30px); }
+  from { opacity: 0; transform: translateY(50px); }
   to { opacity: 1; transform: translateY(0); }
 `;
 
-// Sparkle animation
 const sparkle = keyframes`
   0% { transform: scale(0) rotate(0deg); opacity: 0; }
   50% { transform: scale(1) rotate(180deg); opacity: 1; }
   100% { transform: scale(0) rotate(360deg); opacity: 0; }
 `;
 
-// Typing cursor blink
 const blink = keyframes`
   0%, 50% { opacity: 1; }
   51%, 100% { opacity: 0; }
 `;
 
+const pulse = keyframes`
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+`;
+
+const slideIn = keyframes`
+  from { transform: translateX(-100px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+`;
+
+// Curve component for section transitions
+const CurveTransition: React.FC<{ 
+  topColor: string; 
+  bottomColor: string; 
+  flip?: boolean;
+  height?: string;
+}> = ({ topColor, bottomColor, flip = false, height = "100px" }) => (
+  <Box position="relative" height={height} overflow="hidden">
+    <svg
+      width="100%"
+      height="100%"
+      viewBox="0 0 1200 120"
+      preserveAspectRatio="none"
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        transform: flip ? 'scaleY(-1)' : 'none',
+      }}
+    >
+      <path
+        d="M0,0 C150,100 350,0 600,50 C850,100 1050,0 1200,50 L1200,120 L0,120 Z"
+        fill={topColor}
+      />
+    </svg>
+    <Box
+      position="absolute"
+      top="0"
+      left="0"
+      right="0"
+      bottom="0"
+      bg={bottomColor}
+      zIndex="-1"
+    />
+  </Box>
+);
+
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const bgColor = useColorModeValue('#FFE5C4', 'gray.900');
-  const buttonBg = useColorModeValue('#F47B4F', '#FFB69B');
-  const cardBg = useColorModeValue('white', 'gray.700');
   const { t, i18n, ready } = useTranslation();
   
-  const heroHeight = useBreakpointValue({ base: '100vh', md: '100vh' });
-  const imageSize = useBreakpointValue({ base: '300px', md: '400px', lg: '500px' });
-
   // Typing animation state
   const [displayText, setDisplayText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
-  const fullText = "iKUN : Welcome to the Future of Learning";
+  const fullText = "Welcome to ClarifAI";
 
   useEffect(() => {
     if (currentIndex < fullText.length) {
       const timeout = setTimeout(() => {
         setDisplayText(prev => prev + fullText[currentIndex]);
         setCurrentIndex(prev => prev + 1);
-      }, 100);
+      }, 150);
       return () => clearTimeout(timeout);
     }
   }, [currentIndex, fullText]);
 
+  // Enhanced features with illustrations
+  const enhancedFeatures: Feature[] = [
+    {
+      title: "AI-Powered Learning",
+      description: "Experience personalized education with cutting-edge artificial intelligence that adapts to your learning style.",
+      icon: "🧠",
+      illustration: Illus18
+    },
+    {
+      title: "Interactive Experiences",
+      description: "Engage with immersive learning environments that make complex concepts easy to understand.",
+      icon: "🎯",
+      illustration: Illus19
+    },
+    {
+      title: "Global Community",
+      description: "Connect with learners worldwide and share knowledge in our vibrant educational ecosystem.",
+      icon: "🌍",
+      illustration: Illus20
+    },
+    {
+      title: "Smart Analytics",
+      description: "Track your progress with intelligent insights that help optimize your learning journey.",
+      icon: "📊",
+      illustration: Illus21
+    }
+  ];
+
   // Safely get translated resources with fallbacks
-  const features: Feature[] = t('HomePage.features', { returnObjects: true }) || [];
+  const features: Feature[] = t('HomePage.features', { returnObjects: true }) || enhancedFeatures;
   const founders: Founder[] = t('HomePage.founders', { returnObjects: true }) || [];
   const visions: Vision[] = t('HomePage.visions', { returnObjects: true }) || [];
 
   if (!ready) {
     return (
-      <Flex minH="100vh" align="center" justify="center">
-        <VStack spacing={4}>
-          <Box
-            w="60px"
-            h="60px"
-            border="4px solid"
-            borderColor="#FFB69B"
-            borderTopColor="#F47B4F"
-            borderRadius="full"
-            animation={`spin 1s linear infinite`}
-          />
-          <Text color="#5D5858">Loading translations...</Text>
+      <Flex minH="100vh" align="center" justify="center" bg={bgColor}>
+        <VStack spacing={6}>
+          <Image src={LogoIcon} alt="Loading" w="80px" h="80px" animation={`${pulse} 2s infinite`} />
+          <Text color="#5D5858" fontSize="lg">Loading ClarifAI...</Text>
         </VStack>
       </Flex>
     );
@@ -119,188 +195,158 @@ const HomePage: React.FC = () => {
   return (
     <Box bg={bgColor} minH="100vh" overflow="hidden">
       <Box pt='64px'>
-        {/* Full-Screen Hero Section with M.jpg Background */}
+        {/* Hero Section with New Design */}
         <Box
           position="relative"
-          height="100vh"
-          width="100vw"
+          minHeight="100vh"
+          bgGradient="linear(135deg, #FFE5C4 0%, #FFB69B 50%, #F47B4F 100%)"
           overflow="hidden"
         >
-          {/* Full-Screen Background Image */}
-          <Box
-            position="absolute"
-            top="0"
-            left="0"
-            right="0"
-            bottom="0"
-            backgroundImage={`url(${MImage})`}
-            backgroundSize="cover"
-            backgroundPosition="center"
-            backgroundRepeat="no-repeat"
-            zIndex="1"
-          />
-          
-          {/* Dark Overlay for Better Text Readability */}
-          <Box
-            position="absolute"
-            top="0"
-            left="0"
-            right="0"
-            bottom="0"
-            bg="rgba(0, 0, 0, 0.4)"
-            zIndex="2"
-          />
+          {/* Animated Background Elements */}
+          <Box position="absolute" top="10%" left="5%" animation={`${float} 6s ease-in-out infinite`}>
+            <Image src={Illus22} alt="" w="120px" opacity="0.3" />
+          </Box>
+          <Box position="absolute" top="20%" right="8%" animation={`${float} 8s ease-in-out infinite 2s`}>
+            <Image src={Illus23} alt="" w="100px" opacity="0.4" />
+          </Box>
+          <Box position="absolute" bottom="15%" left="10%" animation={`${float} 7s ease-in-out infinite 1s`}>
+            <Image src={Illus24} alt="" w="90px" opacity="0.3" />
+          </Box>
 
-          {/* Scattered Sparklings */}
-          {[...Array(20)].map((_, i) => (
+          {/* Sparklings */}
+          {[...Array(15)].map((_, i) => (
             <Box
               key={i}
               position="absolute"
               top={`${Math.random() * 100}%`}
               left={`${Math.random() * 100}%`}
-              w="4px"
-              h="4px"
-              bg="#FFE5C4"
+              w="6px"
+              h="6px"
+              bg="#F47B4F"
               borderRadius="50%"
-              zIndex="3"
+              zIndex="2"
               css={{
-                animation: `${sparkle} ${2 + Math.random() * 3}s linear infinite`,
-                animationDelay: `${Math.random() * 2}s`,
-              }}
-              _before={{
-                content: '""',
-                position: 'absolute',
-                top: '-2px',
-                left: '-2px',
-                right: '-2px',
-                bottom: '-2px',
-                bg: `radial-gradient(circle, #F47B4F, transparent)`,
-                borderRadius: '50%',
-                opacity: 0.6,
+                animation: `${sparkle} ${3 + Math.random() * 4}s linear infinite`,
+                animationDelay: `${Math.random() * 3}s`,
               }}
             />
           ))}
 
-          {/* Large Sparkles */}
-          {[...Array(8)].map((_, i) => (
-            <Box
-              key={`large-${i}`}
-              position="absolute"
-              top={`${Math.random() * 100}%`}
-              left={`${Math.random() * 100}%`}
-              fontSize="20px"
-              color="#FFB69B"
-              zIndex="3"
-              css={{
-                animation: `${sparkle} ${3 + Math.random() * 2}s linear infinite`,
-                animationDelay: `${Math.random() * 3}s`,
-              }}
-            >
-              ✨
-            </Box>
-          ))}
-
-          {/* Central Content with Typing Animation */}
-          <Flex
-            position="absolute"
-            top="0"
-            left="0"
-            right="0"
-            bottom="0"
-            align="center"
-            justify="center"
-            zIndex="4"
-            direction="column"
-          >
-            <VStack spacing={8} textAlign="center">
-              {/* Typing Animation Slogan */}
-              <Box>
-                <Heading
-                  fontSize={{ base: '3xl', md: '5xl', lg: '7xl' }}
-                  fontWeight="900"
-                  color="white"
-                  textShadow="3px 3px 6px rgba(0,0,0,0.7)"
-                  letterSpacing="tight"
-                  lineHeight="1.1"
-                >
-                  {displayText}
-                  <Box
-                    as="span"
-                    display="inline-block"
-                    w="4px"
-                    h={{ base: '40px', md: '60px', lg: '80px' }}
-                    bg="#F47B4F"
-                    ml="2"
-                    animation={`${blink} 1s linear infinite`}
+          {/* Main Hero Content */}
+          <Container maxW="container.xl" h="100vh">
+            <Grid templateColumns={{ base: "1fr", lg: "1fr 1fr" }} h="full" alignItems="center" gap={12}>
+              {/* Left Content */}
+              <GridItem>
+                <VStack spacing={8} align={{ base: "center", lg: "flex-start" }} textAlign={{ base: "center", lg: "left" }}>
+                  {/* Logo */}
+                  <Image 
+                    src={LogoWithName} 
+                    alt="ClarifAI" 
+                    w={{ base: "250px", md: "300px", lg: "350px" }}
+                    animation={`${fadeIn} 1s ease-out`}
                   />
-                </Heading>
-              </Box>
 
-              {/* Subtitle */}
-              <Text
-                fontSize={{ base: 'xl', md: '2xl', lg: '3xl' }}
-                color="white"
-                textShadow="2px 2px 4px rgba(0,0,0,0.7)"
-                opacity="0.9"
-                maxW="4xl"
-                px={4}
-                animation={`${fadeIn} 2s ease-out 2s both`}
-              >
-                Discover knowledge beyond imagination with AI-powered education
-              </Text>
+                  {/* Typing Animation */}
+                  <Box>
+                    <Heading
+                      fontSize={{ base: '2xl', md: '4xl', lg: '5xl' }}
+                      fontWeight="900"
+                      color="#5D5858"
+                      letterSpacing="tight"
+                      lineHeight="1.2"
+                    >
+                      {displayText}
+                      <Box
+                        as="span"
+                        display="inline-block"
+                        w="4px"
+                        h={{ base: '30px', md: '50px', lg: '60px' }}
+                        bg="#F47B4F"
+                        ml="2"
+                        animation={`${blink} 1s linear infinite`}
+                      />
+                    </Heading>
+                  </Box>
 
-              {/* Call-to-Action Buttons */}
-              <Stack
-                direction={{ base: 'column', sm: 'row' }}
-                spacing={6}
-                animation={`${fadeIn} 1.5s ease-out 3s both`}
-              >
-                <Button
-                  size="xl"
-                  h="70px"
-                  px="40px"
-                  fontSize="xl"
-                  fontWeight="700"
-                  bg="#F47B4F"
-                  color="white"
-                  borderRadius="full"
-                  _hover={{ 
-                    transform: 'translateY(-5px) scale(1.05)',
-                    boxShadow: '0 25px 50px rgba(244, 123, 79, 0.4)',
-                    bg: '#FFB69B'
-                  }}
-                  _active={{ transform: 'translateY(-2px) scale(1.02)' }}
-                  transition="all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
-                  rightIcon={<Icon as={FiArrowRight} />}
-                  onClick={() => navigate('/register')}
-                >
-                  Begin Your Journey
-                </Button>
-                <Button
-                  size="xl"
-                  h="70px"
-                  px="40px"
-                  fontSize="xl"
-                  fontWeight="700"
-                  variant="outline"
-                  color="white"
-                  borderColor="white"
-                  borderWidth="3px"
-                  borderRadius="full"
-                  _hover={{ 
-                    bg: 'rgba(255, 255, 255, 0.15)',
-                    transform: 'translateY(-5px) scale(1.05)',
-                    boxShadow: '0 25px 50px rgba(255, 255, 255, 0.2)'
-                  }}
-                  _active={{ transform: 'translateY(-2px) scale(1.02)' }}
-                  transition="all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
-                  onClick={() => navigate('/login')}
-                >
-                  Explore Now
-                </Button>
-              </Stack>
-            </VStack>
-          </Flex>
+                  {/* Subtitle */}
+                  <Text
+                    fontSize={{ base: 'lg', md: 'xl', lg: '2xl' }}
+                    color="#5D5858"
+                    opacity="0.8"
+                    maxW="600px"
+                    lineHeight="1.6"
+                    animation={`${fadeIn} 1.5s ease-out 1s both`}
+                  >
+                    The first AI education platform that generates personalized knowledge videos, plans a step-by-step course, and gives systematic knowledge for you
+                    </Text>
+
+                  {/* CTA Buttons */}
+                  <Stack
+                    direction={{ base: 'column', sm: 'row' }}
+                    spacing={4}
+                    animation={`${fadeIn} 1.5s ease-out 2s both`}
+                  >
+                    <Button
+                      size="lg"
+                      h="60px"
+                      px="30px"
+                      fontSize="lg"
+                      fontWeight="700"
+                      bg="#F47B4F"
+                      color="white"
+                      borderRadius="full"
+                      _hover={{ 
+                        transform: 'translateY(-3px) scale(1.05)',
+                        boxShadow: '0 20px 40px rgba(244, 123, 79, 0.4)',
+                        bg: '#E85A2B'
+                      }}
+                      transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+                      rightIcon={<Icon as={FiArrowRight} />}
+                      onClick={() => navigate('/register')}
+                    >
+                      Start Learning
+                    </Button>
+                    <Button
+                      size="lg"
+                      h="60px"
+                      px="30px"
+                      fontSize="lg"
+                      fontWeight="700"
+                      variant="outline"
+                      color="#5D5858"
+                      borderColor="#5D5858"
+                      borderWidth="2px"
+                      borderRadius="full"
+                      _hover={{ 
+                        bg: 'rgba(93, 88, 88, 0.1)',
+                        transform: 'translateY(-3px) scale(1.05)',
+                      }}
+                      transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+                      onClick={() => navigate('/login')}
+                    >
+                      Explore Demo
+                    </Button>
+                  </Stack>
+                </VStack>
+              </GridItem>
+
+              {/* Right Content - Main Illustration */}
+              <GridItem display={{ base: "none", lg: "block" }}>
+                <Box position="relative" h="full" display="flex" alignItems="center" justifyContent="center">
+                  <Image 
+                    src={Illus25} 
+                    alt="AI Learning" 
+                    w="500px"
+                    animation={`${float} 4s ease-in-out infinite`}
+                  />
+                  {/* Floating elements around main illustration */}
+                  <Box position="absolute" top="10%" left="10%" animation={`${float} 5s ease-in-out infinite 1s`}>
+                    <Image src={Illus26} alt="" w="80px" opacity="0.7" />
+                  </Box>
+                </Box>
+              </GridItem>
+            </Grid>
+          </Container>
 
           {/* Scroll Indicator */}
           <Box
@@ -308,56 +354,81 @@ const HomePage: React.FC = () => {
             bottom="8"
             left="50%"
             transform="translateX(-50%)"
-            zIndex="4"
             animation={`${float} 2s ease-in-out infinite`}
           >
             <VStack spacing={2}>
-              <Text color="white" fontSize="sm" opacity="0.8">
-                Scroll to explore
+              <Text color="#5D5858" fontSize="sm" opacity="0.7">
+                Discover More
               </Text>
-              <Box
-                w="2px"
-                h="30px"
-                bg="white"
-                opacity="0.6"
-                borderRadius="full"
-              />
+              <Box w="2px" h="30px" bg="#5D5858" opacity="0.5" borderRadius="full" />
             </VStack>
           </Box>
         </Box>
 
+        {/* Curve Transition */}
+        <CurveTransition topColor="#F47B4F" bottomColor="white" />
+
         {/* Enhanced Features Section */}
-        {features?.length > 0 && (
-          <FeatureSection features={features} />
-        )}
+        <Box bg="white" py={20} position="relative">
+          <Container maxW="container.xl">
+            <VStack spacing={16}>
+              <VStack spacing={6} textAlign="center">
+                <Heading 
+                  fontSize={{ base: '3xl', md: '4xl', lg: '5xl' }}
+                  bgGradient="linear(to-r, #F47B4F, #FFB69B)"
+                  bgClip="text"
+                  fontWeight="700"
+                >
+                  Why Choose ClarifAI?
+                </Heading>
+                <Text fontSize="xl" color="#5D5858" maxW="600px" opacity="0.8">
+                  Experience the future of education with our innovative features
+                </Text>
+                <Box w="100px" h="4px" bg="#F47B4F" borderRadius="full" />
+              </VStack>
+              
+              <SimpleGrid columns={{ base: 1, md: 2 }} spacing={12} w="full">
+                {enhancedFeatures.map((feature, index) => (
+                  <FeatureCard key={index} {...feature} index={index} />
+                ))}
+              </SimpleGrid>
+            </VStack>
+          </Container>
+        </Box>
+
+        {/* Curve Transition */}
+        <CurveTransition topColor="white" bottomColor="#FFE5C4" />
 
         {/* Enhanced Founders Section */}
         {founders?.length > 0 && (
-          <FounderSection founders={founders} />
+          <>
+            <FounderSection founders={founders} />
+            <CurveTransition topColor="#FFE5C4" bottomColor="white" />
+          </>
         )}
 
         {/* Enhanced Vision Section */}
         {visions?.length > 0 && (
-          <VisionSection visions={visions} />
+          <>
+            <VisionSection visions={visions} />
+            <CurveTransition topColor="white" bottomColor="#F47B4F" />
+          </>
         )}
 
         {/* Enhanced Contact Section */}
         <Box 
           py={20} 
-          bgGradient="linear(135deg, #F47B4F, #5D5858)"
+          bg="#F47B4F"
           position="relative"
           overflow="hidden"
         >
-          {/* Background Pattern */}
-          <Box
-            position="absolute"
-            top="0"
-            left="0"
-            right="0"
-            bottom="0"
-            opacity="0.1"
-            backgroundImage="url('data:image/svg+xml,%3Csvg width=%2760%27 height=%2760%27 viewBox=%270 0 60 60%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cg fill=%27none%27 fill-rule=%27evenodd%27%3E%3Cg fill=%27%23FFE5C4%27 fill-opacity=%270.4%27%3E%3Ccircle cx=%2730%27 cy=%2730%27 r=%274%27/%3E%3C/g%3E%3C/svg%3E')"
-          />
+          {/* Background Illustrations */}
+          <Box position="absolute" top="20%" left="5%" opacity="0.1">
+            <Image src={Illus22} alt="" w="150px" />
+          </Box>
+          <Box position="absolute" bottom="20%" right="5%" opacity="0.1">
+            <Image src={Illus23} alt="" w="120px" />
+          </Box>
           
           <Container maxW="container.xl" textAlign="center" position="relative" zIndex="2">
             <VStack spacing={8}>
@@ -366,7 +437,7 @@ const HomePage: React.FC = () => {
                 color="white"
                 fontWeight="700"
               >
-                {t("HomePage.journey")}
+                Ready to Transform Your Learning?
               </Heading>
               <Text 
                 fontSize={{ base: 'lg', md: 'xl' }}
@@ -375,26 +446,26 @@ const HomePage: React.FC = () => {
                 maxW="3xl"
                 lineHeight="1.7"
               >
-                {t("HomePage.join")}
+                Join thousands of learners who are already experiencing the future of education with ClarifAI
               </Text>
               <Button
-                size="lg"
-                h="60px"
+                size="xl"
+                h="70px"
                 px="40px"
-                fontSize="lg"
+                fontSize="xl"
                 fontWeight="600"
                 bg="white"
                 color="#F47B4F"
                 _hover={{ 
-                  transform: 'translateY(-3px)', 
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+                  transform: 'translateY(-5px)', 
+                  boxShadow: '0 25px 50px rgba(0,0,0,0.3)',
                   bg: '#FFE5C4'
                 }}
                 transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
                 rightIcon={<Icon as={FiArrowRight} />}
                 onClick={() => navigate('/register')}
               >
-                {t('HomePage.start')}
+                Begin Your Journey
               </Button>
             </VStack>
           </Container>
@@ -404,59 +475,67 @@ const HomePage: React.FC = () => {
   );
 };
 
+// Enhanced Feature Card Component
 interface FeatureProps {
   title: string;
   description: string;
   icon: string;
+  illustration: string;
 }
 
-const FeatureSection = ({ features }: { features: Feature[] }) => {
-  const { t } = useTranslation();
-  const cardBg = useColorModeValue('white', 'gray.800');
-  
+const FeatureCard: React.FC<FeatureProps & { index: number }> = ({ 
+  title, 
+  description, 
+  icon, 
+  illustration, 
+  index 
+}) => {
   return (
-    <Box bg={useColorModeValue('white', 'gray.900')} py={20} position="relative">
-      <Container maxW="container.xl">
-        <VStack spacing={16}>
-          <VStack spacing={4} textAlign="center">
-            <Heading 
-              fontSize={{ base: '3xl', md: '4xl', lg: '5xl' }}
-              bgGradient="linear(to-r, #F47B4F, #FFB69B)"
-              bgClip="text"
-              fontWeight="700"
-            >
-              {t("HomePage.feature")}
-            </Heading>
-            <Box w="100px" h="4px" bg="#F47B4F" borderRadius="full" />
-          </VStack>
-          
-          <SimpleGrid 
-            columns={{ base: 1, md: 2, lg: features.length }} 
-            spacing={8}
-            w="full"
-          >
-            {features.map((feature, index) => (
-              <FeatureCard key={index} {...feature} index={index} />
-            ))}
-          </SimpleGrid>
+    <Box
+      p={8}
+      bg="white"
+      borderRadius="24px"
+      boxShadow="0 10px 40px rgba(93, 88, 88, 0.1)"
+      position="relative"
+      overflow="hidden"
+      _hover={{ 
+        transform: 'translateY(-10px)',
+        boxShadow: '0 20px 60px rgba(93, 88, 88, 0.2)',
+        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+      }}
+      animation={`${fadeIn} 0.8s ease-out ${index * 0.2}s both`}
+    >
+      <Grid templateColumns="1fr auto" gap={6} alignItems="center">
+        <VStack align="flex-start" spacing={4}>
+          <Box fontSize="3xl">{icon}</Box>
+          <Heading size="lg" color="#5D5858">
+            {title}
+          </Heading>
+          <Text color="#5D5858" opacity="0.8" lineHeight="1.6">
+            {description}
+          </Text>
         </VStack>
-      </Container>
+        <Box>
+          <Image 
+            src={illustration} 
+            alt={title} 
+            w="120px" 
+            h="120px"
+            objectFit="contain"
+            animation={`${float} 3s ease-in-out infinite ${index * 0.5}s`}
+          />
+        </Box>
+      </Grid>
     </Box>
   );
 };
 
-interface FounderCardProps {
-  name: string;
-  role: string;
-  bio: string;
-  image: string;
-}
-
+// Keep existing FounderSection and VisionSection components
 const FounderSection = ({ founders }: { founders: Founder[] }) => {
   const { t } = useTranslation();
   
   return (
-    <Box py={20} bg={useColorModeValue('#FFE5C4', 'gray.800')}>
+    <Box py={20} bg="#FFE5C4">
       <Container maxW="container.xl">
         <VStack spacing={16}>
           <VStack spacing={4} textAlign="center">
@@ -466,7 +545,7 @@ const FounderSection = ({ founders }: { founders: Founder[] }) => {
               bgClip="text"
               fontWeight="700"
             >
-              {t("HomePage.founder")}
+              Meet Our Founders
             </Heading>
             <Box w="100px" h="4px" bg="#5D5858" borderRadius="full" />
           </VStack>
@@ -487,7 +566,7 @@ const VisionSection = ({ visions }: { visions: Vision[] }) => {
   const defaultTextColor = useColorModeValue('#5D5858', 'gray.300');
   
   return (
-    <Box bg={useColorModeValue('white', 'gray.900')} py={20}>
+    <Box bg="white" py={20}>
       <Container maxW="container.xl">
         <VStack spacing={12} align="center">
           <VStack spacing={4} textAlign="center">
@@ -497,7 +576,7 @@ const VisionSection = ({ visions }: { visions: Vision[] }) => {
               bgClip="text"
               fontWeight="700"
             >
-              {t('HomePage.vision')}
+              Our Vision
             </Heading>
             <Box w="100px" h="4px" bg="#FFB69B" borderRadius="full" />
           </VStack>
@@ -522,61 +601,12 @@ const VisionSection = ({ visions }: { visions: Vision[] }) => {
   );
 };
 
-const FeatureCard: React.FC<FeatureProps & { index: number }> = ({ title, description, icon, index }) => {
-  const cardBg = useColorModeValue('white', 'gray.800');
-  const iconBg = useColorModeValue('#FFE5C4', '#F47B4F');
-  const titleColor = useColorModeValue('#5D5858', 'white');
-  const textColor = useColorModeValue('#5D5858', 'gray.300');
-  
-  return (
-    <VStack
-      p={8}
-      bg={cardBg}
-      borderRadius="20px"
-      boxShadow="0 10px 30px rgba(93, 88, 88, 0.15)"
-      spacing={6}
-      align="center"
-      position="relative"
-      overflow="hidden"
-      _hover={{ 
-        transform: 'translateY(-10px)',
-        boxShadow: '0 20px 40px rgba(93, 88, 88, 0.25)',
-        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
-      }}
-      _before={{
-        content: '""',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: '4px',
-        bgGradient: `linear(to-r, #F47B4F, #FFB69B)`,
-      }}
-      animation={`${fadeIn} 0.8s ease-out ${index * 0.2}s both`}
-    >
-      <Box
-        fontSize="5xl"
-        p={4}
-        bg={iconBg}
-        borderRadius="full"
-        color="#F47B4F"
-      >
-        {icon}
-      </Box>
-      <Heading size="lg" textAlign="center" color={titleColor}>
-        {title}
-      </Heading>
-      <Text 
-        color={textColor} 
-        textAlign="center" 
-        lineHeight="1.6"
-        fontSize="md"
-      >
-        {description}
-      </Text>
-    </VStack>
-  );
-};
+interface FounderCardProps {
+  name: string;
+  role: string;
+  bio: string;
+  image: string;
+}
 
 const FounderCard: React.FC<FounderCardProps> = ({ name, role, bio, image }) => {
   const cardBg = useColorModeValue('white', 'gray.800');
