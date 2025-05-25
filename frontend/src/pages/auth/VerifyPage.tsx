@@ -36,11 +36,11 @@ const VerifyPage: React.FC = () => {
   };
 
   const founderMessage = {
-    title: "Welcome to Our Learning Community!",
-    message: "We're thrilled to have you join our mission to revolutionize online education. Together, we'll create an extraordinary learning journey.",
+    title: "欢迎加入我们的学习社区！",
+    message: "我们很高兴您加入我们革新在线教育的使命。让我们一起创造非凡的学习之旅。",
     founders: [
-      { name: "Jiace Zhao", role: "CEO & Co-founder" },
-      { name: "Di Huang", role: "CTO & Co-founder" }
+      { name: "Jiace Zhao", role: "CEO & 联合创始人" },
+      { name: "Di Huang", role: "CTO & 联合创始人" }
     ]
   };
 
@@ -51,8 +51,8 @@ const VerifyPage: React.FC = () => {
       if (!token) {
         setVerificationStatus('error');
         toast({
-          title: 'Verification Failed',
-          description: 'Invalid verification link',
+          title: '验证失败',
+          description: '无效的验证链接',
           status: 'error',
           duration: 5000,
         });
@@ -63,8 +63,8 @@ const VerifyPage: React.FC = () => {
         await axiosInstance.post(API_ENDPOINTS.AUTH.VERIFY, { token });
         setVerificationStatus('success');
         toast({
-          title: 'Email Verified',
-          description: 'Your email has been successfully verified',
+          title: '邮箱已验证',
+          description: '您的邮箱已成功验证',
           status: 'success',
           duration: 5000,
         });
@@ -89,7 +89,7 @@ const VerifyPage: React.FC = () => {
                     bgGradient="linear(to-r, blue.400, purple.500)"
                     bgClip="text"
                 >
-                  Email Verification
+                  邮箱验证
                 </Heading>
 
                 {verificationStatus === 'verifying' && (
@@ -99,7 +99,7 @@ const VerifyPage: React.FC = () => {
                     >
                       <VStack spacing={4}>
                         <FaHourglassHalf size="60px" color="#4299E1"/>
-                        <Text fontSize="xl">Verifying your email...</Text>
+                        <Text fontSize="xl">正在验证您的邮箱...</Text>
                       </VStack>
                     </motion.div>
                 )}
@@ -117,7 +117,7 @@ const VerifyPage: React.FC = () => {
                             fontSize="2xl"
                             fontWeight="bold"
                         >
-                          Your email has been successfully verified!
+                          您的邮箱已成功验证！
                         </Text>
                         <Button
                             size="lg"
@@ -126,7 +126,7 @@ const VerifyPage: React.FC = () => {
                             _hover={{transform: 'translateY(-2px)', boxShadow: 'lg'}}
                             transition="all 0.2s"
                         >
-                          Proceed to Login
+                          前往登录
                         </Button>
                       </VStack>
                     </motion.div>
@@ -145,7 +145,7 @@ const VerifyPage: React.FC = () => {
                             fontSize="xl"
                             fontWeight="bold"
                         >
-                          Verification failed. Please try again or request a new verification link.
+                          验证失败。请重试或请求新的验证链接。
                         </Text>
                         <Button
                             size="lg"
@@ -154,7 +154,7 @@ const VerifyPage: React.FC = () => {
                             _hover={{transform: 'translateY(-2px)', boxShadow: 'lg'}}
                             transition="all 0.2s"
                         >
-                          Back to Login
+                          返回登录
                         </Button>
                       </VStack>
                     </motion.div>

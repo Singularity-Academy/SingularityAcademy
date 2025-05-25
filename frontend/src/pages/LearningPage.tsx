@@ -159,7 +159,7 @@ const LearningPage: React.FC = () => {
     
     return {
       ...user,
-      level: "Advanced Learner",
+      level: "高级学习者",
       progress: 75,
       streak: 12,
       completedCourses: 8,
@@ -170,10 +170,10 @@ const LearningPage: React.FC = () => {
   const extendedUserData = getExtendedUserData(user);
 
   const sidebarItems = [
-    { id: 'overview', label: 'Dashboard', icon: FiTrendingUp },
-    { id: 'courses', label: 'My Courses', icon: FiBook },
-    { id: 'meeting', label: 'AI Mentors', icon: FiUser },
-    { id: 'achievements', label: 'Achievements', icon: FiAward },
+    { id: 'overview', label: '仪表板', icon: FiTrendingUp },
+    { id: 'courses', label: '我的课程', icon: FiBook },
+    { id: 'meeting', label: 'AI 导师', icon: FiUser },
+    { id: 'achievements', label: '成就', icon: FiAward },
   ];
 
   const renderContent = () => {
@@ -199,7 +199,7 @@ const LearningPage: React.FC = () => {
       <Flex minH="100vh" align="center" justify="center" bg="#FFE5C4">
         <VStack spacing={6}>
           <Image src={LogoIcon} alt="Loading" w="80px" h="80px" animation={`${pulse} 2s infinite`} />
-          <Text color="#5D5858" fontSize="lg">Loading your dashboard...</Text>
+          <Text color="#5D5858" fontSize="lg">正在加载您的仪表板...</Text>
         </VStack>
       </Flex>
     );
@@ -210,9 +210,9 @@ const LearningPage: React.FC = () => {
   return (
       <Flex minH="100vh" align="center" justify="center" bg="#FFE5C4">
         <VStack spacing={6}>
-          <Text color="#5D5858" fontSize="lg">Unable to load user data</Text>
+          <Text color="#5D5858" fontSize="lg">无法加载用户数据</Text>
           <Button onClick={() => navigate('/login')} bg="#F47B4F" color="white">
-            Return to Login
+            返回登录
           </Button>
         </VStack>
       </Flex>
@@ -243,11 +243,11 @@ const LearningPage: React.FC = () => {
                 <HStack spacing={3}>
                   <Image src={LogoIcon} alt="ClarifAI" w="40px" h="40px" />
                   <Heading color="#5D5858" fontSize="2xl" fontWeight="700">
-                    Learning Dashboard
+                    学习仪表板
                   </Heading>
                 </HStack>
                 <Text color="#5D5858" opacity="0.8" fontSize="lg">
-                  Welcome back, {extendedUserData.name}! Ready to continue your journey?
+                  欢迎回来，{extendedUserData.name}！准备好继续您的学习之旅了吗？
                 </Text>
               </VStack>
               
@@ -257,7 +257,7 @@ const LearningPage: React.FC = () => {
                     {extendedUserData.streak}
                   </Text>
                   <Text fontSize="sm" color="#5D5858" opacity="0.7">
-                    Day Streak
+                    连续天数
                   </Text>
                 </VStack>
                 <VStack spacing={1}>
@@ -265,7 +265,7 @@ const LearningPage: React.FC = () => {
                     {extendedUserData.totalPoints}
                   </Text>
                   <Text fontSize="sm" color="#5D5858" opacity="0.7">
-                    Points
+                    积分
                   </Text>
                 </VStack>
               </HStack>
@@ -312,7 +312,7 @@ const LearningPage: React.FC = () => {
                       <Box w="full">
                         <Flex justify="space-between" mb={2}>
                           <Text fontSize="sm" color="#5D5858" opacity="0.7">
-                            Overall Progress
+                            总体进度
                           </Text>
                           <Text fontSize="sm" fontWeight="bold" color="#F47B4F">
                             {extendedUserData.progress}%
@@ -381,29 +381,29 @@ const DashboardContent: React.FC<{ userData: ExtendedUserData }> = ({ userData }
       {/* Stats Cards */}
       <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6}>
         <StatsCard
-          title="Courses Completed"
+          title="已完成课程"
           value={userData.completedCourses}
           icon={FiBook}
           color="#F47B4F"
           illustration={Illus18}
         />
         <StatsCard
-          title="Learning Streak"
-          value={`${userData.streak} days`}
+          title="学习连续天数"
+          value={`${userData.streak} 天`}
           icon={FiTarget}
           color="#FFB69B"
           illustration={Illus19}
         />
         <StatsCard
-          title="Total Points"
+          title="总积分"
           value={userData.totalPoints}
           icon={FiStar}
           color="#5D5858"
           illustration={Illus20}
         />
         <StatsCard
-          title="Study Hours"
-          value="124h"
+          title="学习时长"
+          value="124小时"
           icon={FiClock}
           color="#F47B4F"
           illustration={Illus21}

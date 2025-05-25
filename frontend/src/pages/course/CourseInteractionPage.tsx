@@ -224,7 +224,7 @@ const CourseInteractionPage: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
-  const [videoGenerationText, setVideoGenerationText] = useState("Newton's 3rd law");
+  const [videoGenerationText, setVideoGenerationText] = useState("牛顿第三定律");
   const [videoGenerationError, setVideoGenerationError] = useState<string | null>(null);
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
   const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
@@ -346,7 +346,7 @@ const CourseInteractionPage: React.FC = () => {
     const request = {
       type: "generate",
       text: text.trim(),
-      title: "AI Generated Video",
+      title: "AI 生成视频",
       config: VIDEO_GENERATION_CONFIG  // Include the config in the request
     };
 
@@ -370,8 +370,8 @@ const CourseInteractionPage: React.FC = () => {
   const startVideoGeneration = useCallback(() => {
     if (!videoGenerationText.trim()) {
       toast({
-        title: "Error",
-        description: "Please enter some text to generate a video",
+        title: "错误",
+        description: "请输入一些文本来生成视频",
         status: "error",
         duration: 3000,
       });
@@ -389,8 +389,8 @@ const CourseInteractionPage: React.FC = () => {
           sendVideoGenerationRequest(videoGenerationText);
         } else {
           toast({
-            title: "Connection Error",
-            description: "Failed to connect to server",
+            title: "连接错误",
+            description: "无法连接到服务器",
             status: "error",
             duration: 3000,
           });
@@ -471,7 +471,7 @@ const CourseInteractionPage: React.FC = () => {
           mediaRecorder.start(500);  // Capture every 0.5 seconds of audio
         })
         .catch((error) => toast({
-          title: "error accessing media devices",
+          title: "访问媒体设备错误",
           description: error.message || String(error),
           status: 'error',
           duration: 3000,
@@ -504,15 +504,15 @@ const CourseInteractionPage: React.FC = () => {
       setIsRecording(true);
       
       toast({
-        title: "Recording started",
+        title: "录制已开始",
         status: "success",
         duration: 3000,
       });
     } catch (error) {
       console.error("Error accessing media devices:", error);
       toast({
-        title: "Error",
-        description: "Failed to access camera and microphone",
+        title: "错误",
+        description: "无法访问摄像头和麦克风",
         status: "error",
         duration: 3000,
       });
@@ -531,7 +531,7 @@ const CourseInteractionPage: React.FC = () => {
     
     setIsRecording(false);
     toast({
-      title: "Recording stopped",
+      title: "录制已停止",
       status: "info",
       duration: 3000,
     });
@@ -556,8 +556,8 @@ const CourseInteractionPage: React.FC = () => {
       link.remove();
     } catch (error) {
       toast({
-        title: 'Download failed',
-        description: 'Could not download the video',
+        title: '下载失败',
+        description: '无法下载视频',
         status: 'error',
         duration: 3000,
       });
@@ -589,8 +589,8 @@ const CourseInteractionPage: React.FC = () => {
       }));
     } else {
       toast({
-        title: 'Error',
-        description: 'WebSocket is not connected.',
+        title: '错误',
+        description: 'WebSocket 未连接。',
         status: 'error',
         duration: 3000,
       });
@@ -611,13 +611,13 @@ const CourseInteractionPage: React.FC = () => {
           {/* Main Content Area */}
           <Box flex="2" ref={videoAreaRef} bg={cardBg} borderRadius="lg" p={4} position="relative">
             <Flex justify="space-between" mb={4}>
-              <Heading size="md">Course Content</Heading>
+              <Heading size="md">课程内容</Heading>
               <Button
                 colorScheme="blue"
                 onClick={onVideoModalOpen}
                 leftIcon={<FaFileUpload />}
               >
-                Generate AI Video
+                生成 AI 视频
               </Button>
             </Flex>
             
@@ -625,7 +625,7 @@ const CourseInteractionPage: React.FC = () => {
             {videoGenerationStatus && (
               <Box mb={4} p={4} bg={cardBg} borderRadius="md" borderWidth="1px">
                 <Flex justify="space-between" align="center" mb={2}>
-                  <Text fontWeight="bold">Video Generation Status</Text>
+                  <Text fontWeight="bold">视频生成状态</Text>
                   <Badge
                     colorScheme={
                       videoGenerationStatus.status === 'completed' ? 'green' :
@@ -682,7 +682,7 @@ const CourseInteractionPage: React.FC = () => {
               overflow="hidden"
               position="relative"
             >
-              <Text color="white" display="none">Main Course Content</Text>
+              <Text color="white" display="none">主要课程内容</Text>
               <video
               autoPlay
               muted
@@ -697,7 +697,7 @@ const CourseInteractionPage: React.FC = () => {
               />
             </Box>
             <IconButton
-              aria-label="Toggle fullscreen"
+              aria-label="切换全屏"
               icon={isFullscreen ? <ViewOffIcon/> : <ViewIcon/>}
               position="absolute"
               bottom={4}
@@ -710,7 +710,7 @@ const CourseInteractionPage: React.FC = () => {
           <VStack flex="1" spacing={4}>
             {/* Upload Section */}
             <Box w="100%" bg={cardBg} borderRadius="lg" p={4}>
-              <Heading size="sm" mb={4}>Upload Learning Materials</Heading>
+              <Heading size="sm" mb={4}>上传学习资料</Heading>
               
               {/* Drag & Drop Zone */}
               <Box
@@ -728,12 +728,10 @@ const CourseInteractionPage: React.FC = () => {
                 <VStack spacing={3}>
                   <FaFileUpload size={40} color={isDragActive ? '#3182ce' : '#718096'} />
                   <Text>
-                    {isDragActive 
-                      ? 'Drop files here' 
-                      : 'Drag & drop files or click to select'}
+                    拖拽文件到此处或点击上传
                   </Text>
                   <Text fontSize="sm" color="gray.500">
-                    Supported formats: PDF, DOC, PPT, CSV, Images, Videos (max 100MB)
+                    支持 PDF、图片和文档
                   </Text>
                 </VStack>
               </Box>
@@ -762,14 +760,14 @@ const CourseInteractionPage: React.FC = () => {
                   variant="outline"
                   onClick={handleAddLink}
                 >
-                  Add Resource Link
+                  添加资源链接
                 </Button>
                 
                 {resourceLinks.map((link: string, index: number) => (
                   <Flex key={index} align="center" p={2} bg={ bgColor } borderRadius="md">
                     <Text fontSize="sm" isTruncated flex={1}>{link}</Text>
                     <IconButton
-                      aria-label="Remove link"
+                      aria-label="删除链接"
                       icon={<SmallCloseIcon />}
                       size="xs"
                       onClick={() => setResourceLinks(prev => prev.filter((_, i) => i !== index))}
@@ -782,15 +780,15 @@ const CourseInteractionPage: React.FC = () => {
             {/* Student Camera */}
             <Box w="100%" bg={cardBg} borderRadius="lg" p={4}>
               <Flex justify="space-between" mb={2}>
-                <Heading size="sm">Your Camera</Heading>
+                <Heading size="sm">您的摄像头</Heading>
                 <Button
                     size="sm"
                     colorScheme={isRecording ? 'red' : 'green'}
                     onClick={startVideo}
                     isLoading={isRecording}
-                    loadingText="Recording"
+                    loadingText="录制中"
                 >
-                  {isRecording ? 'Turn Off' : 'Turn On'}
+                  {isRecording ? '关闭' : '开启'}
                 </Button>
               </Flex>
               <Box
@@ -842,11 +840,11 @@ const CourseInteractionPage: React.FC = () => {
               <Input
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Ask your question..."
+                  placeholder="提出您的问题..."
                   mr={2}
                   onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}/>
               <Button colorScheme="blue" onClick={handleSubmit}>
-                Send
+                发送
               </Button>
             </Flex>
           </VStack>
@@ -862,18 +860,18 @@ const CourseInteractionPage: React.FC = () => {
           <ModalBody pb={6}>
             <VStack spacing={4} align="stretch">
               <Text>
-                Enter a description of the educational content you want to generate a video for.
-                The AI will create an animated video explaining the concept.
+                输入您想要生成视频的教育内容描述。
+                例如："用视觉示例解释牛顿运动定律"
               </Text>
               <Textarea
                 value={videoGenerationText}
                 onChange={(e) => setVideoGenerationText(e.target.value)}
-                placeholder="Describe the educational content you want to explain in the video..."
+                placeholder="描述您想在视频中解释的教育内容..."
                 size="lg"
                 rows={6}
               />
               <Text fontSize="sm" id="txt" color="gray.500">
-                Maximum 300 characters. The video will be generated using AI animation.
+                示例："用视觉动画解释微积分中导数的概念"
               </Text>
                 <Button
                 colorScheme="blue"
@@ -888,8 +886,8 @@ const CourseInteractionPage: React.FC = () => {
                   }
                   await axiosInstance.post("http://localhost:8888/generate", { "text":text });
                   toast({
-                    title: "Request sent",
-                    description: "Video generation request has been sent.",
+                    title: "请求已发送",
+                    description: "视频生成请求已发送。",
                     status: "success",
                     duration: 3000,
                   });
@@ -899,18 +897,18 @@ const CourseInteractionPage: React.FC = () => {
                   // Button loading state is managed by isLoading prop, so no need to set innerHTML
                   } catch (error) {
                   toast({
-                    title: "Error",
-                    description: "Failed to send video generation request.",
+                    title: "错误",
+                    description: "发送视频生成请求失败。",
                     status: "error",
                     duration: 3000,
                   });
                   }
                 }}
                 isLoading={isGeneratingVideo}
-                loadingText="Generating..."
+                loadingText="生成中..."
                 isDisabled={!videoGenerationText.trim() || isGeneratingVideo}
                 >
-                Generate Video
+                生成视频
                 </Button>
             </VStack>
           </ModalBody>

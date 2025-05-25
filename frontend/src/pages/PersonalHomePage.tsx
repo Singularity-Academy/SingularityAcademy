@@ -147,7 +147,7 @@ const PersonalHomePage: React.FC = () => {
       <Flex minH="100vh" align="center" justify="center" bg="#FFE5C4">
         <VStack spacing={6}>
           <Image src={LogoIcon} alt="Loading" w="80px" h="80px" animation={`${pulse} 2s infinite`} />
-          <Text color="#5D5858" fontSize="lg">Loading your profile...</Text>
+          <Text color="#5D5858" fontSize="lg">正在加载您的个人资料...</Text>
         </VStack>
       </Flex>
     );
@@ -158,9 +158,9 @@ const PersonalHomePage: React.FC = () => {
     return (
       <Flex minH="100vh" align="center" justify="center" bg="#FFE5C4">
         <VStack spacing={6}>
-          <Text color="#5D5858" fontSize="lg">Unable to load profile data</Text>
+          <Text color="#5D5858" fontSize="lg">无法加载个人资料数据</Text>
           <Button onClick={() => navigate('/login')} bg="#F47B4F" color="white">
-            Return to Login
+            返回登录
           </Button>
         </VStack>
       </Flex>
@@ -247,7 +247,7 @@ const PersonalHomePage: React.FC = () => {
                     fontWeight="700"
                     animation={`${fadeIn} 1.2s ease-out`}
                   >
-                    Hello, I'm {user.name}
+                    你好，我是 {user.name}
                   </Heading>
                   <Text 
                     fontSize="xl" 
@@ -257,8 +257,8 @@ const PersonalHomePage: React.FC = () => {
                     lineHeight="1.6"
                     animation={`${fadeIn} 1.4s ease-out`}
                   >
-                    A passionate learner exploring the frontiers of knowledge with AI-powered education. 
-                    Welcome to my learning journey with ClarifAI.
+                    一位充满热情的学习者，通过AI驱动的教育探索知识的前沿。
+                    欢迎来到我在ClarifAI的学习之旅。
                   </Text>
                 </VStack>
 
@@ -275,7 +275,7 @@ const PersonalHomePage: React.FC = () => {
                   </HStack>
                   <HStack spacing={2}>
                     <Icon as={FiCalendar} color="#F47B4F" />
-                    <Text color="#5D5858" fontSize="md">Joined ClarifAI</Text>
+                    <Text color="#5D5858" fontSize="md">加入 ClarifAI</Text>
                   </HStack>
                 </HStack>
 
@@ -298,7 +298,7 @@ const PersonalHomePage: React.FC = () => {
                     }}
                     onClick={() => navigate('/learning')}
                   >
-                    Continue Learning
+                    继续学习
                   </Button>
                   <Button
                     size="lg"
@@ -314,7 +314,7 @@ const PersonalHomePage: React.FC = () => {
                     }}
                     onClick={() => window.open('mailto:' + user.email)}
                   >
-                    Get in Touch
+                    联系我
                   </Button>
                 </HStack>
               </VStack>
@@ -335,10 +335,10 @@ const PersonalHomePage: React.FC = () => {
                   bgClip="text"
                   fontWeight="700"
                 >
-                  Learning Journey
+                  学习之旅
                 </Heading>
                 <Text fontSize="xl" color="#5D5858" maxW="600px" opacity="0.8">
-                  Track your progress and achievements in the ClarifAI ecosystem
+                  在ClarifAI生态系统中跟踪您的进度和成就
                 </Text>
                 <Box w="100px" h="4px" bg="#F47B4F" borderRadius="full" />
               </VStack>

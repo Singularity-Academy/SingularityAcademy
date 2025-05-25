@@ -67,8 +67,8 @@ const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
         },
       }));
       toast({
-        title: 'Course Added',
-        description: `${course.name} was added.`,
+        title: '课程已添加',
+        description: `${course.name} 已添加。`,
         status: 'success',
         duration: 3000,
       });
@@ -80,8 +80,8 @@ const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
       
     } else {
       toast({
-        title: 'WebSocket Error',
-        description: 'Connection is not open.',
+        title: 'WebSocket 错误',
+        description: '连接未打开。',
         status: 'error',
         duration: 3000,
       });
@@ -104,7 +104,7 @@ const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
 
       {message.metadata?.courses && (
         <Box mt={2} p={2} bg={metadataBgColor} borderRadius="md">
-          <Text fontSize="xs" color={timestampColor} mb={2}>SUGGESTED COURSES</Text>
+          <Text fontSize="xs" color={timestampColor} mb={2}>推荐课程</Text>
           <VStack align="stretch">
             {message.metadata.courses.map((course: any, index: number) => (
               <Box key={index} p={3} bg="white" border="0.4px solid black" borderRadius="15px">
@@ -118,7 +118,7 @@ const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
                   cursor="pointer"
                   onClick={() => handleAddCourse(course)}
                 >
-                  + ADD COURSE
+                  + 添加课程
                 </Text>
               </Box>
             ))}
@@ -160,8 +160,8 @@ const PrincipalAIPage: React.FC = () => {
     const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
     if (!token) {
       toast({
-        title: 'Authentication Error',
-        description: 'Please login to access Principal AI',
+        title: '认证错误',
+        description: '请登录以访问 Principal AI',
         status: 'error',
         duration: 5000,
       });
@@ -177,8 +177,8 @@ const PrincipalAIPage: React.FC = () => {
       setIsConnected(true);
       ws.send(JSON.stringify({ type: 'auth', token }));
       toast({
-        title: 'Connected',
-        description: 'Connected to Principal AI',
+        title: '已连接',
+        description: '已连接到 Principal AI',
         status: 'success',
         duration: 2000,
       });
@@ -234,8 +234,8 @@ const PrincipalAIPage: React.FC = () => {
             // 重置成功
             setMessages([]);
             toast({
-              title: 'Chat Reset',
-              description: 'Chat history cleared successfully',
+              title: '聊天重置',
+              description: '聊天记录已成功清除',
               status: 'success',
               duration: 2000,
             });
@@ -288,8 +288,8 @@ const PrincipalAIPage: React.FC = () => {
       setIsConnected(false);
       setIsTyping(false);
       toast({
-        title: 'Connection Error',
-        description: 'Failed to connect to AI service',
+        title: '连接错误',
+        description: '无法连接到 AI 服务',
         status: 'error',
         duration: 5000,
       });
@@ -301,8 +301,8 @@ const PrincipalAIPage: React.FC = () => {
       setIsTyping(false);
       if (event.code !== 1000) {
         toast({
-          title: 'Connection Lost',
-          description: 'Connection to AI service was lost',
+          title: '连接丢失',
+          description: '与 AI 服务的连接已丢失',
           status: 'warning',
           duration: 3000,
         });
@@ -313,8 +313,8 @@ const PrincipalAIPage: React.FC = () => {
   const resetChat = () => {
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
       toast({
-        title: 'Connection Error',
-        description: 'Not connected to AI service',
+        title: '连接错误',
+        description: '未连接到 AI 服务',
         status: 'error',
         duration: 2000,
       });
@@ -325,8 +325,8 @@ const PrincipalAIPage: React.FC = () => {
     wsRef.current.send(JSON.stringify({ type: 'reset' }));
     
     toast({
-      title: 'Resetting Chat',
-      description: 'Clearing conversation history...',
+      title: '正在重置聊天',
+      description: '正在清除对话历史...',
       status: 'info',
       duration: 1000,
     });
@@ -396,11 +396,11 @@ const PrincipalAIPage: React.FC = () => {
                     bg={isConnected ? 'green.400' : 'red.400'} 
                   />
                   <Text fontSize="xs" color={statusTextColor}>
-                    {isConnected ? 'Connected' : 'Disconnected'}
+                    {isConnected ? '已连接' : '已断开'}
                   </Text>
                   {isTyping && (
                     <Text fontSize="xs" color="#F47B4F">
-                      • AI is thinking...
+                      • AI 正在思考...
                     </Text>
                   )}
                 </HStack>
@@ -412,7 +412,7 @@ const PrincipalAIPage: React.FC = () => {
                 onClick={resetChat}
                 isDisabled={!isConnected}
               >
-                Reset Chat
+                重置聊天
               </Button>
             </HStack>
             
@@ -421,9 +421,9 @@ const PrincipalAIPage: React.FC = () => {
                 {messages.length === 0 && (
                   <Box textAlign="center" py={8}>
                     <Text color={welcomeTextColor} fontSize="sm">
-                      👋 Hello! I'm Principal, your AI course recommendation assistant. 
+                      👋 你好！我是 Principal，您的 AI 课程推荐助手。
                       <br />
-                      Tell me about your learning interests and I'll help you find the perfect courses!
+                      告诉我您的学习兴趣，我会帮您找到完美的课程！
                     </Text>
                   </Box>
                 )}
@@ -436,7 +436,7 @@ const PrincipalAIPage: React.FC = () => {
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                placeholder={t('PrincipalAI.inputPlaceholder') || "Ask me about courses..."}
+                placeholder={t('PrincipalAI.inputPlaceholder') || "询问我关于课程的问题..."}
                 bg={inputBg}
                 borderColor="#FFB69B"
                 _focus={{ borderColor: '#F47B4F' }}

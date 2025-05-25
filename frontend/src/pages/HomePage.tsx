@@ -136,7 +136,7 @@ const HomePage: React.FC = () => {
   // Typing animation state
   const [displayText, setDisplayText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
-  const fullText = "Welcome to ClarifAI";
+  const fullText = "欢迎来到 ClarifAI - “看见”学习，为你而来。";
 
   useEffect(() => {
     if (currentIndex < fullText.length) {
@@ -151,26 +151,26 @@ const HomePage: React.FC = () => {
   // Enhanced features with illustrations
   const enhancedFeatures: Feature[] = [
     {
-      title: "AI-Powered Learning",
-      description: "Experience personalized education with cutting-edge artificial intelligence that adapts to your learning style.",
+      title: "AI 智能学习",
+      description: "体验个性化教育，配备前沿人工智能技术，适应您的学习风格。",
       icon: "🧠",
       illustration: Illus18
     },
     {
-      title: "Interactive Experiences",
-      description: "Engage with immersive learning environments that make complex concepts easy to understand.",
+      title: "互动体验",
+      description: "参与沉浸式学习环境，让复杂概念变得易于理解。",
       icon: "🎯",
       illustration: Illus19
     },
     {
-      title: "Global Community",
-      description: "Connect with learners worldwide and share knowledge in our vibrant educational ecosystem.",
+      title: "全球社区",
+      description: "与全世界的学习者连接，在我们充满活力的教育生态系统中分享知识。",
       icon: "🌍",
       illustration: Illus20
     },
     {
-      title: "Smart Analytics",
-      description: "Track your progress with intelligent insights that help optimize your learning journey.",
+      title: "刨根问底",
+      description: "我们提供深入的解析，帮助你理解复杂的概念。",
       icon: "📊",
       illustration: Illus21
     }
@@ -186,7 +186,7 @@ const HomePage: React.FC = () => {
       <Flex minH="100vh" align="center" justify="center" bg={bgColor}>
         <VStack spacing={6}>
           <Image src={LogoIcon} alt="Loading" w="80px" h="80px" animation={`${pulse} 2s infinite`} />
-          <Text color="#5D5858" fontSize="lg">Loading ClarifAI...</Text>
+          <Text color="#5D5858" fontSize="lg">正在加载 ClarifAI...</Text>
         </VStack>
       </Flex>
     );
@@ -277,7 +277,7 @@ const HomePage: React.FC = () => {
                     lineHeight="1.6"
                     animation={`${fadeIn} 1.5s ease-out 1s both`}
                   >
-                    The first AI education platform that generates personalized knowledge videos, plans a step-by-step course, and gives systematic knowledge for you
+                    首个AI教育平台，生成个性化知识视频，规划循序渐进的课程，为您提供系统性知识
                     </Text>
 
                   {/* CTA Buttons */}
@@ -304,7 +304,7 @@ const HomePage: React.FC = () => {
                       rightIcon={<Icon as={FiArrowRight} />}
                       onClick={() => navigate('/register')}
                     >
-                      Start Learning
+                      开始学习
                     </Button>
                     <Button
                       size="lg"
@@ -324,7 +324,7 @@ const HomePage: React.FC = () => {
                       transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
                       onClick={() => navigate('/login')}
                     >
-                      Explore Demo
+                      探索演示
                     </Button>
                   </Stack>
                 </VStack>
@@ -358,7 +358,7 @@ const HomePage: React.FC = () => {
           >
             <VStack spacing={2}>
               <Text color="#5D5858" fontSize="sm" opacity="0.7">
-                Discover More
+                了解更多
               </Text>
               <Box w="2px" h="30px" bg="#5D5858" opacity="0.5" borderRadius="full" />
             </VStack>
@@ -379,10 +379,10 @@ const HomePage: React.FC = () => {
                   bgClip="text"
                   fontWeight="700"
                 >
-                  Why Choose ClarifAI?
+                  为什么选择 ClarifAI？
                 </Heading>
                 <Text fontSize="xl" color="#5D5858" maxW="600px" opacity="0.8">
-                  Experience the future of education with our innovative features
+                  通过我们的创新功能体验教育的未来
                 </Text>
                 <Box w="100px" h="4px" bg="#F47B4F" borderRadius="full" />
               </VStack>
@@ -437,7 +437,7 @@ const HomePage: React.FC = () => {
                 color="white"
                 fontWeight="700"
               >
-                Ready to Transform Your Learning?
+                准备好改变您的学习方式了吗？
               </Heading>
               <Text 
                 fontSize={{ base: 'lg', md: 'xl' }}
@@ -446,7 +446,7 @@ const HomePage: React.FC = () => {
                 maxW="3xl"
                 lineHeight="1.7"
               >
-                Join thousands of learners who are already experiencing the future of education with ClarifAI
+                加入数千名已经在 ClarifAI 体验教育未来的学习者
               </Text>
               <Button
                 size="xl"
@@ -465,7 +465,7 @@ const HomePage: React.FC = () => {
                 rightIcon={<Icon as={FiArrowRight} />}
                 onClick={() => navigate('/register')}
               >
-                Begin Your Journey
+                开始您的旅程
               </Button>
             </VStack>
           </Container>
@@ -545,7 +545,7 @@ const FounderSection = ({ founders }: { founders: Founder[] }) => {
               bgClip="text"
               fontWeight="700"
             >
-              Meet Our Founders
+              认识我们的创始人
             </Heading>
             <Box w="100px" h="4px" bg="#5D5858" borderRadius="full" />
           </VStack>
@@ -576,7 +576,7 @@ const VisionSection = ({ visions }: { visions: Vision[] }) => {
               bgClip="text"
               fontWeight="700"
             >
-              Our Vision
+              我们的愿景
             </Heading>
             <Box w="100px" h="4px" bg="#FFB69B" borderRadius="full" />
           </VStack>
