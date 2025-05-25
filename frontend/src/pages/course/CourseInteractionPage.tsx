@@ -880,7 +880,12 @@ const CourseInteractionPage: React.FC = () => {
                 id="1"
                 onClick={async () => {
                   const text = videoGenerationText;
+
                   try {
+                    const btn = document.getElementById("1");
+                  if (btn) {
+                    btn.innerHTML = "In progress...";
+                  }
                   await axiosInstance.post("http://localhost:8888/generate", { "text":text });
                   toast({
                     title: "Request sent",
@@ -888,9 +893,8 @@ const CourseInteractionPage: React.FC = () => {
                     status: "success",
                     duration: 3000,
                   });
-                  const btn = document.getElementById("1");
                   if (btn) {
-                    btn.innerHTML = "Loading...";
+                  btn.innerHTML = "Task finished.";
                   }
                   // Button loading state is managed by isLoading prop, so no need to set innerHTML
                   } catch (error) {
