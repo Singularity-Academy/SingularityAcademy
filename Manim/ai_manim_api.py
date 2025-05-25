@@ -129,7 +129,7 @@ def generate_video():
             for i in range(5):
                 try:
                     print("🤖 使用AI生成器处理...")
-                    result = ai_generator.generate_video(prevErr+text)
+                    result = ai_generator.generate_video(text)
                     try:
                         a = result.get("ERR","")
                         if a != "":

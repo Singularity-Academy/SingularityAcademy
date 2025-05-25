@@ -140,7 +140,7 @@ class AIVideoGenerator:
     def _create_scene_prompt(self) -> ChatPromptTemplate:
         """创建场景规划提示词模板"""
         template = """
-常见错误：Framewidth Not Defined.
+请直接输出完整的 Python 代码。 你输出的 Python 代码将直接被执行。若需用户决定的变量，例如FRAME_WIDTH等，直接帮用户决策，使用默认值即可。当前目录下无图标文件。无法获取 URL 资源。
 你是一个专业的数学和物理教育动画设计师。请根据用户的输入，设计一个生动的Manim动画场景。
 
 用户输入: {user_input}
@@ -181,9 +181,7 @@ class AIVideoGenerator:
 请生成一个完整的Manim Scene类，严格遵循以下要求：
 请为每个环境变量赋值
 ⚠️你生成的Python代码将直接被封装执行，无任何已知变量。请务必在调用变量前为其赋值，例如WIDTH, HEIGHT, LIGHT_BLUE, YELLOW等，都会触发NOT DEFINED错误。
-历史错误：
-TypeError: Mobject.__init__() got an unexpected keyword argument 'max_value'
-NameError: name 'FRAME_WIDTH' is not defined
+对于颜色，永远使用#xxxxxx 格式，不得使用 RED YELLOW 等格式。
 ## 1. 基本结构
 ```python
 from manim import *
@@ -207,12 +205,12 @@ class YourSceneName(Scene):
 - 绝对不要用Tex()处理中文
 
 ### 几何对象
-- 圆形：`Circle(radius=1, color=BLUE)`
-- 方形：`Square(side_length=1, color=RED)`
-- 矩形：`Rectangle(width=2, height=1, color=GREEN)`
-- 直线：`Line(start=LEFT, end=RIGHT, color=WHITE)`
-- 箭头：`Arrow(start=ORIGIN, end=UP, color=YELLOW)`
-- 点：`Dot(point=ORIGIN, color=RED)`
+- 圆形：`Circle(radius=1, color=#00FF00, fill_opacity=0.5)`
+- 方形：`Square(side_length=1, color=#FF0000)`
+- 矩形：`Rectangle(width=2, height=1, color=#00FF00)`
+- 直线：`Line(start=LEFT, end=RIGHT, color=#FFFFFF)`
+- 箭头：`Arrow(start=ORIGIN, end=UP, color=#FFFF00)`
+- 点：`Dot(point=ORIGIN, color=#FF0000)`
 
 ### 动画方法 (正确的API)
 - 创建：`Create(object)`
@@ -231,7 +229,6 @@ class YourSceneName(Scene):
 - 边缘：`object.to_edge(UP)`, `object.to_corner(UL)`
 
 ### 颜色
-- 基础颜色：RED, BLUE, GREEN, YELLOW, WHITE, BLACK, PURPLE, ORANGE
 - 自定义：`"#FF5733"`
 
 ### 动画执行
@@ -592,11 +589,11 @@ class NewtonFirstLaw(Scene):
                 return str(code_path), video_path
             else:
                 print(f"❌ 渲染失败: {result.stderr}")
-                return str(code_path), ""
+                return str(code_path), result.stderr.strip()
                 
         except Exception as e:
             print(f"❌ 渲染异常: {e}")
-            return str(code_path), ""
+            return str(code_path), e
     
     def _find_video_file(self, script_name: str, scene_name: str) -> str:
         """查找生成的视频文件"""
@@ -641,9 +638,9 @@ class NewtonFirstLaw(Scene):
                 "video_path": video_path,
                 "scene_name": scene_name
             }
-        except Exception as e:
+        except:
             return {
-                "ERR":str(e)
+                "ERR":str(video_path),
             }
     
     def _extract_class_name(self, code: str) -> str:
