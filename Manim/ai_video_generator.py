@@ -125,9 +125,9 @@ class AIVideoGenerator:
                 
                 llm_settings = self.config.get("llm_settings", {})
                 llm = ChatOpenAI(
-                    model=llm_settings.get("model", "gpt-3.5-turbo"),
+                    model=llm_settings.get("model", "gpt-o4-mini"),
                     temperature=llm_settings.get("temperature", 0.7),
-                    max_tokens=llm_settings.get("max_tokens", 2000)
+                    max_tokens=llm_settings.get("max_tokens",50000 )
                 )
                 
                 print("✅ OpenAI LLM 初始化成功 (兼容模式)")
@@ -181,6 +181,7 @@ class AIVideoGenerator:
 请生成一个完整的Manim Scene类，严格遵循以下要求：
 请为每个环境变量赋值
 ⚠️你生成的Python代码将直接被封装执行，无任何已知变量。请务必在调用变量前为其赋值，例如WIDTH, HEIGHT, LIGHT_BLUE, YELLOW等，都会触发NOT DEFINED错误。
+提示：当该页面满了后你可以擦除内容并新起一页。请注意背景和文字颜色的对比和重叠。 设备暂时无联网权限，且本地无图像和 svg 文件。请勿尝试加载网络资源或本地文件。
 对于颜色，永远使用#xxxxxx 格式，不得使用 RED YELLOW 等格式。
 ## 1. 基本结构
 ```python

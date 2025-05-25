@@ -894,7 +894,7 @@ const CourseInteractionPage: React.FC = () => {
                     duration: 3000,
                   });
                   if (btn) {
-                  btn.innerHTML = "Task finished.";
+                  btn.innerHTML = "Task finished. Reload this page to take effect.";
                   }
                   // Button loading state is managed by isLoading prop, so no need to set innerHTML
                   } catch (error) {
