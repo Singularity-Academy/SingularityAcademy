@@ -198,7 +198,7 @@ const LearningPage: React.FC = () => {
     return (
       <Flex minH="100vh" align="center" justify="center" bg="#FFE5C4">
         <VStack spacing={6}>
-          <Image src={LogoIcon} alt="Loading" w="80px" h="80px" animation={`${pulse} 2s infinite`} />
+          <Image src={LogoIcon} alt="正在加载" w="80px" h="80px" animation={`${pulse} 2s infinite`} />
           <Text color="#5D5858" fontSize="lg">正在加载您的仪表板...</Text>
         </VStack>
       </Flex>
@@ -418,22 +418,22 @@ const DashboardContent: React.FC<{ userData: ExtendedUserData }> = ({ userData }
         p={8}
       >
         <Heading size="lg" color="#5D5858" mb={6}>
-          Recent Activity
+          最近活动
         </Heading>
         <VStack spacing={4} align="stretch">
           <ActivityItem
-            title="Completed Rocket Science Module 3"
-            time="2 hours ago"
+            title="完成火箭科学模块 3"
+            time="2 小时前"
             type="completion"
           />
           <ActivityItem
-            title="Achieved 'Problem Solver' Badge"
-            time="1 day ago"
+            title="获得'问题解决者'徽章"
+            time="1 天前"
             type="achievement"
           />
           <ActivityItem
-            title="Started Advanced Mathematics Course"
-            time="3 days ago"
+            title="开始高等数学课程"
+            time="3 天前"
             type="start"
           />
         </VStack>
@@ -450,26 +450,26 @@ const MentorSection: React.FC = () => {
     <VStack spacing={8} align="stretch">
       <Box textAlign="center">
         <Heading size="xl" color="#5D5858" mb={4}>
-          Meet Your AI Mentors
+          认识您的 AI 导师
         </Heading>
         <Text fontSize="lg" color="#5D5858" opacity="0.8" maxW="2xl" mx="auto">
-          Connect with our specialized AI mentors to get personalized guidance and support for your learning journey.
+          与我们专业的 AI 导师联系，为您的学习之旅获得个性化指导和支持。
         </Text>
       </Box>
 
       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8}>
         <MentorCard
           name="Principal AI"
-          role="Academic Advisor"
-          description="Get guidance on course selection, academic planning, and overall learning strategy."
+          role="学术顾问"
+          description="获得课程选择、学术规划和整体学习策略的指导。"
           illustration={Illus18}
           onMeet={() => navigate("/principal-ai")}
           color="#F47B4F"
         />
         <MentorCard
           name="Dean AI"
-          role="Subject Expert"
-          description="Deep dive into specific subjects with expert-level knowledge and personalized explanations."
+          role="学科专家"
+          description="深入研究特定学科，获得专家级知识和个性化解释。"
           illustration={Illus19}
           onMeet={() => navigate("/course/interaction?AI=Dean")}
           color="#FFB69B"
@@ -531,22 +531,22 @@ const CoursesSection: React.FC = () => {
 // Achievements Section Component
 const AchievementsSection: React.FC = () => {
   const achievements = [
-    { title: "First Steps", description: "Completed your first course", earned: true },
-    { title: "Streak Master", description: "Maintained a 7-day learning streak", earned: true },
-    { title: "Problem Solver", description: "Solved 50 practice problems", earned: true },
-    { title: "Knowledge Seeker", description: "Completed 10 courses", earned: false },
-    { title: "AI Collaborator", description: "Had 20 AI mentor sessions", earned: false },
-    { title: "Expert Level", description: "Reached advanced proficiency", earned: false },
+    { title: "第一步", description: "完成您的第一门课程", earned: true },
+    { title: "连续大师", description: "保持 7 天学习连续", earned: true },
+    { title: "问题解决者", description: "解决 50 个练习题", earned: true },
+    { title: "知识探索者", description: "完成 10 门课程", earned: false },
+    { title: "AI 协作者", description: "进行 20 次 AI 导师会话", earned: false },
+    { title: "专家级别", description: "达到高级熟练程度", earned: false },
   ];
 
   return (
     <VStack spacing={8} align="stretch">
       <Box textAlign="center">
         <Heading size="xl" color="#5D5858" mb={4}>
-          Your Achievements
+          您的成就
         </Heading>
         <Text fontSize="lg" color="#5D5858" opacity="0.8">
-          Celebrate your learning milestones and unlock new badges.
+          庆祝您的学习里程碑并解锁新徽章。
         </Text>
       </Box>
 
@@ -667,7 +667,7 @@ const MentorCard: React.FC<MentorCardProps> = ({
           }}
           onClick={onMeet}
         >
-          Schedule Meeting
+          安排会议
         </Button>
     </VStack>
     </Box>
@@ -764,7 +764,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
             transform: 'scale(1.02)'
           }}
         >
-          Continue Learning
+          继续学习
         </Button>
       </VStack>
     </Box>
@@ -862,7 +862,7 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ title, description, e
           </Text>
           {earned && (
             <Badge colorScheme="orange" borderRadius="full">
-              Earned
+              已获得
             </Badge>
           )}
         </VStack>

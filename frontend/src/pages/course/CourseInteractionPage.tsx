@@ -656,7 +656,7 @@ const CourseInteractionPage: React.FC = () => {
                       onClick={cancelVideoGeneration}
                       isDisabled={!isGeneratingVideo}
                     >
-                      Cancel
+                      取消
                     </Button>
                   )}
                   {videoGenerationStatus.status === 'completed' && (
@@ -665,7 +665,7 @@ const CourseInteractionPage: React.FC = () => {
                       colorScheme="green"
                       onClick={downloadVideo}
                     >
-                      Download Video
+                      下载视频
                     </Button>
                   )}
                 </Flex>
@@ -827,7 +827,7 @@ const CourseInteractionPage: React.FC = () => {
                         borderRadius="md"
                     >
                       <Text fontWeight="bold">
-                        {msg.role === 'user' ? 'You' : 'AI Teacher'}
+                        {msg.role === 'user' ? '您' : 'AI 老师'}
                       </Text>
                       <Text whiteSpace="pre-wrap">{msg.content}</Text>
                     </Box>
@@ -855,7 +855,7 @@ const CourseInteractionPage: React.FC = () => {
       <Modal isOpen={isVideoModalOpen} onClose={onVideoModalClose} size="xl">
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Generate AI Educational Video</ModalHeader>
+          <ModalHeader>生成 AI 教育视频</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
             <VStack spacing={4} align="stretch">
@@ -882,7 +882,7 @@ const CourseInteractionPage: React.FC = () => {
                   try {
                     const btn = document.getElementById("1");
                   if (btn) {
-                    btn.innerHTML = "In progress...";
+                    btn.innerHTML = "处理中...";
                   }
                   await axiosInstance.post("http://localhost:8888/generate", { "text":text });
                   toast({
@@ -892,7 +892,7 @@ const CourseInteractionPage: React.FC = () => {
                     duration: 3000,
                   });
                   if (btn) {
-                  btn.innerHTML = "Task finished. Reload this page to take effect.";
+                  btn.innerHTML = "任务完成。刷新此页面以生效。";
                   }
                   // Button loading state is managed by isLoading prop, so no need to set innerHTML
                   } catch (error) {

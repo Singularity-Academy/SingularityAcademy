@@ -136,7 +136,7 @@ const HomePage: React.FC = () => {
   // Typing animation state
   const [displayText, setDisplayText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
-  const fullText = "欢迎来到 ClarifAI - “看见”学习，为你而来。";
+  const fullText = "欢迎来到 ClarifAI - \"看见\"学习，为你而来。";
 
   useEffect(() => {
     if (currentIndex < fullText.length) {
@@ -185,7 +185,7 @@ const HomePage: React.FC = () => {
     return (
       <Flex minH="100vh" align="center" justify="center" bg={bgColor}>
         <VStack spacing={6}>
-          <Image src={LogoIcon} alt="Loading" w="80px" h="80px" animation={`${pulse} 2s infinite`} />
+          <Image src={LogoIcon} alt="正在加载" w="80px" h="80px" animation={`${pulse} 2s infinite`} />
           <Text color="#5D5858" fontSize="lg">正在加载 ClarifAI...</Text>
         </VStack>
       </Flex>

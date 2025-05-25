@@ -146,7 +146,7 @@ const PersonalHomePage: React.FC = () => {
     return (
       <Flex minH="100vh" align="center" justify="center" bg="#FFE5C4">
         <VStack spacing={6}>
-          <Image src={LogoIcon} alt="Loading" w="80px" h="80px" animation={`${pulse} 2s infinite`} />
+          <Image src={LogoIcon} alt="正在加载" w="80px" h="80px" animation={`${pulse} 2s infinite`} />
           <Text color="#5D5858" fontSize="lg">正在加载您的个人资料...</Text>
         </VStack>
       </Flex>
@@ -345,28 +345,28 @@ const PersonalHomePage: React.FC = () => {
 
               <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={8} w="full">
                 <StatsCard
-                  title="Courses Completed"
+                  title="已完成课程"
                   value="8"
                   icon={FiCode}
                   color="#F47B4F"
                   illustration={Illus18}
                 />
                 <StatsCard
-                  title="Learning Streak"
-                  value="12 days"
+                  title="学习连续天数"
+                  value="12 天"
                   icon={FiTrendingUp}
                   color="#FFB69B"
                   illustration={Illus19}
                 />
                 <StatsCard
-                  title="Total Points"
+                  title="总积分"
                   value="2,450"
                   icon={FiStar}
                   color="#5D5858"
                   illustration={Illus20}
                 />
                 <StatsCard
-                  title="Achievements"
+                  title="成就"
                   value="15"
                   icon={FiAward}
                   color="#F47B4F"
@@ -390,30 +390,30 @@ const PersonalHomePage: React.FC = () => {
                   bgClip="text"
                   fontWeight="700"
                 >
-                  Skills & Expertise
+                  技能与专长
                 </Heading>
                 <Text fontSize="xl" color="#5D5858" maxW="600px" opacity="0.8">
-                  Technologies and skills I've mastered through ClarifAI
+                  通过 ClarifAI 掌握的技术和技能
                 </Text>
                 <Box w="100px" h="4px" bg="#5D5858" borderRadius="full" />
               </VStack>
 
               <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={8}>
                 <SkillCard 
-                  title="AI & Machine Learning" 
-                  description="Deep understanding of neural networks, deep learning, and AI applications through hands-on projects."
+                  title="AI 与机器学习" 
+                  description="通过实践项目深入理解神经网络、深度学习和AI应用。"
                   progress={85}
                   illustration={Illus18}
                 />
                 <SkillCard 
-                  title="Data Science & Analytics" 
-                  description="Proficient in data analysis, visualization, and statistical modeling with Python and R."
+                  title="数据科学与分析" 
+                  description="熟练掌握使用Python和R进行数据分析、可视化和统计建模。"
                   progress={78}
                   illustration={Illus19}
                 />
                 <SkillCard 
-                  title="Software Engineering" 
-                  description="Full-stack development with modern frameworks, cloud technologies, and best practices."
+                  title="软件工程" 
+                  description="使用现代框架、云技术和最佳实践进行全栈开发。"
                   progress={92}
                   illustration={Illus20}
                 />
@@ -435,30 +435,30 @@ const PersonalHomePage: React.FC = () => {
                   bgClip="text"
                   fontWeight="700"
                 >
-                  Featured Projects
+                  精选项目
                 </Heading>
                 <Text fontSize="xl" color="#5D5858" maxW="600px" opacity="0.8">
-                  Real-world applications of knowledge gained through ClarifAI courses
+                  通过 ClarifAI 课程获得知识的实际应用
                 </Text>
                 <Box w="100px" h="4px" bg="#FFB69B" borderRadius="full" />
               </VStack>
 
               <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={8}>
                 <ProjectCard 
-                  title="AI-Powered Learning Assistant" 
-                  description="A personalized tutoring system that adapts to individual learning styles using machine learning algorithms."
+                  title="AI 驱动的学习助手" 
+                  description="使用机器学习算法适应个人学习风格的个性化辅导系统。"
                   tech={["Python", "TensorFlow", "React"]}
                   illustration={Illus21}
                 />
                 <ProjectCard 
-                  title="Smart Analytics Dashboard" 
-                  description="Real-time data visualization platform for educational metrics with predictive analytics capabilities."
+                  title="智能分析仪表板" 
+                  description="具有预测分析功能的教育指标实时数据可视化平台。"
                   tech={["JavaScript", "D3.js", "Node.js"]}
                   illustration={Illus22}
                 />
                 <ProjectCard 
-                  title="Collaborative Learning Platform" 
-                  description="A social learning environment that connects students globally for peer-to-peer knowledge sharing."
+                  title="协作学习平台" 
+                  description="连接全球学生进行点对点知识分享的社交学习环境。"
                   tech={["React", "GraphQL", "PostgreSQL"]}
                   illustration={Illus23}
                 />
@@ -486,7 +486,7 @@ const PersonalHomePage: React.FC = () => {
                 color="white"
                 fontWeight="700"
               >
-                Let's Connect & Learn Together
+                让我们一起连接与学习
               </Heading>
               <Text 
                 fontSize={{ base: 'lg', md: 'xl' }}
@@ -495,8 +495,8 @@ const PersonalHomePage: React.FC = () => {
                 maxW="3xl"
                 lineHeight="1.7"
               >
-                I'm always excited to discuss new learning opportunities, collaborate on projects, 
-                or share insights from my ClarifAI journey. Let's build the future of education together!
+                我总是很兴奋地讨论新的学习机会、合作项目，
+                或分享我在 ClarifAI 旅程中的见解。让我们一起构建教育的未来！
               </Text>
               <HStack spacing={4} flexWrap="wrap" justify="center">
                 <Button
@@ -510,7 +510,7 @@ const PersonalHomePage: React.FC = () => {
                   }}
                   onClick={() => window.open('mailto:' + user.email)}
                 >
-                  Send Email
+                  发送邮件
                 </Button>
                 <Button
                   size="lg"
@@ -525,7 +525,7 @@ const PersonalHomePage: React.FC = () => {
                   }}
                   onClick={() => navigate('/learning')}
                 >
-                  Join My Learning
+                  加入我的学习
                 </Button>
               </HStack>
             </VStack>
@@ -626,7 +626,7 @@ const SkillCard: React.FC<SkillCardProps> = ({ title, description, progress, ill
         <Box>
           <Flex justify="space-between" mb={2}>
             <Text fontSize="sm" color="#5D5858" opacity="0.7">
-              Proficiency
+              熟练程度
             </Text>
             <Text fontSize="sm" fontWeight="bold" color="#F47B4F">
               {progress}%
@@ -708,7 +708,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ title, description, tech, ill
             transform: 'scale(1.02)'
           }}
         >
-          View Project
+          查看项目
         </Button>
       </VStack>
     </Box>

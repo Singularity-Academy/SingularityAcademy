@@ -63,14 +63,14 @@ const Footer = () => {
             bgGradient="linear(to-r, blue.400, purple.500)"
             bgClip="text"
           >
-            Creative Universe Suggestions
+            创意宇宙建议
           </Text>
           <Text 
             fontSize="lg" 
             color={useColorModeValue('gray.600', 'gray.400')}
             lineHeight="tall"
           >
-            Exploring the intersection of technology and creativity. Join me on these platforms to stay connected.
+            探索技术与创意的交汇点。在这些平台上关注我，保持联系。
           </Text>
         </GridItem>
 
@@ -125,9 +125,9 @@ const Footer = () => {
           maxW="2xl"
           lineHeight="tall"
         >
-          © {new Date().getFullYear()} AI Online School. Crafted with ❤️ by KRYPOTO TeaM. 
+          © {new Date().getFullYear()} AI 在线学校。由 KRYPOTO 团队用 ❤️ 精心制作。
           <br />
-          Thanks for contributors' commitment for accessible education worldwide.
+          感谢贡献者们为全球无障碍教育所做的承诺。
         </Text>
       </Flex>
     </Box>

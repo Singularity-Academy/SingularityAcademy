@@ -89,7 +89,7 @@ const Navbar: React.FC = () => {
             <Flex h={16} alignItems="center" justifyContent="space-between">
                 {/* 网站标题 */}
                 <Button variant="ghost" fontSize={{ base: "sm", md: "lg" }} onClick={() => navigate('/')}>
-                    AI Online School
+                    AI 在线学校
                 </Button>
 
                 {/* 右侧内容：手机端用 Menu，下拉显示 */}
@@ -97,25 +97,25 @@ const Navbar: React.FC = () => {
                     <Menu>
                         <MenuButton as={Box}>
                             {token ? (
-                                <Avatar size="sm" name={user?.name || 'User'} />
+                                <Avatar size="sm" name={user?.name || '用户'} />
                             ) : (
-                                <IconButton icon={<FaBars />} aria-label="Open menu" variant="ghost" />
+                                <IconButton icon={<FaBars />} aria-label="打开菜单" variant="ghost" />
                             )}
                         </MenuButton>
                         <MenuList>
                             {token ? (
                                 <>
                                     {/* 显示用户名 */}
-                                    <MenuItem isDisabled fontWeight="bold">{user?.name || 'User'}</MenuItem>
-                                    <MenuItem onClick={() => navigate('/me/homepage')}>{t('Navbar.dashboard')}</MenuItem>
-                                    <MenuItem onClick={() => navigate('/homepage')}>{t('Navbar.profile')}</MenuItem>
-                                    <MenuItem onClick={handleLogout}>{t('Navbar.logout')}</MenuItem>
+                                    <MenuItem isDisabled fontWeight="bold">{user?.name || '用户'}</MenuItem>
+                                    <MenuItem onClick={() => navigate('/me/homepage')}>仪表板</MenuItem>
+                                    <MenuItem onClick={() => navigate('/homepage')}>个人资料</MenuItem>
+                                    <MenuItem onClick={handleLogout}>退出登录</MenuItem>
                                 </>
                             ) : (
-                                <MenuItem onClick={() => navigate('/login')}>{t('common.signIn')}</MenuItem>
+                                <MenuItem onClick={() => navigate('/login')}>登录</MenuItem>
                             )}
                             <MenuItem onClick={toggleColorMode} icon={colorMode === 'light' ? <FaMoon /> : <FaSun />}>
-                                {colorMode === 'light' ? t('Navbar.darkMode') : t('Navbar.lightMode')}
+                                {colorMode === 'light' ? '深色模式' : '浅色模式'}
                             </MenuItem>
                             <Menu>
                                 <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
@@ -139,16 +139,16 @@ const Navbar: React.FC = () => {
                             !loading ? (
                                 <>
                                     <Button variant="ghost" onClick={() => navigate('/me/homepage')}>
-                                        {t('Navbar.dashboard')}
+                                        仪表板
                                     </Button>
                                     <Menu>
                                         <MenuButton>
-                                            <Avatar size="sm" name={user?.name || 'User'} />
+                                            <Avatar size="sm" name={user?.name || '用户'} />
                                         </MenuButton>
                                         <MenuList>
-                                            <MenuItem isDisabled>{user?.name || 'User'}</MenuItem>
-                                            <MenuItem onClick={() => navigate('/homepage')}>{t('Navbar.profile')}</MenuItem>
-                                            <MenuItem onClick={handleLogout}>{t('Navbar.logout')}</MenuItem>
+                                            <MenuItem isDisabled>{user?.name || '用户'}</MenuItem>
+                                            <MenuItem onClick={() => navigate('/homepage')}>个人资料</MenuItem>
+                                            <MenuItem onClick={handleLogout}>退出登录</MenuItem>
                                         </MenuList>
                                     </Menu>
                                 </>
@@ -157,14 +157,14 @@ const Navbar: React.FC = () => {
                             )
                         ) : (
                             <Button variant="ghost" onClick={() => navigate('/login')}>
-                                {t('common.signIn')}
+                                登录
                             </Button>
                         )}
 
                         {/* 主题切换按钮 */}
                         <IconButton
                             icon={colorMode === 'light' ? <FaMoon /> : <FaSun />}
-                            aria-label={colorMode === 'light' ? "Switch to dark mode" : "Switch to light mode"}
+                            aria-label={colorMode === 'light' ? "切换到深色模式" : "切换到浅色模式"}
                             onClick={toggleColorMode}
                             variant="ghost"
                         />
