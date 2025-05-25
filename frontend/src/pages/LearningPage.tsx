@@ -459,7 +459,7 @@ const MentorSection: React.FC = () => {
 
       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8}>
         <MentorCard
-          name="Principal AI"
+          name="Hamian"
           role="学术顾问"
           description="获得课程选择、学术规划和整体学习策略的指导。"
           illustration={Illus18}
@@ -467,7 +467,7 @@ const MentorSection: React.FC = () => {
           color="#F47B4F"
         />
         <MentorCard
-          name="Dean AI"
+          name="Jvein"
           role="学科专家"
           description="深入研究特定学科，获得专家级知识和个性化解释。"
           illustration={Illus19}

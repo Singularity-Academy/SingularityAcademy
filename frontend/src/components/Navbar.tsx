@@ -89,8 +89,9 @@ const Navbar: React.FC = () => {
             <Flex h={16} alignItems="center" justifyContent="space-between">
                 {/* 网站标题 */}
                 <Button variant="ghost" fontSize={{ base: "sm", md: "lg" }} onClick={() => navigate('/')}>
-                    AI 在线学校
-                </Button>
+                    Calrif AI 知澜
+
+                </Button> 
 
                 {/* 右侧内容：手机端用 Menu，下拉显示 */}
                 {isMobile ? (
