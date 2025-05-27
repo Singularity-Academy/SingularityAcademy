@@ -36,12 +36,12 @@ async def home(request):
     return response.json({
         "service": "🎥 AI Manim 视频生成器 API",
         "version": "2.0.0",
-        "description": "输入文字需求，AI自动生成教育动画视频",
+        "description": "WebSocket 输入文字需求，AI 自动生成教育动画视频",
         "status": "online",
         "ai_status": "available" if ai_available else "offline",
         "endpoints": {
-            "POST /generate": "提交生成请求",
-            "GET /checkstatus/<video_id>": "查询状态",
+            "WebSocket /ws": "提交任务，实时反馈状态",
+            "GET /checkstatus/<video_id>": "断线后重新连接获取状态",
             "GET /video/<video_id>": "下载视频文件",
             "GET /status": "查看API状态"
         }
@@ -57,45 +57,91 @@ async def status(request):
         "models": list(ai_generator.list_available_models().keys()) if ai_generator else []
     })
 
-@app.post("/generate")
-async def generate_video(request):
+@app.websocket("/ws")
+async def websocket_handler(request, ws):
     try:
-        data = request.json
-        if not data:
-            return response.json({"error": "请提供JSON数据"}, status=400)
+        while True:
+            data = await ws.recv()
+            request_data = json.loads(data)
 
-        text = data.get("text", "").strip()
-        title = data.get("title", "").strip()
-        model = data.get("model", "").strip()
+            text = request_data.get("text", "").strip()
+            title = request_data.get("title", "").strip()
+            model = request_data.get("model", "").strip()
+            video_id = str(uuid.uuid4())[:8]
 
-        if not text:
-            return response.json({"error": "文字内容不能为空"}, status=400)
-        if len(text) > API_CONFIG["max_content_length"]:
-            return response.json({"error": f"内容过长，最大支持{API_CONFIG['max_content_length']}字符"}, status=400)
+            if not text:
+                await ws.send(json.dumps({"error": "文字内容不能为空"}))
+                continue
+            if len(text) > API_CONFIG["max_content_length"]:
+                await ws.send(json.dumps({"error": f"内容过长，最大支持{API_CONFIG['max_content_length']}字符"}))
+                continue
 
-        video_id = str(uuid.uuid4())[:8]
-        task_file = Path(API_CONFIG["output_dir"]) / f"{video_id}_task.json"
-
-        with open(task_file, 'w', encoding='utf-8') as f:
-            json.dump({
+            task_context = {
                 "video_id": video_id,
                 "text": text,
                 "title": title,
                 "model": model,
-                "status": "pending",
-                "attempts": 0
-            }, f)
+                "ws": ws
+            }
 
-        asyncio.create_task(process_video_task(video_id))
-
-        return response.json({
-            "success": True,
-            "video_id": video_id,
-            "check_url": f"/checkstatus/{video_id}"
-        }, status=200)
+            await ws.send(json.dumps({"status": "pending", "video_id": video_id}))
+            asyncio.create_task(handle_task_via_ws(task_context))
 
     except Exception as e:
-        return response.json({"success": False, "error": f"服务器错误: {str(e)}"}, status=500)
+        logger.warning(f"WebSocket connection lost: {e}")
+
+async def handle_task_via_ws(ctx):
+    video_id = ctx["video_id"]
+    ws = ctx["ws"]
+    text = ctx["text"]
+    title = ctx["title"]
+    model = ctx["model"]
+
+    try:
+        if model and ai_generator:
+            ai_generator.switch_model(model)
+
+        for attempt in range(5):
+            try:
+                result = await ai_generator.generate_video(text)
+                if result.get("video_path") and os.path.exists(result['video_path']):
+                    video_path = "ai-principal-presentation.mp4"
+                    import shutil
+                    shutil.copy2(result['video_path'], video_path)
+                    video_size = os.path.getsize(video_path)
+
+                    info_file = Path(API_CONFIG["output_dir"]) / f"{video_id}_info.json"
+                    with open(info_file, 'w', encoding='utf-8') as f:
+                        json.dump({
+                            "video_id": video_id,
+                            "input_text": text,
+                            "title": title,
+                            "model_used": ai_generator.config.get("default_model", "unknown"),
+                            "generated_at": datetime.now().isoformat(),
+                            "file_size": video_size,
+                            "scene_name": result.get('scene_name', 'Unknown')
+                        }, f, ensure_ascii=False, indent=2)
+
+                    await safe_send(ws, {"status": "success", "url": f"/video/{video_id}"})
+                    return
+            except Exception as e:
+                await safe_send(ws, {"status": f"retry-{attempt+1}"})
+                await asyncio.sleep(1)
+
+        await safe_send(ws, {"status": f"failed-5", "video_id": video_id})
+
+    except Exception as e:
+        await safe_send(ws, {"status": f"error: {str(e)}", "video_id": video_id})
+
+async def safe_send(ws, message):
+    try:
+        await ws.send(json.dumps(message))
+    except Exception:
+        logger.warning("WebSocket disconnected during send. Saving fallback status.")
+        if 'video_id' in message:
+            fallback_file = Path(API_CONFIG["output_dir"]) / f"{message['video_id']}_task.json"
+            with open(fallback_file, 'w', encoding='utf-8') as f:
+                json.dump(message, f)
 
 @app.get("/checkstatus/<video_id:str>")
 async def check_status(request, video_id):
@@ -106,12 +152,7 @@ async def check_status(request, video_id):
 
         with open(task_file, 'r', encoding='utf-8') as f:
             task = json.load(f)
-            if task["status"] == "success":
-                return response.json({"status": f"success-/video/{video_id}"})
-            elif task["status"] == "failed":
-                return response.json({"status": f"failed-{task.get('attempts', 0)}"})
-            else:
-                return response.json({"status": "pending"})
+            return response.json({"status": task.get("status", "unknown"), "url": task.get("url", None)})
 
     except Exception as e:
         return response.json({"error": f"查询失败: {str(e)}"}, status=500)
@@ -159,57 +200,7 @@ async def list_models(request):
             "error": "AI生成器不可用"
         })
 
-async def process_video_task(video_id):
-    task_file = Path(API_CONFIG["output_dir"]) / f"{video_id}_task.json"
-    try:
-        with open(task_file, 'r', encoding='utf-8') as f:
-            task = json.load(f)
-
-        text = task['text']
-        title = task['title']
-        model = task['model']
-
-        if model and ai_generator:
-            ai_generator.switch_model(model)
-
-        for attempt in range(5):
-            try:
-                result = await ai_generator.generate_video(text)
-                if result.get("video_path") and os.path.exists(result['video_path']):
-                    api_video_path = "ai-principal-presentation.mp4"
-                    import shutil
-                    shutil.copy2(result['video_path'], api_video_path)
-                    video_size = os.path.getsize(api_video_path)
-
-                    info_file = Path(API_CONFIG["output_dir"]) / f"{video_id}_info.json"
-                    with open(info_file, 'w', encoding='utf-8') as f:
-                        json.dump({
-                            "video_id": video_id,
-                            "input_text": text,
-                            "title": title,
-                            "model_used": ai_generator.config.get("default_model", "unknown"),
-                            "generated_at": datetime.now().isoformat(),
-                            "file_size": video_size,
-                            "scene_name": result.get('scene_name', 'Unknown')
-                        }, f, ensure_ascii=False, indent=2)
-
-                    task["status"] = "success"
-                    with open(task_file, 'w', encoding='utf-8') as f:
-                        json.dump(task, f)
-                    return
-            except Exception as e:
-                logger.warning(f"尝试 {attempt+1} 失败: {e}")
-                task["attempts"] = attempt + 1
-                await asyncio.sleep(1)
-
-        task["status"] = "failed"
-        with open(task_file, 'w', encoding='utf-8') as f:
-            json.dump(task, f)
-
-    except Exception as e:
-        logger.error(f"任务处理异常: {e}")
-
 if __name__ == '__main__':
     logger.info("🎥 AI Manim 视频生成器 API 启动")
-    logger.info(f"📡 API地址: http://localhost:{API_CONFIG['port']}")
+    logger.info(f"📡 WebSocket 地址: ws://localhost:{API_CONFIG['port']}/ws")
     app.run(host="0.0.0.0", port=API_CONFIG['port'], access_log=True)
