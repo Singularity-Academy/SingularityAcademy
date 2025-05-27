@@ -11,6 +11,12 @@ import traceback
 from loguru import logger
 from sanic import Sanic
 
+__all__ = [
+    'logger',
+    'log_exception',
+    'log_routes'
+]
+
 # Configure logging
 logger.remove()  # Remove default handler
 

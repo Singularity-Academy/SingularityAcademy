@@ -111,7 +111,6 @@ const VIDEO_GENERATION_CONFIG = {
   },
   manim_settings: {
     quality: "medium",
-    preview: true,
     frame_rate: 30,
     resolution: "1080p",
     quality_options: {

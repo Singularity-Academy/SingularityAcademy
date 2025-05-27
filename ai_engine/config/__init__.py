@@ -10,6 +10,19 @@ from urllib.parse import quote_plus
 from ..logging import logger, log_exception
 from pathlib import Path
 
+__all__ = [
+    'load_app_config',
+    'load_db_config',
+    'load_llm_config',
+    'load_manim_config',
+    'construct_db_url',
+    'CONFIG_DIR',
+    'APP_CONFIG_PATH',
+    'DB_CONFIG_PATH',
+    'LLM_CONFIG_PATH',
+    'MANIM_CONFIG_PATH'
+]
+
 # Get the directory where this file is located
 CONFIG_DIR = Path(__file__).parent.absolute()
 
@@ -17,6 +30,7 @@ CONFIG_DIR = Path(__file__).parent.absolute()
 APP_CONFIG_PATH = CONFIG_DIR / "config.json"
 DB_CONFIG_PATH = CONFIG_DIR / "db.json"
 LLM_CONFIG_PATH = CONFIG_DIR / "models.json"
+MANIM_CONFIG_PATH = CONFIG_DIR / "manim.json"
 
 def load_app_config(app: Sanic) -> None:
     """Load application configuration from config.json."""
@@ -213,4 +227,72 @@ def load_llm_config() -> Dict[str, Any]:
         raise
     except Exception as e:
         log_exception(e, "Unexpected error loading LLM configuration")
+        raise
+
+def load_manim_config() -> Dict[str, Any]:
+    """
+    Load Manim configuration from manim.json.
+    
+    The configuration file contains settings for Manim animations, including:
+    - Quality settings and options
+    - Output settings
+    - Generation settings
+    - UI settings
+    
+    Returns:
+        Dict[str, Any]: Dictionary containing all Manim-related configuration
+        
+    Raises:
+        FileNotFoundError: If manim.json is not found
+        json.JSONDecodeError: If manim.json contains invalid JSON
+        ValueError: If required configuration is missing or invalid
+    """
+    try:
+        with open(MANIM_CONFIG_PATH, "r") as f:
+            config = json.load(f)
+            
+        # Validate required sections
+        required_sections = ["manim_settings", "output_settings", "generation_settings", "ui_settings"]
+        missing_sections = [section for section in required_sections if section not in config]
+        if missing_sections:
+            raise ValueError(f"Missing required sections in Manim configuration: {', '.join(missing_sections)}")
+            
+        # Validate manim_settings
+        manim_settings = config["manim_settings"]
+        if "quality" not in manim_settings or manim_settings["quality"] not in manim_settings["quality_options"]:
+            raise ValueError("Invalid or missing 'quality' setting in manim_settings")
+            
+        # Validate output_settings
+        output_settings = config["output_settings"]
+        required_output_fields = ["output_dir", "video_format", "max_video_duration"]
+        missing_output_fields = [field for field in required_output_fields if field not in output_settings]
+        if missing_output_fields:
+            raise ValueError(f"Missing required fields in output_settings: {', '.join(missing_output_fields)}")
+            
+        # Validate generation_settings
+        generation_settings = config["generation_settings"]
+        if "scene_planning" not in generation_settings or "code_generation" not in generation_settings:
+            raise ValueError("Missing required sections in generation_settings")
+            
+        # Validate ui_settings
+        ui_settings = config["ui_settings"]
+        required_ui_fields = ["language", "show_progress", "verbose_logging"]
+        missing_ui_fields = [field for field in required_ui_fields if field not in ui_settings]
+        if missing_ui_fields:
+            raise ValueError(f"Missing required fields in ui_settings: {', '.join(missing_ui_fields)}")
+            
+        logger.info("Successfully loaded Manim configuration")
+        return config
+        
+    except FileNotFoundError:
+        log_exception(FileNotFoundError(f"Manim configuration file not found at {MANIM_CONFIG_PATH}"))
+        raise
+    except json.JSONDecodeError as e:
+        log_exception(e, f"Invalid JSON in Manim configuration file {MANIM_CONFIG_PATH}")
+        raise
+    except ValueError as e:
+        log_exception(e, "Invalid Manim configuration")
+        raise
+    except Exception as e:
+        log_exception(e, "Unexpected error loading Manim configuration")
         raise
