@@ -3,33 +3,30 @@ import uuid
 import json
 from datetime import datetime
 from pathlib import Path
-from sanic import Sanic, response
+from sanic import Sanic, response, Blueprint
 from sanic_ext import Extend
 from sanic_cors import CORS
+from loguru import logger
 from ai_video_generator import AIVideoGenerator
 
-# 初始化应用
 app = Sanic("AI_Manim_Video_Generator")
 Extend(app)
 CORS(app)
 
-# API配置
 API_CONFIG = {
     "output_dir": "api_output",
-    "max_content_length": 1000,
+    "max_content_length": 300,
     "port": 8888
 }
 
-# 创建输出目录
 Path(API_CONFIG["output_dir"]).mkdir(exist_ok=True)
 
-# 初始化AI视频生成器
 try:
     ai_generator = AIVideoGenerator()
-    print("✅ AI视频生成器初始化成功")
+    logger.info("✅ AI视频生成器初始化成功")
     ai_available = True
 except Exception as e:
-    print(f"⚠️ AI生成器初始化失败: {e}")
+    logger.error(f"⚠️ AI生成器初始化失败: {e}")
     ai_generator = None
     ai_available = False
 
@@ -170,4 +167,6 @@ async def list_models(request):
         })
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=API_CONFIG['port'], access_log=True, auto_reload=False)
+    logger.info("🎥 AI Manim 视频生成器 API 启动")
+    logger.info(f"📡 API地址: http://localhost:{API_CONFIG['port']}")
+    app.run(host="0.0.0.0", port=API_CONFIG['port'], access_log=True)
