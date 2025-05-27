@@ -16,6 +16,13 @@ from tortoise.contrib.sanic import register_tortoise
 from .config import load_db_config, construct_db_url
 from ai_engine.logging import log_exception
 
+__all__ = [
+    'get_modules',
+    'register_modules',
+    'init_db',
+    '_MODULES'  # Exposed for testing purposes
+]
+
 def get_modules() -> Dict[str, List[str]]:
     """
     Discover and return all modules under the apps/ directory.

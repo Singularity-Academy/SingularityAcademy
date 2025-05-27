@@ -1,0 +1,65 @@
+{
+  "manim_settings": {
+    "quality": "medium",
+    "preview": true,
+    "frame_rate": 30,
+    "resolution": "1080p",
+    "quality_options": {
+      "low": {
+        "flag": "-ql",
+        "resolution": "480p",
+        "frame_rate": 15,
+        "description": "Fast rendering for quick previews"
+      },
+      "medium": {
+        "flag": "-qm",
+        "resolution": "720p", 
+        "frame_rate": 30,
+        "description": "Balanced quality and rendering speed"
+      },
+      "high": {
+        "flag": "-qh",
+        "resolution": "1080p",
+        "frame_rate": 60,
+        "description": "High quality for final output"
+      },
+      "4k": {
+        "flag": "-qk",
+        "resolution": "2160p",
+        "frame_rate": 60,
+        "description": "Ultra high quality for professional use"
+      }
+    }
+  },
+  "output_settings": {
+    "output_dir": "ai_generated_videos",
+    "keep_intermediate_files": true,
+    "auto_backup": true,
+    "max_video_duration": 120,
+    "video_format": "mp4",
+    "audio_enabled": false
+  },
+  "generation_settings": {
+    "scene_planning": {
+      "include_formulas": true,
+      "include_animations": true,
+      "include_colors": true,
+      "chinese_support": true,
+      "max_scene_complexity": "medium"
+    },
+    "code_generation": {
+      "add_comments": true,
+      "use_meaningful_names": true,
+      "include_error_handling": false,
+      "optimize_for_readability": true
+    },
+    "fallback_enabled": true,
+    "debug_mode": false
+  },
+  "ui_settings": {
+    "language": "zh-CN",
+    "show_progress": true,
+    "verbose_logging": true,
+    "color_output": true
+  }
+} 
