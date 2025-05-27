@@ -11,7 +11,7 @@ from datetime import datetime
 from loguru import logger
 
 from langchain.schema import BaseMessage, HumanMessage, AIMessage, SystemMessage
-from langchain_community.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.schema import LLMResult
 from ai_engine.logging import log_exception
