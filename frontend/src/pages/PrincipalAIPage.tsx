@@ -230,7 +230,7 @@ const PrincipalAIPage: React.FC = () => {
             logger.info('Message stream completed');
             break;
             
-          case 'reset_success':
+          case 'message-reset-success':
             // 重置成功
             setMessages([]);
             toast({
@@ -322,7 +322,7 @@ const PrincipalAIPage: React.FC = () => {
     }
 
     // 发送重置消息到后端
-    wsRef.current.send(JSON.stringify({ type: 'reset' }));
+    wsRef.current.send(JSON.stringify({ type: 'message-reset' }));
     
     toast({
       title: '正在重置聊天',

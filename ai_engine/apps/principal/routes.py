@@ -112,6 +112,19 @@ async def websocket(request: Request, ws: Websocket):
             if data["type"] == "message":
                 await handle_user_message(ws, chat, llm, data["content"], session_id)
 
+            elif data["type"] == "message-reset":
+                try:
+                    await chat.reset()
+                except Exception as e:
+                    logger.error(f"Error resetting chat history: {e}")
+                    await send_ws_error(ws, "Error resetting chat history", 400)
+                    continue
+                else:
+                    await ws.send(json.dumps({
+                        "type": "message-reset-success",
+                        "message": "Chat history reset"
+                    }))
+
             elif data["type"] == "course":
                 await handle_course_req(ws, data["content"], session_id, llm)
 

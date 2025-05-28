@@ -4,11 +4,11 @@ Run script for AI Engine Rewrite.
 
 import argparse
 from ai_engine import app
-from ai_engine.logging import logger, log_routes
+from ai_engine.logging import logger, log_routes, configure_logging
 
 def parse_args():
     """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description="AI Engine Rewrite Server")
+    parser = argparse.ArgumentParser(description="AI Engine Server")
     parser.add_argument(
         "--log-level",
         default="DEBUG",  # Changed default to DEBUG for development
@@ -31,6 +31,10 @@ def parse_args():
 if __name__ == "__main__":
     # Parse command line arguments
     args = parse_args()
+    
+    # Configure logging with the specified level
+    configure_logging(args.log_level)
+    
     if args.log_level == "TRACE":
         log_routes(app)
 

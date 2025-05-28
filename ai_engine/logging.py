@@ -3,7 +3,7 @@ This module configures loguru for AI Engine.
 
 To use this module, import it in your main file:
 
-from .logging import logger
+from .logging import logger, configure_logging
 """
 
 import sys
@@ -14,19 +14,34 @@ from sanic import Sanic
 __all__ = [
     'logger',
     'log_exception',
-    'log_routes'
+    'log_routes',
+    'configure_logging'
 ]
 
-# Configure logging
-logger.remove()  # Remove default handler
+def configure_logging(log_level: str = "DEBUG") -> None:
+    """
+    Configure the logging level for the application.
+    
+    Args:
+        log_level: The logging level to use. Must be one of:
+                  "TRACE", "DEBUG", "INFO", "SUCCESS", "WARNING", "ERROR", "CRITICAL"
+    """
+    # Remove default handler
+    logger.remove()
+    
+    # Add new handler with specified log level
+    logger.add(
+        sys.stderr,
+        level=log_level,
+        format="<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
+        backtrace=True,
+        diagnose=True
+    )
+    
+    logger.info(f"Logging configured with level: {log_level}")
 
-logger.add(
-    sys.stderr,
-    level="TRACE",  # Changed to TRACE to allow trace level logging
-    format="<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
-    backtrace=True,
-    diagnose=True
-)
+# Configure default logging
+configure_logging()
 
 def log_exception(e: Exception, msg: str = None) -> None:
     """
