@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useReducer } from 'react';
 import {
   Box,
   Flex,
@@ -35,6 +35,14 @@ interface WSMessage {
   message?: string;
   messages?: Message[];
 }
+
+type MessageAction = 
+  | { type: 'APPEND_TOKEN'; token: string }
+  | { type: 'START_MESSAGE'; timestamp: string }
+  | { type: 'COMPLETE_MESSAGE' }
+  | { type: 'SET_METADATA'; metadata: any }
+  | { type: 'RESET_MESSAGES' }
+  | { type: 'SET_HISTORY'; messages: Message[] };
 
 const formatTimestamp = (timestamp?: string) => {
   if (!timestamp) return '';
@@ -135,6 +143,47 @@ const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
   );
 };
 
+const messageReducer = (state: Message[], action: MessageAction): Message[] => {
+  switch (action.type) {
+    case 'START_MESSAGE':
+      return [...state, {
+        role: 'assistant',
+        content: '',
+        timestamp: action.timestamp
+      }];
+      
+    case 'APPEND_TOKEN':
+      const updated = [...state];
+      const lastMessage = updated[updated.length - 1];
+      if (lastMessage && lastMessage.role === 'assistant') {
+        // Ensure content is a string and append token
+        lastMessage.content = (lastMessage.content || '') + action.token;
+      }
+      return updated;
+      
+    case 'SET_METADATA':
+      const withMetadata = [...state];
+      const currentMessage = withMetadata[withMetadata.length - 1];
+      if (currentMessage && currentMessage.role === 'assistant') {
+        currentMessage.metadata = action.metadata;
+      }
+      return withMetadata;
+      
+    case 'RESET_MESSAGES':
+      return [];
+      
+    case 'SET_HISTORY':
+      return action.messages;
+      
+    case 'COMPLETE_MESSAGE':
+      // No state change needed, just a signal
+      return state;
+      
+    default:
+      return state;
+  }
+};
+
 const PrincipalAIPage: React.FC = () => {
   const { t } = useTranslation();
   const toast = useToast();
@@ -149,7 +198,7 @@ const PrincipalAIPage: React.FC = () => {
   const welcomeTextColor = useColorModeValue('#5D5858', 'gray.400');
   const inputBg = useColorModeValue('white', 'gray.800');
   
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, dispatch] = useReducer(messageReducer, []);
   const [inputMessage, setInputMessage] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
@@ -186,105 +235,80 @@ const PrincipalAIPage: React.FC = () => {
 
     ws.onmessage = (event) => {
       try {
-        // 首先尝试解析为 JSON
-        const data: WSMessage = JSON.parse(event.data);
+        const message = event.data;
         
-        switch (data.type) {
-          case 'auth_success': 
-            logger.info('Authentication successful');
-            break;
-            
-          case 'history_messages':
-            setMessages(data.messages || []);
-            break;
-            
-          case 'start':
-            // AI 开始响应，创建新的助手消息
-            setIsTyping(true);
-            setMessages(prev => [
-              ...prev,
-              {
-                role: 'assistant',
-                content: '',
-                timestamp: data.timestamp
-              }
-            ]);
-            break;
-            
-          case 'stream':
-          case 'markdown':
-            // 流式消息内容
-            setMessages(prev => {
-              const updated = [...prev];
-              const lastMessage = updated[updated.length - 1];
-              if (lastMessage && lastMessage.role === 'assistant') {
-                lastMessage.content += data.content || '';
-              }
-              return updated;
-            });
-            break;
-            
-          case 'complete':
-            // 消息完成
-            setIsTyping(false);
-            logger.info('Message stream completed');
-            break;
-            
-          case 'message-reset-success':
-            // 重置成功
-            setMessages([]);
-            toast({
-              title: '聊天重置',
-              description: '聊天记录已成功清除',
-              status: 'success',
-              duration: 2000,
-            });
-            break;
-            
-          case 'metadata':
-            // 处理课程建议等元数据
-            setMessages(prev => {
-              const updated = [...prev];
-              const lastMessage = updated[updated.length - 1];
-              if (lastMessage && lastMessage.role === 'assistant') {
-                lastMessage.metadata = data.content;
-              }
-              return updated;
-            });
-            break;
-            
-          case 'error':
-            setIsTyping(false);
-            toast({ 
-              title: 'AI Error', 
-              description: data.content?.message || 'Unknown error', 
-              status: 'error' 
-            });
-            break;
-            
-          default:
-            logger.warn('Unknown message type:', data.type);
+        // Log the raw message once, before any processing
+        if (typeof message === 'string' && message.trim().startsWith('{')) {
+          // For JSON messages, log both raw and parsed
+          logger.debug(`[WebSocket] Received JSON message: ${JSON.stringify(message)}`);
+          const data: WSMessage = JSON.parse(message);
+          logger.debug(`[WebSocket] Parsed JSON content: ${JSON.stringify(data, null, 2)}`);
+          
+          switch (data.type) {
+            case 'auth_success': 
+              logger.info('Authentication successful');
+              break;
+              
+            case 'history_messages':
+              dispatch({ type: 'SET_HISTORY', messages: data.messages || [] });
+              break;
+              
+            case 'start':
+              // AI 开始响应，创建新的助手消息
+              setIsTyping(true);
+              dispatch({ type: 'START_MESSAGE', timestamp: data.timestamp });
+              break;
+              
+            case 'complete':
+              // 消息完成
+              setIsTyping(false);
+              dispatch({ type: 'COMPLETE_MESSAGE' });
+              logger.info('Message stream completed');
+              break;
+              
+            case 'message-reset-success':
+              // 重置成功
+              dispatch({ type: 'RESET_MESSAGES' });
+              toast({
+                title: '聊天重置',
+                description: '聊天记录已成功清除',
+                status: 'success',
+                duration: 2000,
+              });
+              break;
+              
+            case 'metadata':
+              // 处理课程建议等元数据
+              dispatch({ type: 'SET_METADATA', metadata: data.content });
+              break;
+              
+            case 'error':
+              setIsTyping(false);
+              toast({ 
+                title: 'AI Error', 
+                description: data.content?.message || 'Unknown error', 
+                status: 'error' 
+              });
+              break;
+              
+            default:
+              logger.warn(`Unknown JSON message type: ${data.type}`);
+          }
+        } else if (typeof message === 'string' && message.trim()) {
+          // For markdown content, log once with a distinct prefix
+          logger.debug(`[WebSocket] Received markdown token: ${JSON.stringify(message)}`);
+          
+          // Update message content using reducer
+          dispatch({ type: 'APPEND_TOKEN', token: message });
         }
       } catch (err) {
-        // 如果不是 JSON，可能是纯文本流式消息
-        logger.info('Received non-JSON message, treating as stream content');
-        
-        // 检查是否是纯文本消息
-        if (typeof event.data === 'string' && event.data.trim()) {
-          setMessages(prev => {
-            const updated = [...prev];
-            const lastMessage = updated[updated.length - 1];
-            if (lastMessage && lastMessage.role === 'assistant') {
-              lastMessage.content += event.data;
-            }
-            return updated;
-          });
-        }
+        // Log any parsing errors but don't treat them as fatal
+        logger.error('[WebSocket] Error parsing message:', err);
       }
     };
 
     ws.onerror = (error) => {
-      logger.error('WebSocket error:', error);
+      logger.error('[WebSocket] Error:', error);
       setIsConnected(false);
       setIsTyping(false);
       toast({
@@ -296,7 +320,7 @@ const PrincipalAIPage: React.FC = () => {
     };
 
     ws.onclose = (event) => {
-      logger.info(`WebSocket closed: ${event.code} ${event.reason}`);
+      logger.info(`[WebSocket] Closed: ${event.code} ${event.reason}`);
       setIsConnected(false);
       setIsTyping(false);
       if (event.code !== 1000) {
@@ -311,25 +335,10 @@ const PrincipalAIPage: React.FC = () => {
   };
 
   const resetChat = () => {
-    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-      toast({
-        title: '连接错误',
-        description: '未连接到 AI 服务',
-        status: 'error',
-        duration: 2000,
-      });
-      return;
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: 'reset' }));
+      dispatch({ type: 'RESET_MESSAGES' });
     }
-
-    // 发送重置消息到后端
-    wsRef.current.send(JSON.stringify({ type: 'message-reset' }));
-    
-    toast({
-      title: '正在重置聊天',
-      description: '正在清除对话历史...',
-      status: 'info',
-      duration: 1000,
-    });
   };
 
   useEffect(() => {
@@ -343,22 +352,29 @@ const PrincipalAIPage: React.FC = () => {
     };
   }, [toast]);
 
-  const handleSendMessage = () => {
-    if (!inputMessage.trim() || !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
+  const sendMessage = (content: string) => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      toast({
+        title: '连接错误',
+        description: '无法连接到 AI 服务',
+        status: 'error',
+        duration: 3000,
+      });
+      return;
+    }
 
-    const userMessage: Message = {
-      role: 'user',
-      content: inputMessage,
-      timestamp: new Date().toISOString(),
-    };
+    // 添加用户消息
+    dispatch({ 
+      type: 'APPEND_TOKEN', 
+      token: JSON.stringify({
+        role: 'user',
+        content,
+        timestamp: new Date().toISOString()
+      })
+    });
 
-    setMessages(prev => [...prev, userMessage]);
-    wsRef.current.send(JSON.stringify({
-      type: 'message',
-      content: inputMessage,
-      model_id: 'deepseek-v3'
-    }));
-    setInputMessage('');
+    // 发送消息
+    wsRef.current.send(JSON.stringify({ type: 'message', content }));
   };
 
   useEffect(() => {
@@ -435,7 +451,7 @@ const PrincipalAIPage: React.FC = () => {
               <Input
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                onKeyDown={(e) => e.key === 'Enter' && sendMessage(inputMessage)}
                 placeholder={t('PrincipalAI.inputPlaceholder') || "询问我关于课程的问题..."}
                 bg={inputBg}
                 borderColor="#FFB69B"
@@ -445,7 +461,7 @@ const PrincipalAIPage: React.FC = () => {
               <IconButton
                 aria-label={t('PrincipalAI.send') || 'Send'}
                 icon={<FaPaperPlane />}
-                onClick={handleSendMessage}
+                onClick={() => sendMessage(inputMessage)}
                 colorScheme="orange"
                 isDisabled={!isConnected || isTyping || !inputMessage.trim()}
               />
