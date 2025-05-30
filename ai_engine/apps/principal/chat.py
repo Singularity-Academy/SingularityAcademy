@@ -69,7 +69,7 @@ class PrincipalChat:
             else:
                 logger.warning(f"Unknown message role: {role}")
 
-    async def add_message(self, message: str, role: str):
+    async def add_message(self, message: str, role: str, courses: Optional[List[Dict[str, Any]]] = None):
         """Add a new message to the chat history."""
         if not self.initialized:
             await self.initialize()
@@ -77,8 +77,10 @@ class PrincipalChat:
         new_message = {
             "role": role,
             "content": message,
-            "timestamp": datetime.datetime.now().isoformat()
+            "timestamp": datetime.datetime.now().isoformat(),
+            "courses": courses or []
         }
+
         self.history.messages.append(new_message)
         await self.history.save()
         
@@ -131,97 +133,7 @@ class PrincipalChat:
             logger.error(f"Error getting/creating chat for user {user_id}: {str(e)}")
             return None
 
-    @classmethod
-    async def new(cls, user_id: int):
-        """Create a new chat instance for a user."""
-        history = await PrincipalChatHistory.create(user_id=user_id)
-        history.messages = [cls.create_message("system", PRINCIPAL_PROMPT, datetime.datetime.now().isoformat())]
-        await history.save()
-        obj = cls(history)
-        return obj
-
-    async def get_response(self, user_input: str, context: Optional[Dict[str, Any]] = None) -> str:
-        """
-        Get a response from the AI assistant.
-        
-        Args:
-            user_input: The user's input message.
-            context: Optional context information for the conversation.
-            
-        Returns:
-            str: The AI's response.
-        """
-        try:
-            # Load and format the principal prompt
-            prompt = prompt_loader.format_prompt(
-                "principal",
-                user_input=user_input,
-                context=dumps(context) if context else "{}"
-            )
-            
-            # Create messages for the chat
-            messages = [
-                SystemMessage(content="You are an expert educational AI assistant."),
-                HumanMessage(content=prompt)
-            ]
-            
-            # Get response from LLM
-            response = await self.llm.agenerate_response(messages)
-            if not response:
-                logger.error("Empty response from LLM")
-                return "I apologize, but I couldn't generate a proper response. Please try again."
-                
-            return response
-            
-        except Exception as e:
-            logger.exception(f"Error in chat response: {e}")
-            return f"I encountered an error while processing your request: {str(e)}"
-            
-    async def plan_course(self, subject: str, level: str, duration: str) -> Dict[str, Any]:
-        """
-        Generate a course plan.
-        
-        Args:
-            subject: The subject of the course.
-            level: The target level (e.g., 'beginner', 'intermediate').
-            duration: The course duration.
-            
-        Returns:
-            Dict containing the course plan.
-        """
-        try:
-            # Load and format the course planning prompt
-            prompt = prompt_loader.format_prompt(
-                "course_planning",
-                subject=subject,
-                level=level,
-                duration=duration
-            )
-            
-            # Create messages for the chat
-            messages = [
-                SystemMessage(content="You are an expert educational course planner."),
-                HumanMessage(content=prompt)
-            ]
-            
-            # Get response from LLM
-            response = await self.llm.agenerate_response(messages)
-            if not response:
-                logger.error("Empty response from LLM during course planning")
-                return {"error": "Failed to generate course plan"}
-                
-            # Parse the response as JSON
-            try:
-                course_plan = dumps(response)
-                return course_plan
-            except json.JSONDecodeError:
-                logger.error("Invalid JSON response from LLM")
-                return {"error": "Invalid course plan format"}
-                
-        except Exception as e:
-            logger.exception(f"Error in course planning: {e}")
-            return {"error": str(e)}
-        
+       
     async def reset(self) -> None:
         """
         Reset the chat history to only contain the system prompt.

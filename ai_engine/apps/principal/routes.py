@@ -61,22 +61,25 @@ async def websocket(request: Request, ws: Websocket):
         try:
             # Convert messages to client format
             history_messages = []
-            for msg in chat.langchain_messages:
-                # Skip system messages
-                if isinstance(msg, SystemMessage):
+            for msg in chat.history.messages[-10:]:
+                logger.warning(f"History message: {msg}")
+
+                if msg["role"] == "system":
                     continue
-                    
-                # Convert to dict format
+                
                 history_messages.append({
-                    "role": "user" if isinstance(msg, HumanMessage) else "assistant",
-                    "content": msg.content,
-                    "timestamp": datetime.now(timezone.utc).isoformat()
+                    "role": msg["role"],
+                    "content": msg["content"],
+                    "timestamp": msg["timestamp"],
+                    "courses": msg["courses"]
                 })
+                logger.info(f"History message: {history_messages[-1]}")
+
                 
             # Send only last 10 messages
             await ws.send(json.dumps({
                 "type": "history_messages",
-                "messages": history_messages[-10:]
+                "messages": history_messages
             }))
         except WebsocketClosed:
             logger.info(f"WebSocket closed while sending history (session: {session_id})")
