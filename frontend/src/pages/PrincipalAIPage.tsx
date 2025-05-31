@@ -25,6 +25,7 @@ interface Message {
   content: string;
   metadata?: any;
   timestamp?: string;
+  message_id: string;
 }
 
 interface WSMessage {
@@ -38,11 +39,12 @@ interface WSMessage {
 
 type MessageAction = 
   | { type: 'APPEND_TOKEN'; token: string }
-  | { type: 'START_MESSAGE'; timestamp: string }
+  | { type: 'START_MESSAGE'; timestamp: string; message_id?: string }
   | { type: 'COMPLETE_MESSAGE' }
   | { type: 'SET_METADATA'; metadata: any }
   | { type: 'RESET_MESSAGES' }
-  | { type: 'SET_HISTORY'; messages: Message[] };
+  | { type: 'SET_HISTORY'; messages: Message[] }
+  | { type: 'ADD_MESSAGE'; message: Message };
 
 const formatTimestamp = (timestamp?: string) => {
   if (!timestamp) return '';
@@ -149,7 +151,8 @@ const messageReducer = (state: Message[], action: MessageAction): Message[] => {
       return [...state, {
         role: 'assistant',
         content: '',
-        timestamp: action.timestamp
+        timestamp: action.timestamp,
+        message_id: action.message_id || ''
       }];
       
     case 'APPEND_TOKEN':
@@ -178,6 +181,9 @@ const messageReducer = (state: Message[], action: MessageAction): Message[] => {
     case 'COMPLETE_MESSAGE':
       // No state change needed, just a signal
       return state;
+      
+    case 'ADD_MESSAGE':
+      return [...state, action.message];
       
     default:
       return state;
@@ -237,9 +243,7 @@ const PrincipalAIPage: React.FC = () => {
       try {
         const message = event.data;
         
-        // Log the raw message once, before any processing
         if (typeof message === 'string' && message.trim().startsWith('{')) {
-          // For JSON messages, log both raw and parsed
           logger.debug(`[WebSocket] Received JSON message: ${JSON.stringify(message)}`);
           const data: WSMessage = JSON.parse(message);
           logger.debug(`[WebSocket] Parsed JSON content: ${JSON.stringify(data, null, 2)}`);
@@ -250,24 +254,32 @@ const PrincipalAIPage: React.FC = () => {
               break;
               
             case 'history_messages':
-              dispatch({ type: 'SET_HISTORY', messages: data.messages || [] });
+              if (data.messages) {
+                dispatch({ type: 'SET_HISTORY', messages: data.messages });
+              }
               break;
               
             case 'start':
-              // AI 开始响应，创建新的助手消息
               setIsTyping(true);
-              dispatch({ type: 'START_MESSAGE', timestamp: data.timestamp });
+              dispatch({ 
+                type: 'START_MESSAGE', 
+                timestamp: data.timestamp,
+                message_id: data.message_id 
+              });
+              break;
+              
+            case 'token':
+              // Handle streaming tokens
+              dispatch({ type: 'APPEND_TOKEN', token: data.content });
               break;
               
             case 'complete':
-              // 消息完成
               setIsTyping(false);
               dispatch({ type: 'COMPLETE_MESSAGE' });
               logger.info('Message stream completed');
               break;
               
             case 'message-reset-success':
-              // 重置成功
               dispatch({ type: 'RESET_MESSAGES' });
               toast({
                 title: '聊天重置',
@@ -278,7 +290,6 @@ const PrincipalAIPage: React.FC = () => {
               break;
               
             case 'metadata':
-              // 处理课程建议等元数据
               dispatch({ type: 'SET_METADATA', metadata: data.content });
               break;
               
@@ -295,14 +306,10 @@ const PrincipalAIPage: React.FC = () => {
               logger.warn(`Unknown JSON message type: ${data.type}`);
           }
         } else if (typeof message === 'string' && message.trim()) {
-          // For markdown content, log once with a distinct prefix
-          logger.debug(`[WebSocket] Received markdown token: ${JSON.stringify(message)}`);
-          
-          // Update message content using reducer
+          // Handle raw streaming tokens
           dispatch({ type: 'APPEND_TOKEN', token: message });
         }
       } catch (err) {
-        // Log any parsing errors but don't treat them as fatal
         logger.error('[WebSocket] Error parsing message:', err);
       }
     };
@@ -336,7 +343,7 @@ const PrincipalAIPage: React.FC = () => {
 
   const resetChat = () => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({ type: 'reset' }));
+      wsRef.current.send(JSON.stringify({ type: 'message-reset' }));
       dispatch({ type: 'RESET_MESSAGES' });
     }
   };
@@ -363,18 +370,30 @@ const PrincipalAIPage: React.FC = () => {
       return;
     }
 
-    // 添加用户消息
+    const timestamp = new Date().toISOString();
+    const message_id = `user-${Date.now()}`;
+
+    // Add user message to state
     dispatch({ 
-      type: 'APPEND_TOKEN', 
-      token: JSON.stringify({
+      type: 'ADD_MESSAGE',
+      message: {
         role: 'user',
         content,
-        timestamp: new Date().toISOString()
-      })
+        timestamp,
+        message_id
+      }
     });
 
-    // 发送消息
-    wsRef.current.send(JSON.stringify({ type: 'message', content }));
+    // Send message to backend
+    wsRef.current.send(JSON.stringify({ 
+      type: 'message', 
+      content,
+      timestamp,
+      message_id
+    }));
+
+    // Clear input after sending
+    setInputMessage('');
   };
 
   useEffect(() => {

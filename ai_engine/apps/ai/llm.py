@@ -6,14 +6,20 @@ interaction with different LLM providers.
 """
 
 import os
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Callable, Union, Type
 from datetime import datetime
 from loguru import logger
+from pydantic import BaseModel, Field
 
 from langchain.schema import BaseMessage, HumanMessage, AIMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.schema import LLMResult
+from langchain.tools import BaseTool, StructuredTool
+from langchain.agents import AgentExecutor, create_openai_functions_agent
+from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain.schema.runnable import RunnablePassthrough
+from langchain.schema.output_parser import StrOutputParser
 from ai_engine.logging import log_exception
 
 from ...config import load_llm_config
@@ -25,34 +31,32 @@ DEFAULT_MODEL = CONFIG["default_model"]
 
 class LLM:
     """
-    LLM interface for generating responses using configured language models.
+    Modern LCEL-based LLM implementation for the AI Engine.
     
     This class provides a unified interface for both synchronous and asynchronous
-    generation using LangChain's ChatOpenAI implementation. It supports:
+    generation using LangChain's ChatOpenAI implementation with LCEL pipelines.
+    It supports:
     - Multiple model configurations
     - Streaming responses
     - Callback handling
     - Retry logic
     - Response caching
+    - Tool calling (when enabled)
     
     Example:
         ```python
         # Create an LLM instance with default model
         llm = LLM()
         
-        # Generate a response
+        # Add a tool
+        llm.add_tool(my_tool)
+        
+        # Generate a response with tools
         messages = [
             SystemMessage(content="You are a helpful AI assistant."),
             HumanMessage(content="Hello, how are you?")
         ]
-        response = llm.generate_response(messages)
-        
-        # Generate a response asynchronously with streaming
-        async def stream_handler(token: str):
-            print(token, end="", flush=True)
-            
-        callbacks = [StreamingCallbackHandler(stream_handler)]
-        response = await llm.agenerate_response(messages, callbacks=callbacks)
+        response = llm.generate_response(messages, use_tools=True)
         ```
     """
     
@@ -69,6 +73,7 @@ class LLM:
             ValueError: If the specified model_key is not found in the configuration.
         """
         self.model_key = model_key or DEFAULT_MODEL
+        self.tools: List[BaseTool] = []
         
         if self.model_key not in MODEL_CONFIGS:
             raise ValueError(
@@ -77,60 +82,159 @@ class LLM:
             )
             
         self.config = MODEL_CONFIGS[self.model_key]
-        self._client = None
-        self._aclient = None
+        self._chain = None
+        self._achain = None
+        self._tool_chain = None
+        self._tool_achain = None
         
         logger.info(f"Initialized LLM with model: {self.config['name']} ({self.model_key})")
         
-    @property
-    def client(self) -> ChatOpenAI:
+    def add_tool(self, tool: BaseTool) -> None:
         """
-        Get or create the synchronous ChatOpenAI client.
+        Add a tool to the LLM instance.
         
-        Returns:
-            ChatOpenAI: Configured synchronous client instance.
-            
-        Note:
-            The client is created lazily on first access and reused for subsequent calls.
+        Args:
+            tool: A LangChain BaseTool instance to add.
         """
-        if self._client is None:
-            self._client = ChatOpenAI(
-                model_name=self.config["model_id"],
-                openai_api_key=self.config["api_key"],
-                openai_api_base=self.config["api_base"],
-                temperature=self.config["temperature"],
-                max_tokens=self.config["max_tokens"],
-                streaming=self.config["streaming"],
-                request_timeout=self.config["timeout"],
-                max_retries=self.config["retry_attempts"],
-            )
-        return self._client
-        
-    @property
-    def aclient(self) -> ChatOpenAI:
-        """
-        Get or create the asynchronous ChatOpenAI client.
-        
-        Returns:
-            ChatOpenAI: Configured asynchronous client instance.
-            
-        Note:
-            The client is created lazily on first access and reused for subsequent calls.
-        """
-        if self._aclient is None:
-            self._aclient = ChatOpenAI(
-                model_name=self.config["model_id"],
-                openai_api_key=self.config["api_key"],
-                openai_api_base=self.config["api_base"],
-                temperature=self.config["temperature"],
-                max_tokens=self.config["max_tokens"],
-                streaming=self.config["streaming"],
-                request_timeout=self.config["timeout"],
-                max_retries=self.config["retry_attempts"],
-            )
-        return self._aclient
+        self.tools.append(tool)
+        # Reset chains to force recreation with new tools
+        self._tool_chain = None
+        self._tool_achain = None
+        logger.debug(f"Added tool: {tool.name}")
 
-    def generate_response(self, messages: List[BaseMessage]) -> str:
+    @property
+    def chain(self) -> ChatOpenAI:
+        """
+        Get or create the synchronous LCEL chain.
+        
+        Returns:
+            ChatOpenAI: Configured synchronous chain instance.
+            
+        Note:
+            The chain is created lazily on first access and reused for subsequent calls.
+        """
+        if self._chain is None:
+            # Create the base model
+            model = ChatOpenAI(
+                model_name=self.config["model_id"],
+                openai_api_key=self.config["api_key"],
+                openai_api_base=self.config["api_base"],
+                temperature=self.config["temperature"],
+                max_tokens=self.config["max_tokens"],
+                streaming=self.config["streaming"],
+                request_timeout=self.config["timeout"],
+                max_retries=self.config["retry_attempts"],
+            )
+            
+            # Create the LCEL chain
+            self._chain = (
+                RunnablePassthrough() 
+                | model 
+                | StrOutputParser()
+            )
+            
+        return self._chain
+        
+    @property
+    def tool_chain(self) -> AgentExecutor:
+        """
+        Get or create the synchronous tool-enabled LCEL chain.
+        
+        Returns:
+            AgentExecutor: Configured synchronous tool-enabled chain instance.
+        """
+        if self._tool_chain is None and self.tools:
+            model = ChatOpenAI(
+                model_name=self.config["model_id"],
+                openai_api_key=self.config["api_key"],
+                openai_api_base=self.config["api_base"],
+                temperature=self.config["temperature"],
+                max_tokens=self.config["max_tokens"],
+                streaming=self.config["streaming"],
+                request_timeout=self.config["timeout"],
+                max_retries=self.config["retry_attempts"],
+            )
+            
+            prompt = ChatPromptTemplate.from_messages([
+                ("system", "You are a helpful AI assistant that can use tools when needed."),
+                MessagesPlaceholder(variable_name="messages"),
+                MessagesPlaceholder(variable_name="agent_scratchpad"),
+            ])
+            
+            agent = create_openai_functions_agent(model, self.tools, prompt)
+            self._tool_chain = AgentExecutor(agent=agent, tools=self.tools)
+            
+        return self._tool_chain
+
+    @property
+    def achain(self) -> ChatOpenAI:
+        """
+        Get or create the asynchronous LCEL chain.
+        
+        Returns:
+            ChatOpenAI: Configured asynchronous chain instance.
+            
+        Note:
+            The chain is created lazily on first access and reused for subsequent calls.
+        """
+        if self._achain is None:
+            # Create the base model
+            model = ChatOpenAI(
+                model_name=self.config["model_id"],
+                openai_api_key=self.config["api_key"],
+                openai_api_base=self.config["api_base"],
+                temperature=self.config["temperature"],
+                max_tokens=self.config["max_tokens"],
+                streaming=self.config["streaming"],
+                request_timeout=self.config["timeout"],
+                max_retries=self.config["retry_attempts"],
+            )
+            
+            # Create the async LCEL chain
+            self._achain = (
+                RunnablePassthrough() 
+                | model 
+                | StrOutputParser()
+            )
+            
+        return self._achain
+
+    @property
+    def tool_achain(self) -> AgentExecutor:
+        """
+        Get or create the asynchronous tool-enabled LCEL chain.
+        
+        Returns:
+            AgentExecutor: Configured asynchronous tool-enabled chain instance.
+        """
+        if self._tool_achain is None and self.tools:
+            model = ChatOpenAI(
+                model_name=self.config["model_id"],
+                openai_api_key=self.config["api_key"],
+                openai_api_base=self.config["api_base"],
+                temperature=self.config["temperature"],
+                max_tokens=self.config["max_tokens"],
+                streaming=self.config["streaming"],
+                request_timeout=self.config["timeout"],
+                max_retries=self.config["retry_attempts"],
+            )
+            
+            prompt = ChatPromptTemplate.from_messages([
+                ("system", "You are a helpful AI assistant that can use tools when needed."),
+                MessagesPlaceholder(variable_name="messages"),
+                MessagesPlaceholder(variable_name="agent_scratchpad"),
+            ])
+            
+            agent = create_openai_functions_agent(model, self.tools, prompt)
+            self._tool_achain = AgentExecutor(agent=agent, tools=self.tools)
+            
+        return self._tool_achain
+
+    def generate_response(
+        self, 
+        messages: List[BaseMessage],
+        use_tools: bool = False
+    ) -> str:
         """
         Generate a response synchronously.
         
@@ -138,6 +242,8 @@ class LLM:
             messages: List of messages to generate a response for.
                      Each message should be an instance of BaseMessage
                      (e.g., SystemMessage, HumanMessage, AIMessage).
+            use_tools: Whether to use tools for generation. If True and no tools
+                      are registered, falls back to normal generation.
             
         Returns:
             str: The generated response text.
@@ -147,15 +253,17 @@ class LLM:
         """
         try:
             logger.debug(f"Generating response with {self.model_key} for {len(messages)} messages")
-            response = self.client.invoke(messages)
-            return response.content
+            if use_tools and self.tools:
+                return self.tool_chain.invoke({"messages": messages})["output"]
+            return self.chain.invoke(messages)
         except Exception as e:
             log_exception(e, f"Error generating response with {self.model_key}")
 
     async def agenerate_response(
         self,
         messages: List[BaseMessage],
-        callbacks: Optional[List[BaseCallbackHandler]] = None
+        callbacks: Optional[List[BaseCallbackHandler]] = None,
+        use_tools: bool = False
     ) -> str:
         """
         Generate a response asynchronously.
@@ -167,6 +275,8 @@ class LLM:
             callbacks: Optional list of callback handlers for streaming.
                       Useful for implementing streaming responses or
                       custom logging/monitoring.
+            use_tools: Whether to use tools for generation. If True and no tools
+                      are registered, falls back to normal generation.
             
         Returns:
             str: The generated response text.
@@ -176,8 +286,12 @@ class LLM:
         """
         try:
             logger.debug(f"Generating async response with {self.model_key} for {len(messages)} messages")
-            response = await self.aclient.agenerate([messages], callbacks=callbacks)
-            return response.generations[0][0].text
+            if use_tools and self.tools:
+                return (await self.tool_achain.ainvoke(
+                    {"messages": messages},
+                    config={"callbacks": callbacks}
+                ))["output"]
+            return await self.achain.ainvoke(messages, config={"callbacks": callbacks})
         except Exception as e:
             log_exception(e, f"Error generating async response with {self.model_key}")
 
