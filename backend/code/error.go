@@ -5,6 +5,7 @@ package code
 错误为五位数状态码，成功：0
 
 101xx用于用户鉴权相关错误
+102xx用于
 */
 
 type Error struct {
@@ -32,6 +33,11 @@ type CustomErrors struct {
 	EmailAlreadyRegistered            Error
 	FailedToEncryptPassword           Error
 	FailedToGenerateVerificationToken Error
+
+	//Courses Materials
+	FailedToUploadFile   Error
+	FailedToCreateFolder Error
+	FailedToSaveFolder   Error
 }
 
 var Errors = CustomErrors{
@@ -52,4 +58,8 @@ var Errors = CustomErrors{
 	EmailAlreadyRegistered:            Error{Code: 10108, Message: "api.auth.emailAlreadyRegistered"},
 	FailedToEncryptPassword:           Error{Code: 10109, Message: "api.auth.failedToEncryptPassword"},
 	FailedToGenerateVerificationToken: Error{Code: 10110, Message: "api.auth.failedToGenerateVerificationToken"},
+
+	FailedToUploadFile:   Error{Code: 10201, Message: "api.courses.failedToUploadFile"},
+	FailedToCreateFolder: Error{Code: 10202, Message: "api.courses.failedToCreateFolder"},
+	FailedToSaveFolder:   Error{Code: 10203, Message: "api.courses.failedToSaveFolder"},
 }

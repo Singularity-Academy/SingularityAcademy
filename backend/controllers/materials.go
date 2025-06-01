@@ -1,8 +1,9 @@
 package controllers
 
 import (
+	"backend/code"
+	"backend/response"
 	"io/ioutil"
-	"net/http"
 	"path/filepath"
 	"strconv"
 
@@ -13,7 +14,7 @@ func GetUserMaterials(c *gin.Context) {
 	userIdStr := c.Param("userId")
 	userId, err := strconv.ParseUint(userIdStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		response.FailCode(c, code.Errors.BadRequest.Code, "Invalid user ID")
 		return
 	}
 
@@ -21,7 +22,7 @@ func GetUserMaterials(c *gin.Context) {
 	dir := "./materials"
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read materials directory"})
+		response.FailCode(c, code.Errors.InternalError.Code, "Failed to read materials directory")
 		return
 	}
 
@@ -44,7 +45,7 @@ func GetUserMaterials(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	response.Success(c, gin.H{
 		"files": userFiles,
 	})
-} 
+}

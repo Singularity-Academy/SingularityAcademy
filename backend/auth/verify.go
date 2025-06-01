@@ -1,10 +1,11 @@
 package auth
 
 import (
+	"backend/code"
 	"backend/config"
+	"backend/response"
 	"backend/utils"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 type VerifyRequest struct {
@@ -17,28 +18,19 @@ func Verify(context *gin.Context) {
 
 	users, err := utils.FindUsersByVerifyToken(request.Token)
 	if err != nil {
-		context.JSON(http.StatusUnauthorized, gin.H{
-			"error":  "invalid verification token",
-			"detail": "invalid verification token",
-		})
+		response.Fail(context, code.Errors.InvalidToken)
 		return
 	}
 
 	if len(users) == 0 {
-		context.JSON(http.StatusUnauthorized, gin.H{
-			"error":  "invalid verification token",
-			"detail": "invalid verification token",
-		})
+		response.Fail(context, code.Errors.InvalidToken)
 		return
 	}
 
 	user := users[0]
 
 	if user.IsVerified {
-		context.JSON(http.StatusUnauthorized, gin.H{
-			"error":  "user already verified",
-			"detail": "user already verified",
-		})
+		response.FailCode(context, code.Errors.BadRequest.Code, "user already verified")
 		return
 	}
 
@@ -48,7 +40,5 @@ func Verify(context *gin.Context) {
 
 	Logger.Println(user.Username + " verified!")
 
-	context.JSON(http.StatusOK, gin.H{
-		"message": "user verified",
-	})
+	response.Success(context, "user verified")
 }
