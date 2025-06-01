@@ -1,10 +1,10 @@
 # SingulariyAcademy 后端
 
-后端接口正在重构，新接口文档中为已经重构了的接口。
+HTTP接口已重构完成，新接口结构详见Apifox文档。
 
 ## 新的接口文档
 
-[https://apifox.com/apidoc/shared/12f9966d-f11a-4a35-aa97-67fde78ff130/303224243e0](https://apifox.com/apidoc/shared/12f9966d-f11a-4a35-aa97-67fde78ff130/303224243e0)
+[https://apifox.com/apidoc/shared-12f9966d-f11a-4a35-aa97-67fde78ff130](https://apifox.com/apidoc/shared-12f9966d-f11a-4a35-aa97-67fde78ff130)
 
 ## 老接口文档
 
