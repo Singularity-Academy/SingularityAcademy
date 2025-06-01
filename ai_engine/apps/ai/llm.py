@@ -12,11 +12,11 @@ from loguru import logger
 from pydantic import BaseModel, Field
 
 from langchain.schema import BaseMessage, HumanMessage, AIMessage, SystemMessage
+from langchain_core.messages import ToolMessage
 from langchain_openai import ChatOpenAI
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.schema import LLMResult
 from langchain.tools import BaseTool, StructuredTool
-from langchain.agents import AgentExecutor, create_openai_functions_agent
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.schema.runnable import RunnablePassthrough
 from langchain.schema.output_parser import StrOutputParser
@@ -82,10 +82,8 @@ class LLM:
             )
             
         self.config = MODEL_CONFIGS[self.model_key]
-        self._chain = None
-        self._achain = None
-        self._tool_chain = None
-        self._tool_achain = None
+        self._model = None
+        self._amodel = None
         
         logger.info(f"Initialized LLM with model: {self.config['name']} ({self.model_key})")
         
@@ -97,25 +95,25 @@ class LLM:
             tool: A LangChain BaseTool instance to add.
         """
         self.tools.append(tool)
-        # Reset chains to force recreation with new tools
-        self._tool_chain = None
-        self._tool_achain = None
+        # Reset models to force recreation with new tools
+        self._model = None
+        self._amodel = None
         logger.debug(f"Added tool: {tool.name}")
 
     @property
-    def chain(self) -> ChatOpenAI:
+    def model(self) -> ChatOpenAI:
         """
-        Get or create the synchronous LCEL chain.
+        Get or create the synchronous model with bound tools.
         
         Returns:
-            ChatOpenAI: Configured synchronous chain instance.
+            ChatOpenAI: Configured model instance with bound tools if any.
             
         Note:
-            The chain is created lazily on first access and reused for subsequent calls.
+            The model is created lazily on first access and reused for subsequent calls.
         """
-        if self._chain is None:
+        if self._model is None:
             # Create the base model
-            model = ChatOpenAI(
+            base_model = ChatOpenAI(
                 model_name=self.config["model_id"],
                 openai_api_key=self.config["api_key"],
                 openai_api_base=self.config["api_base"],
@@ -126,60 +124,25 @@ class LLM:
                 max_retries=self.config["retry_attempts"],
             )
             
-            # Create the LCEL chain
-            self._chain = (
-                RunnablePassthrough() 
-                | model 
-                | StrOutputParser()
-            )
+            # Bind tools if any are available
+            self._model = base_model.bind_tools(self.tools) if self.tools else base_model
             
-        return self._chain
+        return self._model
         
     @property
-    def tool_chain(self) -> AgentExecutor:
+    def amodel(self) -> ChatOpenAI:
         """
-        Get or create the synchronous tool-enabled LCEL chain.
+        Get or create the asynchronous model with bound tools.
         
         Returns:
-            AgentExecutor: Configured synchronous tool-enabled chain instance.
-        """
-        if self._tool_chain is None and self.tools:
-            model = ChatOpenAI(
-                model_name=self.config["model_id"],
-                openai_api_key=self.config["api_key"],
-                openai_api_base=self.config["api_base"],
-                temperature=self.config["temperature"],
-                max_tokens=self.config["max_tokens"],
-                streaming=self.config["streaming"],
-                request_timeout=self.config["timeout"],
-                max_retries=self.config["retry_attempts"],
-            )
-            
-            prompt = ChatPromptTemplate.from_messages([
-                ("system", "You are a helpful AI assistant that can use tools when needed."),
-                MessagesPlaceholder(variable_name="messages"),
-                MessagesPlaceholder(variable_name="agent_scratchpad"),
-            ])
-            
-            agent = create_openai_functions_agent(model, self.tools, prompt)
-            self._tool_chain = AgentExecutor(agent=agent, tools=self.tools)
-            
-        return self._tool_chain
-
-    @property
-    def achain(self) -> ChatOpenAI:
-        """
-        Get or create the asynchronous LCEL chain.
-        
-        Returns:
-            ChatOpenAI: Configured asynchronous chain instance.
+            ChatOpenAI: Configured async model instance with bound tools if any.
             
         Note:
-            The chain is created lazily on first access and reused for subsequent calls.
+            The model is created lazily on first access and reused for subsequent calls.
         """
-        if self._achain is None:
+        if self._amodel is None:
             # Create the base model
-            model = ChatOpenAI(
+            base_model = ChatOpenAI(
                 model_name=self.config["model_id"],
                 openai_api_key=self.config["api_key"],
                 openai_api_base=self.config["api_base"],
@@ -190,60 +153,76 @@ class LLM:
                 max_retries=self.config["retry_attempts"],
             )
             
-            # Create the async LCEL chain
-            self._achain = (
-                RunnablePassthrough() 
-                | model 
-                | StrOutputParser()
-            )
+            # Bind tools if any are available
+            self._amodel = base_model.bind_tools(self.tools) if self.tools else base_model
             
-        return self._achain
+        return self._amodel
 
-    @property
-    def tool_achain(self) -> AgentExecutor:
+    def _handle_tool_calls(self, response: AIMessage) -> List[BaseMessage]:
         """
-        Get or create the asynchronous tool-enabled LCEL chain.
+        Handle tool calls from a model response.
         
+        Args:
+            response: The AIMessage containing tool calls.
+            
         Returns:
-            AgentExecutor: Configured asynchronous tool-enabled chain instance.
+            List of messages including tool results.
         """
-        if self._tool_achain is None and self.tools:
-            model = ChatOpenAI(
-                model_name=self.config["model_id"],
-                openai_api_key=self.config["api_key"],
-                openai_api_base=self.config["api_base"],
-                temperature=self.config["temperature"],
-                max_tokens=self.config["max_tokens"],
-                streaming=self.config["streaming"],
-                request_timeout=self.config["timeout"],
-                max_retries=self.config["retry_attempts"],
-            )
+        if not response.tool_calls:
+            return []
             
-            prompt = ChatPromptTemplate.from_messages([
-                ("system", "You are a helpful AI assistant that can use tools when needed."),
-                MessagesPlaceholder(variable_name="messages"),
-                MessagesPlaceholder(variable_name="agent_scratchpad"),
-            ])
+        tool_messages = []
+        for tool_call in response.tool_calls:
+            tool_name = tool_call["name"]
+            args = tool_call["args"]
             
-            agent = create_openai_functions_agent(model, self.tools, prompt)
-            self._tool_achain = AgentExecutor(agent=agent, tools=self.tools)
-            
-        return self._tool_achain
+            # Find the tool
+            tool = next((t for t in self.tools if t.name == tool_name), None)
+            if tool:
+                try:
+                    # Execute the tool
+                    result = tool.invoke(args)
+                    tool_messages.append(
+                        ToolMessage(
+                            content=str(result),
+                            tool_call_id=tool_call["id"],
+                            name=tool_name
+                        )
+                    )
+                except Exception as e:
+                    logger.error(f"Tool {tool_name} failed: {e}")
+                    tool_messages.append(
+                        ToolMessage(
+                            content=f"Tool {tool_name} failed: {str(e)}",
+                            tool_call_id=tool_call["id"],
+                            name=tool_name
+                        )
+                    )
+            else:
+                logger.warning(f"Tool {tool_name} not found")
+                tool_messages.append(
+                    ToolMessage(
+                        content=f"Tool {tool_name} not available",
+                        tool_call_id=tool_call["id"],
+                        name=tool_name
+                    )
+                )
+                
+        return tool_messages
 
     def generate_response(
         self, 
         messages: List[BaseMessage],
-        use_tools: bool = False
+        use_tools: bool = False,
+        callbacks: Optional[List[BaseCallbackHandler]] = None
     ) -> str:
         """
         Generate a response synchronously.
         
         Args:
             messages: List of messages to generate a response for.
-                     Each message should be an instance of BaseMessage
-                     (e.g., SystemMessage, HumanMessage, AIMessage).
-            use_tools: Whether to use tools for generation. If True and no tools
-                      are registered, falls back to normal generation.
+            use_tools: Whether to use tools for generation.
+            callbacks: Optional list of callback handlers for streaming.
             
         Returns:
             str: The generated response text.
@@ -253,11 +232,43 @@ class LLM:
         """
         try:
             logger.debug(f"Generating response with {self.model_key} for {len(messages)} messages")
-            if use_tools and self.tools:
-                return self.tool_chain.invoke({"messages": messages})["output"]
-            return self.chain.invoke(messages)
+            
+            if not use_tools or not self.tools:
+                # Simple case: no tools, just generate response
+                return self.model.invoke(messages, config={"callbacks": callbacks}).content
+            
+            # Tool-enabled case: handle tool calls
+            current_messages = messages.copy()
+            max_iterations = 5  # Prevent infinite loops
+            iteration = 0
+            
+            while iteration < max_iterations:
+                iteration += 1
+                logger.debug(f"Tool loop iteration {iteration}")
+                
+                # Get response from model
+                response = self.model.invoke(current_messages, config={"callbacks": callbacks})
+                
+                # If no tool calls, we're done
+                if not response.tool_calls:
+                    return response.content
+                
+                # Handle tool calls
+                tool_messages = self._handle_tool_calls(response)
+                
+                # Add response and tool results to conversation
+                current_messages.extend([
+                    AIMessage(content="", tool_calls=response.tool_calls),
+                    *tool_messages
+                ])
+            
+            # If we get here, we hit max iterations
+            logger.warning(f"Tool loop reached max iterations ({max_iterations})")
+            return current_messages[-1].content
+            
         except Exception as e:
             log_exception(e, f"Error generating response with {self.model_key}")
+            raise
 
     async def agenerate_response(
         self,
@@ -270,13 +281,8 @@ class LLM:
         
         Args:
             messages: List of messages to generate a response for.
-                     Each message should be an instance of BaseMessage
-                     (e.g., SystemMessage, HumanMessage, AIMessage).
             callbacks: Optional list of callback handlers for streaming.
-                      Useful for implementing streaming responses or
-                      custom logging/monitoring.
-            use_tools: Whether to use tools for generation. If True and no tools
-                      are registered, falls back to normal generation.
+            use_tools: Whether to use tools for generation.
             
         Returns:
             str: The generated response text.
@@ -286,14 +292,49 @@ class LLM:
         """
         try:
             logger.debug(f"Generating async response with {self.model_key} for {len(messages)} messages")
-            if use_tools and self.tools:
-                return (await self.tool_achain.ainvoke(
-                    {"messages": messages},
+            
+            if not use_tools or not self.tools:
+                # Simple case: no tools, just generate response
+                return (await self.amodel.ainvoke(
+                    messages,
                     config={"callbacks": callbacks}
-                ))["output"]
-            return await self.achain.ainvoke(messages, config={"callbacks": callbacks})
+                )).content
+            
+            # Tool-enabled case: handle tool calls
+            current_messages = messages.copy()
+            max_iterations = 5  # Prevent infinite loops
+            iteration = 0
+            
+            while iteration < max_iterations:
+                iteration += 1
+                logger.debug(f"Tool loop iteration {iteration}")
+                
+                # Get response from model
+                response = await self.amodel.ainvoke(
+                    current_messages,
+                    config={"callbacks": callbacks}
+                )
+                
+                # If no tool calls, we're done
+                if not response.tool_calls:
+                    return response.content
+                
+                # Handle tool calls
+                tool_messages = self._handle_tool_calls(response)
+                
+                # Add response and tool results to conversation
+                current_messages.extend([
+                    AIMessage(content="", tool_calls=response.tool_calls),
+                    *tool_messages
+                ])
+            
+            # If we get here, we hit max iterations
+            logger.warning(f"Tool loop reached max iterations ({max_iterations})")
+            return current_messages[-1].content
+            
         except Exception as e:
             log_exception(e, f"Error generating async response with {self.model_key}")
+            raise
 
     def __repr__(self) -> str:
         """
