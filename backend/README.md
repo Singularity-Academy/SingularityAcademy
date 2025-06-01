@@ -1,3 +1,13 @@
+# SingulariyAcademy 后端
+
+HTTP接口已重构完成，新接口结构详见Apifox文档。
+
+## 新的接口文档
+
+[https://apifox.com/apidoc/shared-12f9966d-f11a-4a35-aa97-67fde78ff130](https://apifox.com/apidoc/shared-12f9966d-f11a-4a35-aa97-67fde78ff130)
+
+## 老接口文档
+
 ### /api/auth/register
 #### 请求方法: POST
 #### 需要传入Token: 否
