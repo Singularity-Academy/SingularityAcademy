@@ -103,7 +103,7 @@ class LegacyWSStreamingCallback(AsyncCallbackHandler):
 class NewWSStreamingCallback(AsyncCallbackHandler):
     """
     Callback handler for streaming LLM responses through WebSocket.
-    Streams markdown content until delimiter, then streams JSON metadata.
+    Streams markdown content directly to the client.
     """
     
     def __init__(self, ws: Websocket, session_id: str):
@@ -111,20 +111,11 @@ class NewWSStreamingCallback(AsyncCallbackHandler):
         self.ws = ws
         self.session_id = session_id
         self.message_id = str(uuid.uuid4())
-        self.buffer = ""
         self.markdown_content = ""
-        self.found_delimiter = False
         self.finalized = False
         self.started = False
         logger.debug(f"[TRACE] NewWSStreamingCallback: Initialized with message_id={self.message_id}")
 
-    def __clean_buffer(self) -> str:
-        """Clean the buffer for JSON parsing."""
-        clean = self.buffer.strip()
-        if clean.startswith("---"):
-            clean = clean[3:].strip()
-        return clean
-        
     async def on_llm_new_token(self, token: str, **kwargs) -> None:
         """Handle new token from LLM."""
         if not self.started:
@@ -139,66 +130,13 @@ class NewWSStreamingCallback(AsyncCallbackHandler):
             await self.ws.send(start_msg)
             
         try:
-            if not self.found_delimiter:
-                if "---" in token:
-                    # Split at delimiter
-                    markdown, metadata = token.split("---", 1)
-                    if markdown:
-                        logger.debug(f"[{self.session_id}] Sending markdown: {repr(markdown)}")
-                        await self.ws.send(markdown)
-                        self.markdown_content += markdown
-                    if metadata:
-                        self.buffer = metadata.strip()
-                    self.found_delimiter = True
-                else:
-                    logger.debug(f"[{self.session_id}] Sending markdown: {repr(token)}")
-                    await self.ws.send(token)
-                    self.markdown_content += token
-            if self.found_delimiter:
-                # After delimiter, just buffer metadata
-                self.buffer += token
-                # Only try parsing if we see a closing brace
-                if "}" in token:
-                    try:
-                        metadata = json.loads(self.__clean_buffer())
-                        metadata_msg = json.dumps({
-                            "type": "metadata",
-                            "message_id": self.message_id,
-                            "content": metadata,
-                            "timestamp": datetime.now().isoformat()
-                        })
-                        logger.debug(f"[{self.session_id}] Sending metadata: {repr(metadata_msg)}")
-                        await self.ws.send(metadata_msg)
-                        self.buffer = ""
-                    except json.JSONDecodeError as e:
-                        if self.finalized:
-                            logger.error(f"[{self.session_id}] Invalid JSON metadata at stream end: {e}")
-                            logger.error(f"[{self.session_id}] Buffer content: {self.buffer}")
-                            error_msg = json.dumps({
-                                "type": "error",
-                                "message_id": self.message_id,
-                                "content": {
-                                    "message": "Invalid JSON metadata received from LLM",
-                                    "session_id": self.session_id
-                                },
-                                "timestamp": datetime.now().isoformat()
-                            })
-                            logger.debug(f"[{self.session_id}] Sending error: {repr(error_msg)}")
-                            await self.ws.send(error_msg)
+            logger.debug(f"[{self.session_id}] Sending markdown: {repr(token)}")
+            await self.ws.send(token)
+            self.markdown_content += token
             
         except Exception as e:
             logger.error(f"[{self.session_id}] Error streaming token: {e}")
-            error_msg = json.dumps({
-                "type": "error",
-                "message_id": self.message_id,
-                "content": {
-                    "message": "Error processing token",
-                    "session_id": self.session_id
-                },
-                "timestamp": datetime.now().isoformat()
-            })
-            logger.debug(f"[{self.session_id}] Sending error: {repr(error_msg)}")
-            await self.ws.send(error_msg)
+            await send_ws_error(self.ws, f"Error processing token: {str(e)}", 500)
 
     def get_content(self) -> str:
         """Get the complete markdown content for chat history."""
@@ -208,32 +146,6 @@ class NewWSStreamingCallback(AsyncCallbackHandler):
         """Handle end of LLM response."""
         try:
             self.finalized = True
-            # Try to parse any remaining buffered metadata
-            if self.buffer:
-                try:
-                    metadata = json.loads(self.__clean_buffer())
-                    metadata_msg = json.dumps({
-                        "type": "metadata",
-                        "message_id": self.message_id,
-                        "content": metadata,
-                        "timestamp": datetime.now().isoformat()
-                    })
-                    logger.debug(f"[{self.session_id}] Sending final metadata: {repr(metadata_msg)}")
-                    await self.ws.send(metadata_msg)
-                except json.JSONDecodeError as e:
-                    logger.error(f"[{self.session_id}] Invalid JSON metadata at stream end: {e}")
-                    logger.error(f"[{self.session_id}] Buffer content: {self.buffer}")
-                    error_msg = json.dumps({
-                        "type": "error",
-                        "message_id": self.message_id,
-                        "content": {
-                            "message": "Invalid JSON metadata received from LLM",
-                            "session_id": self.session_id
-                        },
-                        "timestamp": datetime.now().isoformat()
-                    })
-                    logger.debug(f"[{self.session_id}] Sending error: {repr(error_msg)}")
-                    await self.ws.send(error_msg)
             
             # Send completion signal
             complete_msg = json.dumps({
@@ -247,17 +159,7 @@ class NewWSStreamingCallback(AsyncCallbackHandler):
             
         except Exception as e:
             logger.error(f"[{self.session_id}] Error in stream end: {e}")
-            error_msg = json.dumps({
-                "type": "error",
-                "message_id": self.message_id,
-                "content": {
-                    "message": "Error at stream end",
-                    "session_id": self.session_id
-                },
-                "timestamp": datetime.now().isoformat()
-            })
-            logger.debug(f"[{self.session_id}] Sending error: {repr(error_msg)}")
-            await self.ws.send(error_msg)
+            await send_ws_error(self.ws, f"Error at stream end: {str(e)}", 500)
 
 async def send_ws_error(ws: Websocket, error: str, status_code: int = 400) -> None:
     """
