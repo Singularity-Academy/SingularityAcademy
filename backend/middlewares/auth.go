@@ -1,7 +1,9 @@
 package middlewares
 
 import (
+	"backend/code"
 	"backend/models"
+	"backend/response"
 	"backend/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -10,41 +12,26 @@ import (
 	"strings"
 )
 
-// 提取错误响应函数
-func unauthorizedError(c *gin.Context, message, detail string) {
-	if detail == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": message,
-		})
-		return
-	}
-	c.JSON(http.StatusUnauthorized, gin.H{
-		"error":  message,
-		"detail": detail,
-	})
-	c.Abort()
-}
-
 func JwtMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 获取 Authorization 头部中的 Token
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			unauthorizedError(c, "api.auth.authorizationHeaderIsRequired", "")
+			response.Fail(c, code.Errors.AuthorizationHeaderIsRequired)
 			return
 		}
 
 		// 去掉 "Bearer " 前缀
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 		if tokenString == "" {
-			unauthorizedError(c, "api.auth.tokenIsRequired", "")
+			response.Fail(c, code.Errors.TokenIsRequired)
 			return
 		}
 
 		// 解析 Token 并验证
 		claims, err := utils.ParseToken(tokenString)
 		if err != nil {
-			unauthorizedError(c, "api.auth.invalidToken", "")
+			response.Fail(c, code.Errors.InvalidToken)
 			return
 		}
 
@@ -52,7 +39,7 @@ func JwtMiddleware() gin.HandlerFunc {
 		// 查找id所对应的用户
 		users, err = utils.FindUsersByID(claims.ID)
 		if err != nil || len(users) == 0 {
-			unauthorizedError(c, "api.auth.invalidToken", "")
+			response.Fail(c, code.Errors.InvalidToken)
 			return
 		}
 

@@ -1,22 +1,16 @@
 package auth
 
 import (
+	"backend/code"
+	"backend/response"
 	"backend/utils"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 // LoginRequest 定义登录请求结构
 type LoginRequest struct {
 	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
-}
-
-// 错误响应函数
-func loginError(c *gin.Context, message string) {
-	c.JSON(http.StatusUnauthorized, gin.H{
-		"error": message,
-	})
 }
 
 func Login(context *gin.Context) {
@@ -26,7 +20,7 @@ func Login(context *gin.Context) {
 	// 查找用户
 	users, err := utils.FindUsersByEmail(request.Email)
 	if err != nil || len(users) == 0 {
-		loginError(context, "api.courses.incorrectEmailOrPassword")
+		response.Fail(context, code.Errors.IncorrectEmailOrPassword)
 		return
 	}
 
@@ -34,17 +28,14 @@ func Login(context *gin.Context) {
 
 	// 检查密码
 	if !utils.CheckPassword(request.Password, user.Password) {
-		loginError(context, "api.courses.incorrectEmailOrPassword")
+		response.Fail(context, code.Errors.IncorrectEmailOrPassword)
 		return
 	}
 
 	// 生成 JWT Token
 	token, err := utils.GenerateToken(user.ID)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"error":  "api.courses.failedToGenerateToken",
-			"detail": err.Error(),
-		})
+		response.Fail(context, code.Errors.FailedToGenerateToken)
 		return
 	}
 
@@ -52,8 +43,5 @@ func Login(context *gin.Context) {
 	Logger.Println("User", user.Username, "logged in successfully!")
 
 	// 返回成功响应
-	context.JSON(http.StatusOK, gin.H{
-		"message": "api.courses.loginSuccessfully",
-		"token":   token,
-	})
+	response.Success(context, token)
 }

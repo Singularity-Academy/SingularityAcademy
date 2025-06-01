@@ -1,11 +1,12 @@
 package auth
 
 import (
+	"backend/code"
 	"backend/config"
 	"backend/models"
+	"backend/response"
 	"backend/utils"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 // RegisterRequest 定义注册请求结构
@@ -15,42 +16,25 @@ type RegisterRequest struct {
 	Email    string `json:"email" binding:"required"`
 }
 
-// 错误响应函数
-func registerError(c *gin.Context, errorMessage, detailMessage string) {
-	if detailMessage == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": errorMessage,
-		})
-		return
-	}
-	c.JSON(http.StatusBadRequest, gin.H{
-		"error":  errorMessage,
-		"detail": detailMessage,
-	})
-}
-
 func Register(context *gin.Context) {
 	r, _ := context.Get("json")
 	request := r.(*RegisterRequest)
 
 	// 验证邮箱格式
 	if !utils.IsValidEmail(request.Email) {
-		registerError(context, "api.auth.invalidEmailAddress", "")
+		response.Fail(context, code.Errors.InvalidEmailAddress)
 		return
 	}
 
 	// 检查邮箱是否已注册
 	users, err := utils.FindUsersByEmail(request.Email)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"error":  "api.auth.failedToCheckEmail",
-			"detail": err.Error(),
-		})
+		response.Fail(context, code.Errors.FailedToCheckEmail)
 		return
 	}
 
 	if len(users) != 0 {
-		registerError(context, "api.auth.emailAlreadyRegistered", "")
+		response.Fail(context, code.Errors.EmailAlreadyRegistered)
 		return
 	}
 
@@ -62,10 +46,7 @@ func Register(context *gin.Context) {
 	user.Password, err = utils.Encrypt(request.Password)
 
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"error":  "api.auth.failedToEncryptPassword",
-			"detail": err.Error(),
-		})
+		response.Fail(context, code.Errors.FailedToEncryptPassword)
 		return
 	}
 
@@ -74,10 +55,7 @@ func Register(context *gin.Context) {
 	user.VerificationToken, err = utils.GenerateSecureRandomString(10)
 
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"error":  "api.auth.failedToGenerateVerificationToken",
-			"detail": err.Error(),
-		})
+		response.Fail(context, code.Errors.FailedToGenerateVerificationToken)
 		return
 	}
 
@@ -94,7 +72,5 @@ func Register(context *gin.Context) {
 
 	// 注册成功
 	Logger.Println(user.Username + " register success!")
-	context.JSON(http.StatusOK, gin.H{
-		"message": "Registration successful, please check your email for verification",
-	})
+	response.Success(context, "Registration successful, please check your email for verification")
 }
