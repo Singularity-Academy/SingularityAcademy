@@ -206,9 +206,9 @@ class LLM:
             )
         return self._abase_model
 
-    def _handle_tool_calls(self, response: AIMessage) -> List[BaseMessage]:
+    def _handle_tool_calls_sync(self, response: AIMessage) -> List[BaseMessage]:
         """
-        Handle tool calls from a model response.
+        Handle tool calls from a model response synchronously.
         
         Args:
             response: The AIMessage containing tool calls.
@@ -228,8 +228,60 @@ class LLM:
             tool = next((t for t in self.tools if t.name == tool_name), None)
             if tool:
                 try:
-                    # Execute the tool
+                    # Execute the tool synchronously
                     result = tool.invoke(args)
+                    tool_messages.append(
+                        ToolMessage(
+                            content=str(result),
+                            tool_call_id=tool_call["id"],
+                            name=tool_name
+                        )
+                    )
+                except Exception as e:
+                    logger.error(f"Tool {tool_name} failed: {e}")
+                    tool_messages.append(
+                        ToolMessage(
+                            content=f"Tool {tool_name} failed: {str(e)}",
+                            tool_call_id=tool_call["id"],
+                            name=tool_name
+                        )
+                    )
+            else:
+                logger.warning(f"Tool {tool_name} not found")
+                tool_messages.append(
+                    ToolMessage(
+                        content=f"Tool {tool_name} not available",
+                        tool_call_id=tool_call["id"],
+                        name=tool_name
+                    )
+                )
+                
+        return tool_messages
+
+    async def _handle_tool_calls_async(self, response: AIMessage) -> List[BaseMessage]:
+        """
+        Handle tool calls from a model response asynchronously.
+        
+        Args:
+            response: The AIMessage containing tool calls.
+            
+        Returns:
+            List of messages including tool results.
+        """
+        if not response.tool_calls:
+            return []
+            
+        tool_messages = []
+        for tool_call in response.tool_calls:
+            tool_name = tool_call["name"]
+            args = tool_call["args"]
+            
+            # Find the tool
+            tool = next((t for t in self.tools if t.name == tool_name), None)
+            if tool:
+                try:
+                    # Execute the tool asynchronously
+                    result = await tool.ainvoke(args)
                     tool_messages.append(
                         ToolMessage(
                             content=str(result),
@@ -300,8 +352,8 @@ class LLM:
             while iteration < max_iterations:
                 logger.debug(f"Tool loop iteration {iteration + 1}")
                 
-                # Handle tool calls from previous response
-                tool_messages = self._handle_tool_calls(response)
+                # Handle tool calls from previous response synchronously
+                tool_messages = self._handle_tool_calls_sync(response)
                 
                 # Add response and tool results to conversation
                 current_messages.extend([
@@ -371,8 +423,8 @@ class LLM:
             while iteration < max_iterations:
                 logger.debug(f"Tool loop iteration {iteration + 1}")
                 
-                # Handle tool calls from previous response
-                tool_messages = self._handle_tool_calls(response)
+                # Handle tool calls from previous response asynchronously
+                tool_messages = await self._handle_tool_calls_async(response)
                 
                 # Add response and tool results to conversation
                 current_messages.extend([

@@ -22,7 +22,7 @@ from pathlib import Path
 from langchain.schema import BaseMessage, HumanMessage, AIMessage, SystemMessage
 from langchain.tools import BaseTool
 from langchain.callbacks.base import BaseCallbackHandler
-from pydantic import Field, BaseModel
+from pydantic import Field, BaseModel, field_validator
 from loguru import logger
 
 # Add the project root to Python path
@@ -31,6 +31,17 @@ sys.path.append(str(project_root))
 
 from ai_engine.apps.ai.llm import LLM
 from ai_engine.config import load_llm_config
+from ai_engine.apps.principal.ai_tools import (
+    CreateCourseTool,
+    GetCourseTool,
+    ListCoursesTool,
+    UpdateCourseTool,
+    DeleteCourseTool,
+    RegenerateOutlineTool
+)
+from tortoise import Tortoise
+from ai_engine.apps.auth.models import User
+from ai_engine.config import load_db_config, construct_db_url
 
 def parse_args() -> argparse.Namespace:
     """Parse command line arguments."""
@@ -41,6 +52,7 @@ def parse_args() -> argparse.Namespace:
         default="gpt-4",
         help="LLM model to use (default: gpt-4)"
     )
+    parser.add_argument('--id', type=int, required=True, help='User ID to use for course operations')
     return parser.parse_args()
 
 # Math Tools
@@ -382,51 +394,95 @@ async def chat_loop(llm: LLM, system_message: Optional[str] = None) -> None:
             logger.error(f"Error in chat loop: {e}")
             print(f"\nError: {str(e)}")
 
+async def init_db():
+    """Initialize database connection using configuration from ai_engine/config."""
+    try:
+        # Load database configuration
+        db_config = load_db_config()
+        db_url = construct_db_url(db_config)
+        
+        # Initialize Tortoise with all models
+        await Tortoise.init(
+            db_url=db_url,
+            modules={
+                'models': [
+                    'ai_engine.apps.auth.models',
+                    'ai_engine.apps.course.models'
+                ]
+            }
+        )
+        logger.info(f"Connected to database at {db_config['host']}:{db_config['port']}")
+    except Exception as e:
+        logger.error(f"Failed to initialize database: {e}")
+        raise
+
 async def main():
     """Main entry point for the test tool."""
     try:
         # Parse command line arguments
         args = parse_args()
+        logger.info(f"Using model: {args.llm}")
         
-        # Load default LLM configuration
-        config = load_llm_config()
-        print(f"Loaded LLM configuration with default model: {config['default_model']}")
-        print(f"Using model: {args.llm}")
+        # Initialize database first
+        await init_db()
+        print("Database initialized")
         
-        # Initialize LLM with specified model
-        llm = LLM(model_key=args.llm)
+        # Get user (just for display purposes)
+        user = await User.get_or_none(id=args.id)
+        if user:
+            print(f"Using user: {user.username} (ID: {user.id})")
+        else:
+            print(f"Using user ID: {args.id}")
         
-        # Register all tools
-        llm.add_tool(CalculatorTool())
-        llm.add_tool(RandomNumberTool())
-        llm.add_tool(TextAnalyzerTool())
-        llm.add_tool(TextTransformTool())
-        llm.add_tool(TimeTool())
-        llm.add_tool(FortuneTool())
-        llm.add_tool(JokeTool())
+        # Initialize tools with user context
+        create_tool = CreateCourseTool(user_id=args.id)
+        list_tool = ListCoursesTool(user_id=args.id)
+        update_tool = UpdateCourseTool(user_id=args.id)
+        delete_tool = DeleteCourseTool(user_id=args.id)
+        regenerate_tool = RegenerateOutlineTool(user_id=args.id)
+        get_tool = GetCourseTool()  # No user_id needed for read-only operation
         
-        # Use a more comprehensive system message
-        system_message = """You are a test assistant for the LLM class with access to various tools.
-Your role is to help test the LLM implementation and demonstrate tool usage.
+        # Initialize LLM with tools
+        llm = LLM(model_key=args.llm or "gpt-4")
+        logger.info(f"Initialized LLM with model: {llm.model_key}")
+        logger.info(f"Model configuration: {llm.config}")
+        
+        # Add tools to LLM
+        tools = [
+            create_tool, get_tool, list_tool, update_tool, delete_tool, regenerate_tool,
+            CalculatorTool(), RandomNumberTool(), TextAnalyzerTool(),
+            TextTransformTool(), TimeTool(), FortuneTool(), JokeTool()
+        ]
+        for tool in tools:
+            llm.add_tool(tool)
+            logger.debug(f"Added tool: {tool.name}")
+        
+        # Start chat interface
+        system_message = """You are an AI assistant with access to course management tools. You can:
+1. Create new courses
+2. List existing courses
+3. Get course details
+4. Update course information
+5. Delete courses
+6. Regenerate course outlines
 
-Available tools:
-- calculator: Perform mathematical calculations
-- random_number: Generate random numbers in a range
-- text_analyzer: Analyze text and provide statistics
-- text_transform: Transform text (uppercase, lowercase, title, reverse, shuffle)
-- time_tool: Time operations (now, add_days, format)
-- fortune: Get random fortunes
-- joke: Tell programming jokes
+You also have access to utility tools for calculations, text analysis, and more.
+Use these tools to help users manage their courses effectively.
 
-Keep your responses concise and focused on demonstrating tool functionality.
-When using tools, explain what you're doing and why."""
-
-        # Start chat loop
+Remember to:
+- Always verify user permissions before modifying courses
+- Provide clear explanations of your actions
+- Use appropriate tools based on the user's needs
+- Format responses in a clear, readable way"""
+        
         await chat_loop(llm, system_message)
         
     except Exception as e:
         logger.error(f"Error in main: {e}")
-        sys.exit(1)
+        raise
+    finally:
+        # Close database connections
+        await Tortoise.close_connections()
 
 if __name__ == "__main__":
     # Configure logging
@@ -434,7 +490,7 @@ if __name__ == "__main__":
     logger.add(
         sys.stderr,
         format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
-        level="DEBUG"
+        level="DEBUG"  # Changed from INFO to DEBUG to see more details
     )
     
     # Run the async main function
