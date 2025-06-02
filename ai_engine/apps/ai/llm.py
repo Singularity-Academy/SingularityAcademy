@@ -6,7 +6,7 @@ interaction with different LLM providers.
 """
 
 import os
-from typing import List, Optional, Dict, Any, Callable, Union, Type
+from typing import List, Optional, Dict, Any, Callable, Union, Type, Tuple
 from datetime import datetime
 from loguru import logger
 from pydantic import BaseModel, Field
@@ -158,6 +158,54 @@ class LLM:
             
         return self._amodel
 
+    @property
+    def base_model(self) -> ChatOpenAI:
+        """
+        Get or create the base model without bound tools.
+        
+        Returns:
+            ChatOpenAI: Configured model instance without tools.
+            
+        Note:
+            The model is created lazily on first access and reused for subsequent calls.
+        """
+        if not hasattr(self, '_base_model'):
+            self._base_model = ChatOpenAI(
+                model_name=self.config["model_id"],
+                openai_api_key=self.config["api_key"],
+                openai_api_base=self.config["api_base"],
+                temperature=self.config["temperature"],
+                max_tokens=self.config["max_tokens"],
+                streaming=self.config["streaming"],
+                request_timeout=self.config["timeout"],
+                max_retries=self.config["retry_attempts"],
+            )
+        return self._base_model
+
+    @property
+    def abase_model(self) -> ChatOpenAI:
+        """
+        Get or create the base async model without bound tools.
+        
+        Returns:
+            ChatOpenAI: Configured async model instance without tools.
+            
+        Note:
+            The model is created lazily on first access and reused for subsequent calls.
+        """
+        if not hasattr(self, '_abase_model'):
+            self._abase_model = ChatOpenAI(
+                model_name=self.config["model_id"],
+                openai_api_key=self.config["api_key"],
+                openai_api_base=self.config["api_base"],
+                temperature=self.config["temperature"],
+                max_tokens=self.config["max_tokens"],
+                streaming=self.config["streaming"],
+                request_timeout=self.config["timeout"],
+                max_retries=self.config["retry_attempts"],
+            )
+        return self._abase_model
+
     def _handle_tool_calls(self, response: AIMessage) -> List[BaseMessage]:
         """
         Handle tool calls from a model response.
@@ -234,26 +282,25 @@ class LLM:
             logger.debug(f"Generating response with {self.model_key} for {len(messages)} messages")
             
             if not use_tools or not self.tools:
-                # Simple case: no tools, just generate response
-                return self.model.invoke(messages, config={"callbacks": callbacks}).content
+                # Simple case: no tools, just generate response using base model
+                return self.base_model.invoke(messages, config={"callbacks": callbacks}).content
             
-            # Tool-enabled case: handle tool calls
+            # Get initial response from model with tools
             current_messages = messages.copy()
-            max_iterations = 5  # Prevent infinite loops
+            response = self.model.invoke(current_messages, config={"callbacks": callbacks})
+            
+            # If no tool calls, we're done
+            if not response.tool_calls:
+                return response.content
+                
+            # Tool-enabled case: handle tool calls
+            max_iterations = self.config["max_tool_calls"]
             iteration = 0
             
             while iteration < max_iterations:
-                iteration += 1
-                logger.debug(f"Tool loop iteration {iteration}")
+                logger.debug(f"Tool loop iteration {iteration + 1}")
                 
-                # Get response from model
-                response = self.model.invoke(current_messages, config={"callbacks": callbacks})
-                
-                # If no tool calls, we're done
-                if not response.tool_calls:
-                    return response.content
-                
-                # Handle tool calls
+                # Handle tool calls from previous response
                 tool_messages = self._handle_tool_calls(response)
                 
                 # Add response and tool results to conversation
@@ -261,13 +308,22 @@ class LLM:
                     AIMessage(content="", tool_calls=response.tool_calls),
                     *tool_messages
                 ])
+                
+                # Get next response from model
+                response = self.model.invoke(current_messages, config={"callbacks": callbacks})
+                
+                # If no more tool calls, we're done
+                if not response.tool_calls:
+                    return response.content
+                    
+                iteration += 1
             
             # If we get here, we hit max iterations
-            logger.warning(f"Tool loop reached max iterations ({max_iterations})")
-            return current_messages[-1].content
+            logger.warning(f"Maximum tool iterations ({max_iterations}) reached")
+            return response.content
             
         except Exception as e:
-            log_exception(e, f"Error generating response with {self.model_key}")
+            logger.error(f"Error generating response: {str(e)}")
             raise
 
     async def agenerate_response(
@@ -294,32 +350,28 @@ class LLM:
             logger.debug(f"Generating async response with {self.model_key} for {len(messages)} messages")
             
             if not use_tools or not self.tools:
-                # Simple case: no tools, just generate response
-                return (await self.amodel.ainvoke(
+                # Simple case: no tools, just generate response using base model
+                return (await self.abase_model.ainvoke(
                     messages,
                     config={"callbacks": callbacks}
                 )).content
             
-            # Tool-enabled case: handle tool calls
+            # Get initial response from model with tools
             current_messages = messages.copy()
-            max_iterations = 5  # Prevent infinite loops
+            response = await self.amodel.ainvoke(current_messages, config={"callbacks": callbacks})
+            
+            # If no tool calls, we're done
+            if not response.tool_calls:
+                return response.content
+                
+            # Tool-enabled case: handle tool calls
+            max_iterations = self.config["max_tool_calls"]
             iteration = 0
             
             while iteration < max_iterations:
-                iteration += 1
-                logger.debug(f"Tool loop iteration {iteration}")
+                logger.debug(f"Tool loop iteration {iteration + 1}")
                 
-                # Get response from model
-                response = await self.amodel.ainvoke(
-                    current_messages,
-                    config={"callbacks": callbacks}
-                )
-                
-                # If no tool calls, we're done
-                if not response.tool_calls:
-                    return response.content
-                
-                # Handle tool calls
+                # Handle tool calls from previous response
                 tool_messages = self._handle_tool_calls(response)
                 
                 # Add response and tool results to conversation
@@ -327,13 +379,22 @@ class LLM:
                     AIMessage(content="", tool_calls=response.tool_calls),
                     *tool_messages
                 ])
+                
+                # Get next response from model
+                response = await self.amodel.ainvoke(current_messages, config={"callbacks": callbacks})
+                
+                # If no more tool calls, we're done
+                if not response.tool_calls:
+                    return response.content
+                    
+                iteration += 1
             
             # If we get here, we hit max iterations
-            logger.warning(f"Tool loop reached max iterations ({max_iterations})")
-            return current_messages[-1].content
+            logger.warning(f"Maximum tool iterations ({max_iterations}) reached")
+            return response.content
             
         except Exception as e:
-            log_exception(e, f"Error generating async response with {self.model_key}")
+            logger.error(f"Error generating async response: {str(e)}")
             raise
 
     def __repr__(self) -> str:

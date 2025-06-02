@@ -11,7 +11,8 @@
             "streaming": true,
             "timeout": 60,
             "retry_attempts": 3,
-            "description": "OpenAI's most capable model, optimized for complex tasks"
+            "description": "OpenAI's most capable model, optimized for complex tasks",
+            "max_tool_calls": 5
         },
         "gpt-4-turbo": {
             "name": "GPT-4 Turbo",
@@ -23,6 +24,7 @@
             "streaming": true,
             "timeout": 60,
             "retry_attempts": 3,
+            "max_tool_calls": 3,
             "description": "Latest GPT-4 model with improved performance and lower cost"
         },
         "deepseek-v3": {
@@ -35,6 +37,7 @@
             "streaming": true,
             "timeout": 60,
             "retry_attempts": 3,
+            "max_tool_calls": 3,
             "description": "Deepseek's latest model with strong performance on coding and reasoning tasks"
         }
     }

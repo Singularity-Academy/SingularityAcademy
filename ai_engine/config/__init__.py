@@ -134,6 +134,7 @@ def load_llm_config() -> Dict[str, Any]:
                 "streaming": bool,  # Whether to use streaming responses
                 "timeout": int,  # API timeout in seconds
                 "retry_attempts": int,  # Number of retry attempts
+                "max_tool_calls": int,  # Maximum number of tool call iterations
                 "description": str  # Human-readable description of the model
             }
         }
@@ -171,7 +172,7 @@ def load_llm_config() -> Dict[str, Any]:
         # Validate each model's configuration
         required_fields = [
             "name", "model_id", "api_base", "temperature", "max_tokens",
-            "streaming", "timeout", "retry_attempts", "description"
+            "streaming", "timeout", "retry_attempts", "max_tool_calls", "description"
         ]
         
         for model_key, model_config in config["models"].items():
@@ -197,6 +198,8 @@ def load_llm_config() -> Dict[str, Any]:
                 raise ValueError(f"Model '{model_key}' 'timeout' must be an integer")
             if not isinstance(model_config["retry_attempts"], int):
                 raise ValueError(f"Model '{model_key}' 'retry_attempts' must be an integer")
+            if not isinstance(model_config["max_tool_calls"], int):
+                raise ValueError(f"Model '{model_key}' 'max_tool_calls' must be an integer")
             if not isinstance(model_config["description"], str):
                 raise ValueError(f"Model '{model_key}' 'description' must be a string")
             
@@ -209,6 +212,8 @@ def load_llm_config() -> Dict[str, Any]:
                 raise ValueError(f"Model '{model_key}' 'timeout' must be positive")
             if model_config["retry_attempts"] < 0:
                 raise ValueError(f"Model '{model_key}' 'retry_attempts' must be non-negative")
+            if model_config["max_tool_calls"] <= 0:
+                raise ValueError(f"Model '{model_key}' 'max_tool_calls' must be positive")
             
         logger.info(f"Successfully loaded LLM configuration with {len(config['models'])} models")
         return {
