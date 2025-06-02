@@ -228,6 +228,8 @@ class LLM:
             tool = next((t for t in self.tools if t.name == tool_name), None)
             if tool:
                 try:
+                    logger.debug(f"Running tool {tool_name} with args {args}")
+
                     # Execute the tool synchronously
                     result = tool.invoke(args)
                     tool_messages.append(
@@ -279,6 +281,7 @@ class LLM:
             # Find the tool
             tool = next((t for t in self.tools if t.name == tool_name), None)
             if tool:
+                logger.debug(f"Running tool {tool_name} with args {args}")
                 try:
                     # Execute the tool asynchronously
                     result = await tool.ainvoke(args)

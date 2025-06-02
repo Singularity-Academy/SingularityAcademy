@@ -11,7 +11,7 @@ from langchain.schema import HumanMessage, SystemMessage
 from uuid import UUID
 from ai_engine.logging import log_exception
 
-async def generate_course_outline(course_id: str, llm: Optional[LLM] = None) -> str:
+async def generate_course_outline(course_data: dict, llm: Optional[LLM] = None) -> str:
     """
     Generate a course outline for a given course ID.
     
@@ -24,31 +24,11 @@ async def generate_course_outline(course_id: str, llm: Optional[LLM] = None) -> 
     Raises:
         ValueError: If the course is not found
     """
-    try:
-        # Load the course data
-        course = await Course.filter(id=UUID(course_id)).first()
-        if not course:
-            logger.error(f"Course not found", course_id=course_id)
-            raise ValueError(f"Course with ID {course_id} not found")
-            
+    try:  
         # Load the system prompt using PromptLoader
         system_prompt = prompt_loader.get_prompt("course_generator")
-        
-        # Create the human message with course data
-        course_data = {
-            "name": course.name,
-            "description": course.description,
-            "created_at": course.created_at.isoformat(),
-            "updated_at": course.updated_at.isoformat()
-        }
-        
-        human_message = f"""Please generate a detailed course outline for the following course:
 
-Course Name: {course_data['name']}
-Course Description: {course_data['description']}
-
-Please structure the outline with clear sections, learning objectives, and key topics to be covered.
-Include practical exercises and assessments where appropriate."""
+        human_message = f"""Please generate a detailed course outline for the following course:\nCourse Name: {course_data['name']}\nCourse Description: {course_data['description']}\n"""
 
         # Create the message list
         messages = [
@@ -59,8 +39,17 @@ Include practical exercises and assessments where appropriate."""
         # Initialize LLM and generate response
         if not llm:
             llm = LLM()
-        return await llm.agenerate_response(messages)
+        response = await llm.agenerate_response(messages)
+        # Strip code block markers if present
+        response = response.strip()
+        if response.startswith("```"):
+            # Remove leading triple backticks and optional 'json' language tag
+            response = response.lstrip("`").lstrip("json").strip()
+            # Remove trailing triple backticks if present
+            if response.endswith("```"):
+                response = response.rstrip("```").strip()
+        return response
         
     except Exception as e:
-        log_exception(e, f"Error generating course outline for course {course_id}")
+        log_exception(e, f"Error generating course outline for course {course_data['name']}")
         raise

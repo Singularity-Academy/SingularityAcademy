@@ -295,8 +295,13 @@ class RegenerateOutlineTool(BaseCourseTool):
             if course.owner_id != self.user_id:
                 return f"Error: User {self.user_id} is not the owner of this course"
             
+            # Prepare course_data dict for outline generation
+            course_data = {
+                "name": course.name,
+                "description": course.description
+            }
             # Generate new outline
-            course.outline = await generate_course_outline(str(course.id))
+            course.outline = await generate_course_outline(course_data)
             await course.save()
             
             return f"""Course outline regenerated:
