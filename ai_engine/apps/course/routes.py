@@ -215,7 +215,7 @@ async def update_course(request: Request, course_id: UUID) -> json:
         
         # Regenerate outline if name or description changed
         if "name" in data or "description" in data:
-            request.app.add_task(generate_course_outline(str(course.id)))
+            course_data = {"name": course.name, "description": course.description}
         
         return json({
             "id": str(course.id),
@@ -294,7 +294,8 @@ async def regenerate_outline(request: Request, course_id: UUID) -> json:
             raise BadRequest("You don't have permission to regenerate this course's outline")
             
         # Start outline generation
-        request.app.add_task(generate_course_outline(str(course.id)))
+        course_data = {"name": course.name, "description": course.description}
+        request.app.add_task(generate_course_outline(course_data))
         
         return json({
             "id": str(course.id),
