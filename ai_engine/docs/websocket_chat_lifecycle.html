@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Chat Connection Lifecycle - Principal AI</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        
+        h2 {
+            color: #34495e;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+            padding-left: 15px;
+        }
+        
+        h3 {
+            color: #5a6c7d;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        
+        .phase {
+            background: #f1f8ff;
+            border: 1px solid #c9e6ff;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .phase-header {
+            font-weight: bold;
+            color: #0366d6;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .code-block {
+            background: #f6f8fa;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            padding: 16px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        
+        .json-example {
+            background: #263238;
+            color: #eeffff;
+            border-radius: 6px;
+            padding: 16px;
+            margin: 15px 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+        
+        .message-flow {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+        }
+        
+        .arrow {
+            margin: 0 10px;
+            color: #0984e3;
+            font-weight: bold;
+        }
+        
+        .error-handling {
+            background: #ffebee;
+            border: 1px solid #ffcdd2;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .success-flow {
+            background: #e8f5e8;
+            border: 1px solid #c3e6c3;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        
+        .endpoint {
+            background: #e3f2fd;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-weight: bold;
+            color: #1565c0;
+        }
+        
+        .warning {
+            background: #fff8e1;
+            border: 1px solid #ffcc02;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .note {
+            background: #e1f5fe;
+            border: 1px solid #81d4fa;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .sequence-diagram {
+            background: white;
+            border: 2px solid #e1e4e8;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .step {
+            display: inline-block;
+            background: #0366d6;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            margin: 5px;
+            font-weight: bold;
+        }
+        
+        .step-arrow {
+            color: #0366d6;
+            font-size: 24px;
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WebSocket Chat Connection Lifecycle</h1>
+        <p><strong>Endpoint:</strong> <span class="endpoint">/principal-ai/ws/chat</span></p>
+        <p><strong>Protocol:</strong> WebSocket (ws:// or wss://)</p>
+        <p><strong>Framework:</strong> Sanic WebSocket with async/await pattern</p>
+
+        <div class="note">
+            <strong>Overview:</strong> This document describes the complete lifecycle of a WebSocket connection to the Principal AI chat system, including authentication, message processing, streaming responses, tool execution, and connection termination.
+        </div>
+
+        <h2>Connection Lifecycle Overview</h2>
+        <div class="sequence-diagram">
+            <div class="step">1. Connect</div>
+            <span class="step-arrow">→</span>
+            <div class="step">2. Authenticate</div>
+            <span class="step-arrow">→</span>
+            <div class="step">3. Initialize</div>
+            <span class="step-arrow">→</span>
+            <div class="step">4. Message Loop</div>
+            <span class="step-arrow">→</span>
+            <div class="step">5. Disconnect</div>
+        </div>
+
+        <h2>Phase 1: Connection Establishment</h2>
+        <div class="phase">
+            <div class="phase-header">Initial WebSocket Connection</div>
+            <p>When a client connects to the WebSocket endpoint, the following occurs:</p>
+            <ul>
+                <li>Server generates a unique 8-character session ID</li>
+                <li>Client IP address is logged for security tracking</li>
+                <li>LLM (Language Learning Model) instance is initialized</li>
+                <li>Connection enters authentication waiting state</li>
+            </ul>
+            
+            <div class="code-block">
+client_ip = request.remote_addr or request.ip
+session_id = str(uuid.uuid4())[:8]
+logger.info(f"New WebSocket connection from {client_ip} (session: {session_id})")
+llm = LLM()
+            </div>
+        </div>
+
+        <h2>Phase 2: Authentication</h2>
+        <div class="phase">
+            <div class="phase-header">Token-Based Authentication Process</div>
+            
+            <h3>2.1 Authentication Message Required</h3>
+            <p>The server immediately waits for an authentication message from the client:</p>
+            
+            <div class="json-example">
+{
+  "token": "your_jwt_token_here"
+}
+            </div>
+
+            <h3>2.2 Token Validation Steps</h3>
+            <ol>
+                <li><strong>Message Format Validation:</strong> Must be valid JSON with "token" field</li>
+                <li><strong>Token Decoding:</strong> JWT token is decoded and validated</li>
+                <li><strong>Claims Extraction:</strong> User ID is extracted from token claims</li>
+                <li><strong>Database Verification:</strong> User existence is verified in database</li>
+            </ol>
+
+            <h3>2.3 Authentication Success Response</h3>
+            <div class="success-flow">
+                <strong>On successful authentication, server sends:</strong>
+                <div class="json-example">
+{
+  "type": "auth_success",
+  "message": "Authentication successful",
+  "user_id": "user_uuid_here"
+}
+                </div>
+            </div>
+
+            <h3>2.4 Authentication Error Responses</h3>
+            <div class="error-handling">
+                <strong>Common authentication failures:</strong>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th>Error Code</th>
+                            <th>Condition</th>
+                            <th>WebSocket Close Code</th>
+                        </tr>
+                        <tr>
+                            <td>INVALID_AUTH_FORMAT</td>
+                            <td>Missing token field or invalid JSON</td>
+                            <td>1008</td>
+                        </tr>
+                        <tr>
+                            <td>INVALID_TOKEN</td>
+                            <td>Token decode failure or expired</td>
+                            <td>1008</td>
+                        </tr>
+                        <tr>
+                            <td>INVALID_TOKEN_CLAIMS</td>
+                            <td>Missing user ID in token claims</td>
+                            <td>1008</td>
+                        </tr>
+                        <tr>
+                            <td>USER_NOT_FOUND</td>
+                            <td>User ID not found in database</td>
+                            <td>1008</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <h2>Phase 3: Session Initialization</h2>
+        <div class="phase">
+            <div class="phase-header">Chat Instance and Tool Setup</div>
+            
+            <h3>3.1 Chat History Initialization</h3>
+            <ul>
+                <li>Retrieve or create PrincipalChat instance for the user</li>
+                <li>Load existing chat history (last 10 messages)</li>
+                <li>Initialize with system prompt if no history exists</li>
+            </ul>
+
+            <h3>3.2 AI Tools Configuration</h3>
+            <p>Five course management tools are configured for the session:</p>
+            <div class="code-block">
+tools = [
+    CreateCourseTool(user_id=user.id),
+    GetCourseTool(user_id=user.id),
+    ListCoursesTool(user_id=user.id),
+    UpdateCourseTool(user_id=user.id),
+    DeleteCourseTool(user_id=user.id),
+]
+            </div>
+
+            <h3>3.3 Chat History Transmission</h3>
+            <p>Server sends recent chat history to client:</p>
+            <div class="json-example">
+{
+  "type": "history_messages",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Previous message content",
+      "timestamp": "2024-01-15T10:30:00.000Z",
+      "courses": []
+    },
+    {
+      "role": "assistant", 
+      "content": "Previous AI response",
+      "timestamp": "2024-01-15T10:30:15.000Z",
+      "courses": []
+    }
+  ]
+}
+            </div>
+        </div>
+
+        <h2>Phase 4: Message Processing Loop</h2>
+        <div class="phase">
+            <div class="phase-header">Continuous Message Handling</div>
+            
+            <p>Once initialized, the connection enters an infinite loop processing incoming messages. The server supports three message types:</p>
+
+            <h3>4.1 Chat Messages ("message" type)</h3>
+            <div class="message-flow">
+                <strong>Client</strong> <span class="arrow">→</span> <code>{"type": "message", "content": "user question"}</code> <span class="arrow">→</span> <strong>Server</strong>
+            </div>
+
+            <h4>Message Processing Pipeline:</h4>
+            <ol>
+                <li><strong>Save User Message:</strong> Add to chat history with timestamp</li>
+                <li><strong>Initialize Streaming:</strong> Create WebSocket streaming callback</li>
+                <li><strong>LLM Processing:</strong> Generate response using pre-configured tools</li>
+                <li><strong>Stream Response:</strong> Send tokens in real-time to client</li>
+                <li><strong>Save AI Response:</strong> Store complete response in chat history</li>
+            </ol>
+
+            <h4>Streaming Response Format:</h4>
+            <div class="success-flow">
+                <strong>Response Start:</strong>
+                <div class="json-example">
+{
+  "type": "response_start",
+  "message_id": "unique_message_id",
+  "timestamp": "2024-01-15T10:30:00.000Z"
+}
+                </div>
+
+                <strong>Token Stream:</strong> Raw text content (no JSON wrapper)
+                <div class="code-block">
+"This is a streaming response token by token..."
+                </div>
+
+                <strong>Tool Execution (if triggered):</strong>
+                <div class="json-example">
+{
+  "type": "tool_call_start",
+  "tool_call": {
+    "name": "CreateCourseTool",
+    "status": "running",
+    "parameters": {"input": "course creation request"}
+  },
+  "timestamp": "2024-01-15T10:30:05.000Z"
+}
+                </div>
+
+                <strong>Response End:</strong>
+                <div class="json-example">
+{
+  "type": "response_end",
+  "message_id": "unique_message_id",
+  "timestamp": "2024-01-15T10:30:15.000Z"
+}
+                </div>
+            </div>
+
+            <h3>4.2 Chat Reset ("message-reset" type)</h3>
+            <div class="message-flow">
+                <strong>Client</strong> <span class="arrow">→</span> <code>{"type": "message-reset"}</code> <span class="arrow">→</span> <strong>Server</strong>
+            </div>
+            
+            <p>Clears all chat history except the system prompt and responds with:</p>
+            <div class="json-example">
+{
+  "type": "message-reset-success",
+  "message": "Chat history reset"
+}
+            </div>
+
+            <h3>4.3 Course Operations ("course" type)</h3>
+            <div class="message-flow">
+                <strong>Client</strong> <span class="arrow">→</span> <code>{"type": "course", "content": "course request"}</code> <span class="arrow">→</span> <strong>Server</strong>
+            </div>
+            
+            <p>Handles specialized course management requests through dedicated tool execution.</p>
+        </div>
+
+        <h2>Tool Execution Lifecycle</h2>
+        <div class="phase">
+            <div class="phase-header">AI Tool Integration and Execution</div>
+            
+            <h3>Available Tools</h3>
+            <div class="table-container">
+                <table>
+                    <tr>
+                        <th>Tool Name</th>
+                        <th>Purpose</th>
+                        <th>User Scoped</th>
+                    </tr>
+                    <tr>
+                        <td>CreateCourseTool</td>
+                        <td>Create new courses</td>
+                        <td>Yes</td>
+                    </tr>
+                    <tr>
+                        <td>GetCourseTool</td>
+                        <td>Retrieve specific course data</td>
+                        <td>Yes</td>
+                    </tr>
+                    <tr>
+                        <td>ListCoursesTool</td>
+                        <td>List user's courses</td>
+                        <td>Yes</td>
+                    </tr>
+                    <tr>
+                        <td>UpdateCourseTool</td>
+                        <td>Modify existing courses</td>
+                        <td>Yes</td>
+                    </tr>
+                    <tr>
+                        <td>DeleteCourseTool</td>
+                        <td>Remove courses</td>
+                        <td>Yes</td>
+                    </tr>
+                </table>
+            </div>
+
+            <h3>Tool Execution Flow</h3>
+            <ol>
+                <li><strong>Tool Trigger:</strong> LLM determines tool usage based on user input</li>
+                <li><strong>Tool Start Signal:</strong> Client receives tool execution notification</li>
+                <li><strong>Tool Processing:</strong> Server executes tool with user-scoped permissions</li>
+                <li><strong>Tool Completion:</strong> Results are streamed back to client</li>
+                <li><strong>Course Updates:</strong> Relevant course data changes are broadcasted</li>
+            </ol>
+        </div>
+
+        <h2>Error Handling and Recovery</h2>
+        <div class="error-handling">
+            <h3>Connection-Level Errors</h3>
+            <ul>
+                <li><strong>WebsocketClosed:</strong> Client disconnection during operation</li>
+                <li><strong>RuntimeError:</strong> Unexpected connection termination</li>
+                <li><strong>JSON Decode Errors:</strong> Invalid message format from client</li>
+            </ul>
+
+            <h3>Message-Level Errors</h3>
+            <div class="table-container">
+                <table>
+                    <tr>
+                        <th>Error Code</th>
+                        <th>Condition</th>
+                        <th>Response</th>
+                    </tr>
+                    <tr>
+                        <td>400</td>
+                        <td>Invalid message format</td>
+                        <td>Error message, connection continues</td>
+                    </tr>
+                    <tr>
+                        <td>400</td>
+                        <td>Missing 'type' field</td>
+                        <td>Error message, connection continues</td>
+                    </tr>
+                    <tr>
+                        <td>400</td>
+                        <td>Unexpected message type</td>
+                        <td>Error message, connection continues</td>
+                    </tr>
+                    <tr>
+                        <td>4004</td>
+                        <td>Chat initialization failure</td>
+                        <td>Connection closed</td>
+                    </tr>
+                    <tr>
+                        <td>4006</td>
+                        <td>Internal server error</td>
+                        <td>Connection closed</td>
+                    </tr>
+                    <tr>
+                        <td>4007</td>
+                        <td>History transmission error</td>
+                        <td>Connection closed</td>
+                    </tr>
+                </table>
+            </div>
+
+            <h3>Error Message Format</h3>
+            <div class="json-example">
+{
+  "type": "error",
+  "error": "Error description",
+  "status_code": 400
+}
+            </div>
+        </div>
+
+        <h2>Phase 5: Connection Termination</h2>
+        <div class="phase">
+            <div class="phase-header">Graceful and Unexpected Disconnections</div>
+            
+            <h3>Normal Termination</h3>
+            <ul>
+                <li>Client closes WebSocket connection</li>
+                <li>Server logs disconnection with session ID</li>
+                <li>Resources are automatically cleaned up</li>
+            </ul>
+
+            <h3>Error-Based Termination</h3>
+            <ul>
+                <li>Authentication failures result in immediate closure</li>
+                <li>Critical errors trigger server-initiated closure</li>
+                <li>Network issues cause unexpected disconnections</li>
+            </ul>
+
+            <h3>Cleanup Process</h3>
+            <ol>
+                <li>LLM instance resources are released</li>
+                <li>Chat session state is persisted</li>
+                <li>Connection termination is logged</li>
+                <li>Memory cleanup occurs automatically</li>
+            </ol>
+        </div>
+
+        <h2>Performance Considerations</h2>
+        <div class="note">
+            <h3>Optimization Features</h3>
+            <ul>
+                <li><strong>Streaming Responses:</strong> Real-time token delivery for better UX</li>
+                <li><strong>History Limiting:</strong> Only last 10 messages sent to reduce bandwidth</li>
+                <li><strong>Session-Scoped Tools:</strong> Tools configured once per session, not per message</li>
+                <li><strong>Async Processing:</strong> Non-blocking message handling with async/await</li>
+                <li><strong>Efficient JSON:</strong> Using ujson for faster JSON operations</li>
+            </ul>
+        </div>
+
+        <h2>Security Measures</h2>
+        <div class="warning">
+            <h3>Security Implementation</h3>
+            <ul>
+                <li><strong>JWT Authentication:</strong> Token-based session validation</li>
+                <li><strong>User Scoping:</strong> All tools and data access are user-scoped</li>
+                <li><strong>IP Logging:</strong> Client IP addresses tracked for security audit</li>
+                <li><strong>Session IDs:</strong> Unique session tracking for monitoring</li>
+                <li><strong>Database Verification:</strong> User existence verified on each connection</li>
+                <li><strong>Graceful Error Handling:</strong> No sensitive information leaked in errors</li>
+            </ul>
+        </div>
+
+        <h2>Client Implementation Guidelines</h2>
+        <div class="note">
+            <h3>Recommended Client Behavior</h3>
+            <ol>
+                <li><strong>Connect:</strong> Establish WebSocket connection to endpoint</li>
+                <li><strong>Authenticate:</strong> Send JWT token immediately after connection</li>
+                <li><strong>Wait for Auth Success:</strong> Process auth_success before sending messages</li>
+                <li><strong>Handle History:</strong> Process history_messages to restore conversation</li>
+                <li><strong>Send Messages:</strong> Use proper message type structure</li>
+                <li><strong>Handle Streaming:</strong> Process both JSON events and raw text tokens</li>
+                <li><strong>Error Recovery:</strong> Implement reconnection logic for dropped connections</li>
+                <li><strong>Graceful Closure:</strong> Close connection properly when done</li>
+            </ol>
+        </div>
+
+        <h2>Monitoring and Logging</h2>
+        <div class="phase">
+            <div class="phase-header">Comprehensive Logging Strategy</div>
+            
+            <h3>Log Levels and Events</h3>
+            <ul>
+                <li><strong>INFO:</strong> Connection events, authentication success/failure</li>
+                <li><strong>DEBUG:</strong> Message processing, token streaming, tool execution</li>
+                <li><strong>WARNING:</strong> Unknown message roles, unexpected conditions</li>
+                <li><strong>ERROR:</strong> Exception handling, processing failures</li>
+            </ul>
+
+            <h3>Tracked Metrics</h3>
+            <ul>
+                <li>Session duration and message count</li>
+                <li>Tool execution frequency and success rates</li>
+                <li>Error rates by type and session</li>
+                <li>Authentication failure patterns</li>
+                <li>Response streaming performance</li>
+            </ul>
+        </div>
+
+        <hr style="margin: 40px 0; border: none; border-top: 2px solid #eee;">
+        
+        <p style="text-align: center; color: #666; font-size: 14px;">
+            <strong>Principal AI WebSocket Documentation</strong><br>
+            Generated for ai_engine/apps/principal WebSocket implementation<br>
+            <em>Last Updated: January 2024</em>
+        </p>
+    </div>
+</body>
+</html> 
