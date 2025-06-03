@@ -1,919 +1,347 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import {
-  Box,
-  Button,
-  Container,
-  Flex,
-  Input,
-  VStack,
-  Text,
-  useColorModeValue,
-  IconButton,
-  Heading,
-  useToast,
-  Progress,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalCloseButton,
-  useDisclosure,
-  Textarea,
-  Badge,
-  Link,
-} from '@chakra-ui/react';
-import { ViewIcon, ViewOffIcon, SmallCloseIcon } from '@chakra-ui/icons';
-import axiosInstance from '@utils/axios';
-import {API_ENDPOINTS} from '@/config/api';
-import Cookies from "js-cookie";
-import {useNavigate} from "react-router-dom";
-import { FaFileUpload, FaLink } from 'react-icons/fa';
-import { useDropzone } from 'react-dropzone';
-import { AxiosProgressEvent } from 'axios';
-import { logger } from '../../utils/logger';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Send, User, Bot, Bookmark } from 'lucide-react';
 
-declare class ImageCapture {
-  constructor(track: MediaStreamTrack);
-  takePhoto(): Promise<Blob>;
-}
-
-interface VideoGenerationStatus {
-  video_uuid: string;
-  status: 'idle' | 'processing' | 'completed' | 'failed' | 'cancelled' | 'disconnected';
-  progress: number;
-  message: string;
-  error: string | null;
-  download_url: string | null;
+interface ToolCall {
+  name: string;
+  parameters?: any;
+  result?: any;
+  status?: 'pending' | 'completed' | 'error';
 }
 
 interface Message {
-  role: string;
+  id: string;
+  type: 'user' | 'assistant';
   content: string;
+  rawContent?: string;
+  timestamp: Date;
+  isStreaming?: boolean;
+  toolCalls?: ToolCall[];
 }
 
-interface UploadProgress {
-  [key: string]: number;
+interface Course {
+  id: string;
+  title: string;
+  description: string;
+  instructor: string;
+  createdAt: string;
+  grade_level?: string;
+  duration?: string;
+  format?: string;
 }
 
-// Video generation configuration matching backend config.json
-const VIDEO_GENERATION_CONFIG = {
-  default_model: "gpt-4",
-  models: {
-    "gpt-4": {
-      name: "GPT-4",
-      model_id: "gpt-4",
-      api_key: "Link_T1ZLmLhcIhZvOX9bRYFM4agbjY0CNwIpCbScjEe0GG",
-      api_base: "https://api.link-ai.tech/v1",
-      temperature: 0.7,
-      max_tokens: 2000,
-      streaming: true,
-      timeout: 60,
-      retry_attempts: 3,
-      description: "OpenAI's most capable model, optimized for complex mathematical and educational content generation"
-    },
-    "gpt-4-turbo": {
-      name: "GPT-4 Turbo",
-      model_id: "gpt-4-1106-preview",
-      api_key: "Link_T1ZLmLhcIhZvOX9bRYFM4agbjY0CNwIpCbScjEe0GG",
-      api_base: "https://api.link-ai.tech/v1",
-      temperature: 0.7,
-      max_tokens: 2000,
-      streaming: true,
-      timeout: 60,
-      retry_attempts: 3,
-      description: "Latest GPT-4 model with improved performance and lower cost, ideal for educational animations"
-    },
-    "gpt-3.5-turbo": {
-      name: "GPT-3.5 Turbo",
-      model_id: "gpt-3.5-turbo",
-      api_key: "Link_T1ZLmLhcIhZvOX9bRYFM4agbjY0CNwIpCbScjEe0GG",
-      api_base: "https://api.link-ai.tech/v1",
-      temperature: 0.7,
-      max_tokens: 2000,
-      streaming: true,
-      timeout: 60,
-      retry_attempts: 3,
-      description: "Fast and cost-effective model, suitable for basic mathematical animations"
-    },
-    "deepseek-v3": {
-      name: "Deepseek Chat v3",
-      model_id: "deepseek-chat",
-      api_key: "sk-f4035b1b6ee54b58871ed85d2e53e21f",
-      api_base: "https://api.deepseek.com/v1",
-      temperature: 0.7,
-      max_tokens: 2000,
-      streaming: true,
-      timeout: 60,
-      retry_attempts: 3,
-      description: "Deepseek's latest model with strong performance on coding and mathematical reasoning tasks"
-    }
-  },
-  manim_settings: {
-    quality: "medium",
-    frame_rate: 30,
-    resolution: "1080p",
-    quality_options: {
-      low: {
-        flag: "-ql",
-        resolution: "480p",
-        frame_rate: 15,
-        description: "Fast rendering for quick previews"
-      },
-      medium: {
-        flag: "-qm",
-        resolution: "720p",
-        frame_rate: 30,
-        description: "Balanced quality and rendering speed"
-      },
-      high: {
-        flag: "-qh",
-        resolution: "1080p",
-        frame_rate: 60,
-        description: "High quality for final output"
-      },
-      "4k": {
-        flag: "-qk",
-        resolution: "2160p",
-        frame_rate: 60,
-        description: "Ultra high quality for professional use"
-      }
-    }
-  },
-  output_settings: {
-    output_dir: "ai_generated_videos",
-    keep_intermediate_files: true,
-    auto_backup: true,
-    max_video_duration: 120,
-    video_format: "mp4",
-    audio_enabled: false
-  },
-  generation_settings: {
-    scene_planning: {
-      include_formulas: true,
-      include_animations: true,
-      include_colors: true,
-      chinese_support: true,
-      max_scene_complexity: "medium"
-    },
-    code_generation: {
-      add_comments: true,
-      use_meaningful_names: true,
-      include_error_handling: false,
-      optimize_for_readability: true
-    },
-    fallback_enabled: true,
-    debug_mode: false
-  },
-  ui_settings: {
-    language: "zh-CN",
-    show_progress: true,
-    verbose_logging: true,
-    color_output: true
-  }
-};
-
-const CourseInteractionPage: React.FC = () => {
-  // UI-related state and hooks
-  const bgColor = useColorModeValue('gray.50', 'gray.900');
-  const cardBg = useColorModeValue('white', 'gray.700');
-  const chatUserBg = useColorModeValue('blue.50', 'blue.900');
-  const chatTeacherBg = useColorModeValue('gray.50', 'gray.700');
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const { isOpen: isVideoModalOpen, onOpen: onVideoModalOpen, onClose: onVideoModalClose } = useDisclosure();
-  const videoAreaRef = useRef<HTMLDivElement>(null);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
-
-  // File upload and resource links state
-  const [uploadingFiles, setUploadingFiles] = useState<File[]>([]);
-  const [uploadProgress, setUploadProgress] = useState<UploadProgress>({});
-  const [resourceLinks, setResourceLinks] = useState<string[]>([]);
-
-  // File upload related
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop: (acceptedFiles: File[]) => {
-      setUploadingFiles(prev => [...prev, ...acceptedFiles]);
-      // Handle file upload
-      console.log('Files dropped:', acceptedFiles);
-    },
-    accept: {
-      'video/*': ['.mp4', '.mov', '.avi'],
-      'image/*': ['.png', '.jpg', '.jpeg']
-    },
-    maxSize: 100 * 1024 * 1024 // 100MB
-  });
-
-  const handleAddLink = () => {
-    const url = prompt('Enter resource URL:');
-    if (url && isValidUrl(url)) {
-      setResourceLinks(prev => [...prev, url]);
-    }
-  };
-
-  const isValidUrl = (urlString: string): boolean => {
-    try {
-      return Boolean(new URL(urlString));
-    } catch (e) {
-      return false;
-    }
-  };
-
-  // State declarations
+const CourseInteractionPage = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
-  const [isRecording, setIsRecording] = useState(false);
-  const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
-  const [videoGenerationText, setVideoGenerationText] = useState("牛顿第三定律");
-  const [videoGenerationError, setVideoGenerationError] = useState<string | null>(null);
-  const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
-  const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
-  const [videoGenerationStatus, setVideoGenerationStatus] = useState<VideoGenerationStatus>({
-    video_uuid: '',
-    status: 'idle',
-    progress: 0,
-    message: '',
-    error: null,
-    download_url: null
-  });
-
-  // Refs
+  const [isConnected, setIsConnected] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [courses] = useState<Course[]>([]);
+  const [currentStreamingMessageId, setCurrentStreamingMessageId] = useState<string | null>(null);
+  
   const wsRef = useRef<WebSocket | null>(null);
-  const videoGenerationWs = useRef<WebSocket | null>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const studentVideoRef = useRef<HTMLVideoElement>(null);
-  const websocketRef = useRef<WebSocket | null>(null);
-  const toast = useToast();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // WebSocket connection and handlers
-  const connectVideoGenerationWs = useCallback(() => {
-    const ws = videoGenerationWs.current;
-    if (ws?.readyState === WebSocket.OPEN) {
-      logger.debug("Video generation WebSocket already connected");
-      return;
-    }
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
-    // Get token from cookies
-    const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
-    if (!token) {
-      logger.error("No authentication token found in cookies");
-      setVideoGenerationError("Authentication token not found");
-      return;
-    }
-
-    // Construct WebSocket URL using current protocol and host
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const base_url = window.location.host;
-    const wsUrl = `${protocol}//${base_url}/ai/dean/video-generator`;
-    
-    logger.info(`Connecting to video generation WebSocket at ${wsUrl}`);
-    
-    try {
-      const newWs = new WebSocket(wsUrl);
-      videoGenerationWs.current = newWs;
-      
-      newWs.onopen = () => {
-        logger.info("Video generation WebSocket connected");
-        // Send authentication message immediately after connection
-        const authMessage = {
-          type: "auth",
-          token: token
-        };
-        newWs.send(JSON.stringify(authMessage));
-        logger.debug("Sent authentication message");
-      };
-
-      newWs.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        logger.debug("Received video generation message:", data);
-
-        if (data.type === "auth_response") {
-          if (data.status === "success") {
-            logger.info("Video generation WebSocket authenticated successfully");
-          } else {
-            logger.error("Video generation WebSocket authentication failed:", data.message);
-            setVideoGenerationError("Authentication failed: " + data.message);
-            newWs.close();
-          }
-          return;
-        }
-
-        if (data.type === "status") {
-          setVideoGenerationStatus(prev => ({
-            ...prev,
-            video_uuid: data.video_uuid || prev.video_uuid,
-            status: data.status,
-            progress: data.progress || prev.progress,
-            message: data.message || prev.message,
-            error: data.error || prev.error,
-            download_url: data.download_url || prev.download_url
-          }));
-
-          if (data.status === "completed" || data.status === "failed" || data.status === "cancelled") {
-            setIsGeneratingVideo(false);
-          }
-        }
-      };
-
-      newWs.onerror = (error) => {
-        logger.error("Video generation WebSocket error:", error);
-        setVideoGenerationError("Connection error occurred");
-      };
-
-      newWs.onclose = () => {
-        logger.info("Video generation WebSocket closed");
-        setVideoGenerationStatus(prev => ({
-          ...prev,
-          status: "disconnected"
-        }));
-      };
-
-    } catch (error) {
-      logger.error("Failed to connect to video generation WebSocket:", error);
-      setVideoGenerationError("Failed to establish connection");
-    }
-  }, []);
-
-  const sendVideoGenerationRequest = useCallback((text: string) => {
-    const ws = videoGenerationWs.current;
-    if (!ws || ws.readyState !== WebSocket.OPEN) {
-      logger.error("Cannot send request: WebSocket not connected");
-      setVideoGenerationError("Not connected to server");
-      return;
-    }
-
-    const request = {
-      type: "generate",
-      text: text.trim(),
-      title: "AI 生成视频",
-      config: VIDEO_GENERATION_CONFIG  // Include the config in the request
-    };
-
-    try {
-      ws.send(JSON.stringify(request));
-      setVideoGenerationStatus(prev => ({
-        ...prev,
-        status: "processing",
-        progress: 0,
-        message: "Starting video generation...",
-        error: null,
-        download_url: null
-      }));
-      setIsGeneratingVideo(true);
-    } catch (error) {
-      logger.error("Failed to send video generation request:", error);
-      setVideoGenerationError("Failed to send request");
-    }
-  }, []);
-
-  const startVideoGeneration = useCallback(() => {
-    if (!videoGenerationText.trim()) {
-      toast({
-        title: "错误",
-        description: "请输入一些文本来生成视频",
-        status: "error",
-        duration: 3000,
-      });
-      return;
-    }
-
-    const ws = videoGenerationWs.current;
-    if (!ws || ws.readyState !== WebSocket.OPEN) {
-      logger.info("WebSocket not connected, attempting to connect...");
-      connectVideoGenerationWs();
-      // Wait for connection and then send request
-      setTimeout(() => {
-        const ws = videoGenerationWs.current;
-        if (ws?.readyState === WebSocket.OPEN) {
-          sendVideoGenerationRequest(videoGenerationText);
-        } else {
-          toast({
-            title: "连接错误",
-            description: "无法连接到服务器",
-            status: "error",
-            duration: 3000,
-          });
-        }
-      }, 1000);
-    } else {
-      sendVideoGenerationRequest(videoGenerationText);
-    }
-  }, [videoGenerationText, connectVideoGenerationWs, sendVideoGenerationRequest, toast]);
-
-  const cancelVideoGeneration = useCallback(() => {
-    const ws = videoGenerationWs.current;
-    if (!ws || ws.readyState !== WebSocket.OPEN) {
-      logger.error("Cannot cancel: WebSocket not connected");
-      return;
-    }
-
-    const { video_uuid } = videoGenerationStatus;
-    if (!video_uuid) {
-      logger.error("Cannot cancel: No active video generation");
-      return;
-    }
-
-    try {
-      ws.send(JSON.stringify({
-        type: "cancel",
-        video_uuid
-      }));
-      logger.info("Sent video generation cancellation request");
-    } catch (error) {
-      logger.error("Failed to send cancellation request:", error);
-    }
-  }, [videoGenerationStatus]);
-
-  // Effects
   useEffect(() => {
-    connectVideoGenerationWs();
-    return () => {
-      const ws = videoGenerationWs.current;
-      if (ws) {
-        ws.close();
-        videoGenerationWs.current = null;
-      }
-    };
-  }, [connectVideoGenerationWs]);
-
-  // Audio/Video recording functions
-  const startAudio = () => {
-    navigator.mediaDevices.getUserMedia({ audio: true })
-        .then((stream) => {
-          setAudioStream(stream);
-          // audio stream logic
-          const mediaRecorder = new MediaRecorder(stream);
-          let audioPacketId = 0;
-          mediaRecorder.ondataavailable = (event) => {
-            if (websocketRef.current?.readyState !== WebSocket.OPEN) return;
-            const audioBlob = event.data;
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              // Get base64 data
-              const base64data = reader.result as string;
-              // Extract just the base64 part (remove the data:audio/wav;base64, prefix)
-              const base64EncodedAudio = base64data.split(',')[1];
-              // Send audio data in JSON format
-              const audioPacket = {
-                packet_id: audioPacketId++,
-                time: Date.now(),
-                video: null,
-                audio: base64EncodedAudio,
-              };
-              
-              // Send as JSON string
-              websocketRef.current?.send(JSON.stringify(audioPacket));
-            };
-            // Read as base64 instead of ArrayBuffer
-            reader.readAsDataURL(audioBlob);
-          };
-          mediaRecorder.start(500);  // Capture every 0.5 seconds of audio
-        })
-        .catch((error) => toast({
-          title: "访问媒体设备错误",
-          description: error.message || String(error),
-          status: 'error',
-          duration: 3000,
-        }));
-  };
-
-  const stopAudio = () => {
-    if (audioStream) {
-      audioStream.getTracks().forEach((track: MediaStreamTrack) => track.stop());
-      setAudioStream(null);
-    }
-    if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stop();
-    }
-  };
-
-  const startVideo = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true
-      });
-      
-      if (studentVideoRef.current) {
-        studentVideoRef.current.srcObject = stream;
-        await studentVideoRef.current.play();
-      }
-      
-      setVideoStream(stream);
-      setIsRecording(true);
-      
-      toast({
-        title: "录制已开始",
-        status: "success",
-        duration: 3000,
-      });
-    } catch (error) {
-      console.error("Error accessing media devices:", error);
-      toast({
-        title: "错误",
-        description: "无法访问摄像头和麦克风",
-        status: "error",
-        duration: 3000,
-      });
-    }
-  };
-
-  const stopVideo = () => {
-    if (videoStream) {
-      videoStream.getTracks().forEach(track => track.stop());
-      setVideoStream(null);
-    }
-    
-    if (studentVideoRef.current) {
-      studentVideoRef.current.srcObject = null;
-    }
-    
-    setIsRecording(false);
-    toast({
-      title: "录制已停止",
-      status: "info",
-      duration: 3000,
-    });
-  };
-
-  const downloadVideo = async () => {
-    if (!videoGenerationStatus?.download_url) return;
-
-    try {
-      // Update the URL to use /ai prefix instead of /api
-      const downloadUrl = videoGenerationStatus.download_url.replace('/api/', '/ai/');
-      const response = await axiosInstance.get(downloadUrl, {
-        responseType: 'blob'
-      });
-      
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `ai_video_${videoGenerationStatus.video_uuid}.mp4`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch (error) {
-      toast({
-        title: '下载失败',
-        description: '无法下载视频',
-        status: 'error',
-        duration: 3000,
-      });
-    }
-  };
-
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      videoAreaRef.current?.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
-    }
-  };
-
-  // Chat message handling
-  const handleSubmit = useCallback(() => {
-    if (!inputValue.trim()) return;
-
-    const userMessage = { role: 'user', content: inputValue.trim() };
-    setMessages(prev => [...prev, userMessage]);
-    setInputValue('');
-
-    if (websocketRef.current?.readyState === WebSocket.OPEN) {
-      websocketRef.current.send(JSON.stringify({
-        type: 'message',
-        content: inputValue.trim()
-      }));
-    } else {
-      toast({
-        title: '错误',
-        description: 'WebSocket 未连接。',
-        status: 'error',
-        duration: 3000,
-      });
-    }
-  }, [inputValue, toast]);
-
-  // Auto-scroll chat to bottom when new messages arrive
-  useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-    }
+    scrollToBottom();
   }, [messages]);
 
+  const connectWebSocket = useCallback(() => {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/ai/principal/stream`;
+    
+    wsRef.current = new WebSocket(wsUrl);
+
+    wsRef.current.onopen = () => {
+      console.log('WebSocket connected');
+      setIsConnected(true);
+    };
+
+    wsRef.current.onmessage = (event) => {
+      try {
+        // Display everything as raw data - no processing at all
+        const rawData = event.data;
+        console.log('Received raw data:', rawData);
+        
+        // Try to detect if this might be a response_start to create new message container
+        let shouldCreateNewMessage = false;
+        try {
+          const parsed = JSON.parse(rawData);
+          if (parsed.type === 'response_start') {
+            shouldCreateNewMessage = true;
+          }
+        } catch {
+          // Not JSON, that's fine - just display as raw
+        }
+        
+        // Create new message if this looks like a response start
+        if (shouldCreateNewMessage && !currentStreamingMessageId) {
+          const newMessageId = generateMessageId();
+          setCurrentStreamingMessageId(newMessageId);
+          setMessages(prev => [...prev, {
+            id: newMessageId,
+            type: 'assistant',
+            content: rawData,
+            rawContent: rawData,
+            isStreaming: true,
+            toolCalls: [],
+            timestamp: new Date()
+          }]);
+        } else if (currentStreamingMessageId) {
+          // Append to existing message
+          setMessages(prev => prev.map(msg => 
+            msg.id === currentStreamingMessageId 
+              ? { 
+                  ...msg, 
+                  content: msg.content + '\n' + rawData,
+                  rawContent: (msg.rawContent || '') + '\n' + rawData
+                }
+              : msg
+          ));
+        } else {
+          // No current message, create a new one for any data
+          const newMessageId = generateMessageId();
+          setCurrentStreamingMessageId(newMessageId);
+          setMessages(prev => [...prev, {
+            id: newMessageId,
+            type: 'assistant',
+            content: rawData,
+            rawContent: rawData,
+            isStreaming: true,
+            toolCalls: [],
+            timestamp: new Date()
+          }]);
+        }
+        
+        // Check if this might be a response_end to stop streaming
+        try {
+          const parsed = JSON.parse(rawData);
+          if (parsed.type === 'response_end' && currentStreamingMessageId) {
+            setMessages(prev => prev.map(msg => 
+              msg.id === currentStreamingMessageId 
+                ? { ...msg, isStreaming: false }
+                : msg
+            ));
+            setCurrentStreamingMessageId(null);
+            setIsLoading(false);
+          }
+        } catch {
+          // Not JSON, that's fine
+        }
+        
+    } catch (error) {
+        console.error('Error handling WebSocket message:', error);
+      }
+    };
+
+    wsRef.current.onclose = () => {
+      console.log('WebSocket disconnected');
+      setIsConnected(false);
+      setCurrentStreamingMessageId(null);
+    };
+
+    wsRef.current.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+  }, [currentStreamingMessageId]);
+
+  const generateMessageId = () => {
+    return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+  };
+
+  const sendMessage = () => {
+    if (!inputValue.trim() || !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      return;
+    }
+
+    const userMessage: Message = {
+      id: generateMessageId(),
+      type: 'user',
+      content: inputValue,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
+
+    wsRef.current.send(JSON.stringify({
+      message: inputValue,
+      user_id: 'test_user', // This should come from authentication
+    }));
+
+    setInputValue('');
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  useEffect(() => {
+    connectWebSocket();
+    return () => {
+      wsRef.current?.close();
+    };
+  }, [connectWebSocket]);
+
+  const renderToolCall = (toolCall: ToolCall) => (
+    <div key={toolCall.name} className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
+      <div className="flex items-center justify-between">
+        <span className="font-medium text-blue-800">🔧 {toolCall.name}</span>
+        <span className={`px-2 py-1 rounded text-xs ${
+          toolCall.status === 'completed' ? 'bg-green-100 text-green-800' :
+          toolCall.status === 'error' ? 'bg-red-100 text-red-800' :
+          'bg-yellow-100 text-yellow-800'
+        }`}>
+          {toolCall.status}
+        </span>
+      </div>
+      {toolCall.parameters && (
+        <div className="mt-2 text-sm text-gray-600">
+          <strong>Parameters:</strong> {JSON.stringify(toolCall.parameters, null, 2)}
+        </div>
+      )}
+      {toolCall.result && (
+        <div className="mt-2 text-sm text-gray-700">
+          <strong>Result:</strong> {JSON.stringify(toolCall.result, null, 2)}
+        </div>
+      )}
+    </div>
+  );
+
   return (
-    <Box bg={bgColor} minH="100vh" p={4}>
-      <Container maxW="container.xl">
-        <Flex direction={{base: 'column', lg: 'row'}} gap={6}>
-          {/* Main Content Area */}
-          <Box flex="2" ref={videoAreaRef} bg={cardBg} borderRadius="lg" p={4} position="relative">
-            <Flex justify="space-between" mb={4}>
-              <Heading size="md">课程内容</Heading>
-              <Button
-                colorScheme="blue"
-                onClick={onVideoModalOpen}
-                leftIcon={<FaFileUpload />}
-              >
-                生成 AI 视频
-              </Button>
-            </Flex>
-            
-            {/* Video Generation Status */}
-            {videoGenerationStatus && (
-              <Box mb={4} p={4} bg={cardBg} borderRadius="md" borderWidth="1px">
-                <Flex justify="space-between" align="center" mb={2}>
-                  <Text fontWeight="bold">视频生成状态</Text>
-                  <Badge
-                    colorScheme={
-                      videoGenerationStatus.status === 'completed' ? 'green' :
-                      videoGenerationStatus.status === 'failed' ? 'red' :
-                      videoGenerationStatus.status === 'cancelled' ? 'gray' : 'blue'
-                    }
-                  >
-                    {videoGenerationStatus.status.toUpperCase()}
-                  </Badge>
-                </Flex>
-                {videoGenerationStatus.message && (
-                  <Text fontSize="sm" mb={2}>{videoGenerationStatus.message}</Text>
-                )}
-                {videoGenerationStatus.error && (
-                  <Text fontSize="sm" color="red.500" mb={2}>{videoGenerationStatus.error}</Text>
-                )}
-                <Progress
-                  value={videoGenerationStatus.progress}
-                  size="sm"
-                  colorScheme="blue"
-                  mb={2}
-                />
-                <Flex justify="flex-end" gap={2}>
-                  {videoGenerationStatus.status === 'processing' && (
-                    <Button
-                      size="sm"
-                      colorScheme="red"
-                      onClick={cancelVideoGeneration}
-                      isDisabled={!isGeneratingVideo}
-                    >
-                      取消
-                    </Button>
-                  )}
-                  {videoGenerationStatus.status === 'completed' && (
-                    <Button
-                      size="sm"
-                      colorScheme="green"
-                      onClick={downloadVideo}
-                    >
-                      下载视频
-                    </Button>
-                  )}
-                </Flex>
-              </Box>
-            )}
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Chat Section */}
+      <div className="w-1/2 flex flex-col">
+        {/* Header */}
+        <div className="bg-white shadow-sm border-b p-4">
+          <h1 className="text-2xl font-bold text-gray-800">AI Principal Chat</h1>
+          <div className="flex items-center mt-2">
+            <div className={`w-3 h-3 rounded-full mr-2 ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+            <span className="text-sm text-gray-600">
+              {isConnected ? 'Connected' : 'Disconnected'}
+            </span>
+          </div>
+        </div>
 
-            <Box
-              bg="gray.800"
-              h="500px"
-              borderRadius="md"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              overflow="hidden"
-              position="relative"
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              <Text color="white" display="none">主要课程内容</Text>
-              <video
-              autoPlay
-              muted
-              loop
-              src="http://localhost:8888/ai-principal-presentation.mp4"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                display: 'block'
-              }}
-              />
-            </Box>
-            <IconButton
-              aria-label="切换全屏"
-              icon={isFullscreen ? <ViewOffIcon/> : <ViewIcon/>}
-              position="absolute"
-              bottom={4}
-              right={4}
-              onClick={toggleFullscreen}
+              <div
+                className={`max-w-3xl px-4 py-2 rounded-lg ${
+                  message.type === 'user'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-white text-gray-800 shadow-sm border'
+                }`}
+              >
+                <div className="flex items-start space-x-2">
+                  {message.type === 'assistant' && <Bot className="w-5 h-5 mt-1 text-blue-500" />}
+                  {message.type === 'user' && <User className="w-5 h-5 mt-1" />}
+                  <div className="flex-1">
+                    <div className="whitespace-pre-wrap">{message.content}</div>
+                    {message.isStreaming && (
+                      <div className="animate-pulse text-gray-400">●</div>
+                    )}
+                    {message.toolCalls && message.toolCalls.length > 0 && (
+                      <div className="mt-2">
+                        {message.toolCalls.map(renderToolCall)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input */}
+        <div className="bg-white border-t p-4">
+          <div className="flex space-x-2">
+            <textarea
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Ask the AI Principal anything..."
+              className="flex-1 resize-none border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              rows={3}
+              disabled={!isConnected || isLoading}
             />
-          </Box>
-
-          {/* Side Panel */}
-          <VStack flex="1" spacing={4}>
-            {/* Upload Section */}
-            <Box w="100%" bg={cardBg} borderRadius="lg" p={4}>
-              <Heading size="sm" mb={4}>上传学习资料</Heading>
-              
-              {/* Drag & Drop Zone */}
-              <Box
-                {...getRootProps()}
-                border="2px dashed"
-                borderColor={isDragActive ? 'blue.500' : 'gray.300'}
-                borderRadius="md"
-                p={6}
-                textAlign="center"
-                cursor="pointer"
-                _hover={{ borderColor: 'blue.300' }}
-                mb={4}
-              >
-                <input {...getInputProps()} />
-                <VStack spacing={3}>
-                  <FaFileUpload size={40} color={isDragActive ? '#3182ce' : '#718096'} />
-                  <Text>
-                    拖拽文件到此处或点击上传
-                  </Text>
-                  <Text fontSize="sm" color="gray.500">
-                    支持 PDF、图片和文档
-                  </Text>
-                </VStack>
-              </Box>
-
-              {/* Upload Progress */}
-              {uploadingFiles.map((file: File, index: number) => (
-                <Box key={index} mb={2}>
-                  <Flex justify="space-between" mb={1}>
-                    <Text fontSize="sm">{file.name}</Text>
-                    <Text fontSize="sm">{uploadProgress[file.name] || 0}%</Text>
-                  </Flex>
-                  <Progress 
-                    value={uploadProgress[file.name] || 0}
-                    size="xs"
-                    colorScheme="blue"
-                    borderRadius="full"
-                  />
-                </Box>
-              ))}
-
-              {/* Resource Links Section */}
-              <VStack mt={4} align="stretch">
-                <Button 
-                  leftIcon={<FaLink />}
-                  colorScheme="blue"
-                  variant="outline"
-                  onClick={handleAddLink}
-                >
-                  添加资源链接
-                </Button>
-                
-                {resourceLinks.map((link: string, index: number) => (
-                  <Flex key={index} align="center" p={2} bg={ bgColor } borderRadius="md">
-                    <Text fontSize="sm" isTruncated flex={1}>{link}</Text>
-                    <IconButton
-                      aria-label="删除链接"
-                      icon={<SmallCloseIcon />}
-                      size="xs"
-                      onClick={() => setResourceLinks(prev => prev.filter((_, i) => i !== index))}
-                    />
-                  </Flex>
-                ))}
-              </VStack>
-            </Box>
-
-            {/* Student Camera */}
-            <Box w="100%" bg={cardBg} borderRadius="lg" p={4}>
-              <Flex justify="space-between" mb={2}>
-                <Heading size="sm">您的摄像头</Heading>
-                <Button
-                    size="sm"
-                    colorScheme={isRecording ? 'red' : 'green'}
-                    onClick={startVideo}
-                    isLoading={isRecording}
-                    loadingText="录制中"
-                >
-                  {isRecording ? '关闭' : '开启'}
-                </Button>
-              </Flex>
-              <Box
-                  w="100%"
-                  h="200px"
-                  bg="gray.700"
-                  borderRadius="md"
-                  overflow="hidden"
-              >
-                <video
-                    ref={studentVideoRef}
-                    style={{width: '100%', height: '100%', objectFit: 'cover'}}
-                    playsInline
-                    autoPlay
-                    muted/>
-              </Box>
-            </Box>
-
-            {/* Chat Area */}
-            <Box
-                w="100%"
-                bg={cardBg}
-                borderRadius="lg"
-                p={4}
-                flex={1}
-                maxH="400px"
-                overflowY="auto"
-                ref={chatContainerRef}
+            <button
+              onClick={sendMessage}
+              disabled={!isConnected || isLoading || !inputValue.trim()}
+              className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Send message"
             >
-              <VStack spacing={4} align="stretch">
-                {messages.map((msg, index) => (
-                    <Box
-                        key={index}
-                        bg={msg.role === 'user' ? chatUserBg : chatTeacherBg}
-                        p={3}
-                        borderRadius="md"
-                    >
-                      <Text fontWeight="bold">
-                        {msg.role === 'user' ? '您' : 'AI 老师'}
-                      </Text>
-                      <Text whiteSpace="pre-wrap">{msg.content}</Text>
-                    </Box>
-                ))}
-              </VStack>
-            </Box>
+              <Send className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      </div>
 
-            {/* Input Area */}
-            <Flex w="100%">
-              <Input
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="提出您的问题..."
-                  mr={2}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}/>
-              <Button colorScheme="blue" onClick={handleSubmit}>
-                发送
-              </Button>
-            </Flex>
-          </VStack>
-        </Flex>
-      </Container>
+      {/* Course Blackboard Section */}
+      <div className="w-1/2 bg-slate-900 text-white flex flex-col">
+        {/* Blackboard Header */}
+        <div className="bg-slate-800 p-4 border-b border-slate-700">
+          <h2 className="text-2xl font-bold text-white flex items-center">
+            <Bookmark className="w-6 h-6 mr-2" />
+            Course Blackboard
+          </h2>
+          <p className="text-slate-300 text-sm mt-1">
+            {courses.length} courses available
+          </p>
+        </div>
 
-      {/* Video Generation Modal */}
-      <Modal isOpen={isVideoModalOpen} onClose={onVideoModalClose} size="xl">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>生成 AI 教育视频</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody pb={6}>
-            <VStack spacing={4} align="stretch">
-              <Text>
-                输入您想要生成视频的教育内容描述。
-                例如："用视觉示例解释牛顿运动定律"
-              </Text>
-              <Textarea
-                value={videoGenerationText}
-                onChange={(e) => setVideoGenerationText(e.target.value)}
-                placeholder="描述您想在视频中解释的教育内容..."
-                size="lg"
-                rows={6}
-              />
-              <Text fontSize="sm" id="txt" color="gray.500">
-                示例："用视觉动画解释微积分中导数的概念"
-              </Text>
-                <Button
-                colorScheme="blue"
-                id="1"
-                onClick={async () => {
-                  const text = videoGenerationText;
-
-                  try {
-                    const btn = document.getElementById("1");
-                  if (btn) {
-                    btn.innerHTML = "处理中...";
-                  }
-                  await axiosInstance.post("http://localhost:8888/generate", { "text":text });
-                  toast({
-                    title: "请求已发送",
-                    description: "视频生成请求已发送。",
-                    status: "success",
-                    duration: 3000,
-                  });
-                  if (btn) {
-                  btn.innerHTML = "任务完成。刷新此页面以生效。";
-                  }
-                  // Button loading state is managed by isLoading prop, so no need to set innerHTML
-                  } catch (error) {
-                  toast({
-                    title: "错误",
-                    description: "发送视频生成请求失败。",
-                    status: "error",
-                    duration: 3000,
-                  });
-                  }
-                }}
-                isLoading={isGeneratingVideo}
-                loadingText="生成中..."
-                isDisabled={!videoGenerationText.trim() || isGeneratingVideo}
+        {/* Courses Display */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {courses.length === 0 ? (
+            <div className="text-center text-slate-400 mt-20">
+              <Bookmark className="w-16 h-16 mx-auto mb-4 opacity-50" />
+              <p className="text-lg">No courses yet</p>
+              <p className="text-sm">Ask the AI Principal to create or find courses for you!</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {courses.map((course) => (
+                <div
+                  key={course.id}
+                  className="bg-slate-800 border border-slate-600 rounded-lg p-6 shadow-lg hover:bg-slate-700 transition-colors"
                 >
-                生成视频
-                </Button>
-            </VStack>
-          </ModalBody>
-        </ModalContent>
-      </Modal>
-    </Box>
+                  <h3 className="font-bold text-xl text-white mb-3 border-b border-slate-600 pb-2">
+                    {course.title}
+                  </h3>
+                  <p className="text-slate-300 mb-4 leading-relaxed">
+                    {course.description}
+                  </p>
+                  <div className="grid grid-cols-1 gap-2 text-sm">
+                    <div className="flex items-center">
+                      <span className="text-slate-400 w-20">Grade:</span>
+                      <span className="text-white font-medium">{course.grade_level}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-slate-400 w-20">Duration:</span>
+                      <span className="text-white font-medium">{course.duration}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-slate-400 w-20">Format:</span>
+                      <span className="text-white font-medium">{course.format}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 

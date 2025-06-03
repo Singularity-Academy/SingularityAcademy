@@ -20,6 +20,14 @@ from .course import generate_course_outline
 from ..ai.llm import LLM
 from .chat import PrincipalChat
 from ..course.models import Course
+from .ai_tools import (
+    CreateCourseTool, 
+    GetCourseTool, 
+    ListCoursesTool, 
+    UpdateCourseTool, 
+    DeleteCourseTool
+)
+from ..auth.models import User
 
 class LegacyWSStreamingCallback(AsyncCallbackHandler):
     """
@@ -102,8 +110,8 @@ class LegacyWSStreamingCallback(AsyncCallbackHandler):
     
 class NewWSStreamingCallback(AsyncCallbackHandler):
     """
-    Callback handler for streaming LLM responses through WebSocket.
-    Streams markdown content directly to the client.
+    Enhanced callback handler for streaming LLM responses through WebSocket.
+    Sends raw content directly and JSON for special events (tool calls, start/end, errors).
     """
     
     def __init__(self, ws: Websocket, session_id: str):
@@ -111,36 +119,118 @@ class NewWSStreamingCallback(AsyncCallbackHandler):
         self.ws = ws
         self.session_id = session_id
         self.message_id = str(uuid.uuid4())
-        self.markdown_content = ""
+        self.content = ""
         self.finalized = False
         self.started = False
         logger.debug(f"[TRACE] NewWSStreamingCallback: Initialized with message_id={self.message_id}")
 
-    async def on_llm_new_token(self, token: str, **kwargs) -> None:
-        """Handle new token from LLM."""
+    async def on_llm_start(self, serialized: Dict[str, Any], prompts: List[str], **kwargs) -> None:
+        """Handle start of LLM response."""
         if not self.started:
             self.started = True
             start_msg = json.dumps({
-                "type": "start",
+                "type": "response_start",
                 "message_id": self.message_id,
-                "content": None,
                 "timestamp": datetime.now().isoformat()
             })
-            logger.debug(f"[{self.session_id}] Sending start message: {repr(start_msg)}")
+            logger.debug(f"[{self.session_id}] Sending start message: {start_msg}")
             await self.ws.send(start_msg)
-            
+
+    async def on_llm_new_token(self, token: str, **kwargs) -> None:
+        """Handle new token from LLM - send raw content."""
         try:
-            logger.debug(f"[{self.session_id}] Sending markdown: {repr(token)}")
+            logger.debug(f"[{self.session_id}] Sending raw token: {repr(token)}")
+            # Send raw content without JSON wrapping
             await self.ws.send(token)
-            self.markdown_content += token
+            self.content += token
             
         except Exception as e:
             logger.error(f"[{self.session_id}] Error streaming token: {e}")
             await send_ws_error(self.ws, f"Error processing token: {str(e)}", 500)
 
+    async def on_tool_start(self, serialized: Dict[str, Any], input_str: str, **kwargs) -> None:
+        """Handle start of tool execution."""
+        try:
+            tool_name = serialized.get("name", "unknown_tool")
+            tool_msg = json.dumps({
+                "type": "tool_call_start",
+                "tool_call": {
+                    "name": tool_name,
+                    "status": "running",
+                    "parameters": {"input": input_str}
+                },
+                "timestamp": datetime.now().isoformat()
+            })
+            logger.debug(f"[{self.session_id}] Tool started: {tool_name}")
+            await self.ws.send(tool_msg)
+        except Exception as e:
+            logger.error(f"[{self.session_id}] Error sending tool start: {e}")
+
+    async def on_tool_end(self, output: str, **kwargs) -> None:
+        """Handle end of tool execution."""
+        try:
+            tool_msg = json.dumps({
+                "type": "tool_call_update",
+                "tool_call": {
+                    "status": "success",
+                    "result": output
+                },
+                "timestamp": datetime.now().isoformat()
+            })
+            logger.debug(f"[{self.session_id}] Tool completed successfully")
+            await self.ws.send(tool_msg)
+            
+            # Check if this is a course-related tool and send course updates
+            await self._send_course_updates()
+        except Exception as e:
+            logger.error(f"[{self.session_id}] Error sending tool end: {e}")
+
+    async def on_tool_error(self, error: Exception, **kwargs) -> None:
+        """Handle tool execution error."""
+        try:
+            tool_msg = json.dumps({
+                "type": "tool_call_update",
+                "tool_call": {
+                    "status": "error",
+                    "result": str(error)
+                },
+                "timestamp": datetime.now().isoformat()
+            })
+            logger.debug(f"[{self.session_id}] Tool error: {str(error)}")
+            await self.ws.send(tool_msg)
+        except Exception as e:
+            logger.error(f"[{self.session_id}] Error sending tool error: {e}")
+
+    async def _send_course_updates(self):
+        """Send updated course list to frontend."""
+        try:
+            # Get all courses for the blackboard display
+            courses = await Course.all()
+            course_data = []
+            for course in courses:
+                course_data.append({
+                    "id": str(course.id),
+                    "title": course.name,
+                    "description": course.description,
+                    "grade_level": getattr(course, 'grade_level', 'Not specified'),
+                    "duration": getattr(course, 'duration', 'Not specified'),
+                    "format": getattr(course, 'format', 'Not specified')
+                })
+            
+            course_update_msg = json.dumps({
+                "type": "course_update",
+                "metadata": {
+                    "courses": course_data
+                },
+                "timestamp": datetime.now().isoformat()
+            })
+            await self.ws.send(course_update_msg)
+        except Exception as e:
+            logger.error(f"[{self.session_id}] Error sending course updates: {e}")
+
     def get_content(self) -> str:
-        """Get the complete markdown content for chat history."""
-        return self.markdown_content
+        """Get the complete content for chat history."""
+        return self.content
             
     async def on_llm_end(self, response: LLMResult, **kwargs) -> None:
         """Handle end of LLM response."""
@@ -149,12 +239,11 @@ class NewWSStreamingCallback(AsyncCallbackHandler):
             
             # Send completion signal
             complete_msg = json.dumps({
-                "type": "complete",
+                "type": "response_end",
                 "message_id": self.message_id,
-                "content": None,
                 "timestamp": datetime.now().isoformat()
             })
-            logger.debug(f"[{self.session_id}] Sending complete: {repr(complete_msg)}")
+            logger.debug(f"[{self.session_id}] Sending completion message: {complete_msg}")
             await self.ws.send(complete_msg)
             
         except Exception as e:
@@ -177,15 +266,16 @@ async def send_ws_error(ws: Websocket, error: str, status_code: int = 400) -> No
         "timestamp": datetime.now().isoformat()
     }))
 
-async def handle_user_message(ws: Websocket, chat: PrincipalChat, llm: LLM, content: str, session_id: str) -> None:
+async def handle_user_message(ws: Websocket, chat: PrincipalChat, llm: LLM, content: str, session_id: str, user_id: Optional[str] = None) -> None:
     """
-    Process a user message from a WebSocket client.
+    Process a user message from a WebSocket client with tool support.
     
     This function handles the complete message processing pipeline:
     1. Saves the user message to chat history
-    2. Gets chat history as LangChain messages
-    3. Generates a streaming response using the LLM
-    4. Saves the complete AI response to chat history
+    2. Fetches user information for tool authentication
+    3. Sets up course management tools for the LLM
+    4. Generates a streaming response using the LLM with tools
+    5. Saves the complete AI response to chat history
     
     Args:
         ws: WebSocket connection
@@ -193,19 +283,52 @@ async def handle_user_message(ws: Websocket, chat: PrincipalChat, llm: LLM, cont
         llm: LLM instance for generating responses
         content: Message content
         session_id: WebSocket session ID for logging
+        user_id: User ID for tool authentication
         
     Raises:
         ConnectionError: If the WebSocket connection is closed
         Exception: For any other errors during processing
     """
     try:
-        logger.info(f"[{session_id}] Processing message")
+        logger.info(f"[{session_id}] Processing message with tool support")
         
         # Save user message to chat history
         await chat.add_message(content, "user")
         
+        # Get user for tool authentication
+        user = None
+        if user_id:
+            try:
+                user = await User.get(id=user_id)
+            except Exception as e:
+                logger.warning(f"[{session_id}] Could not fetch user {user_id}: {e}")
+        elif hasattr(chat, 'user_id') and chat.user_id:
+            try:
+                user = await User.get(id=chat.user_id)
+            except Exception as e:
+                logger.warning(f"[{session_id}] Could not fetch user from chat: {e}")
+        
         # Create streaming callback
         callback = NewWSStreamingCallback(ws, session_id)
+        
+        # Set up course management tools with user authentication
+        tools = []
+        if user:
+            tools = [
+                CreateCourseTool(user_id=user.id),
+                GetCourseTool(),
+                ListCoursesTool(user_id=user.id),
+                UpdateCourseTool(user_id=user.id),
+                DeleteCourseTool(user_id=user.id),
+            ]
+        else:
+            # Without user authentication, only allow read-only operations
+            tools = [
+                GetCourseTool(),
+            ]
+        
+        # Configure LLM with tools
+        llm.tools = tools
         
         # Get messages and generate streaming response using the LLM class
         messages = chat.langchain_messages
