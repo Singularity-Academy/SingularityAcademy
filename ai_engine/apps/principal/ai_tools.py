@@ -78,20 +78,27 @@ class CreateCourseTool(BaseCourseTool):
         """Run the tool synchronously (not supported)."""
         return "This tool only supports async operation"
 
-class GetCourseTool(BaseTool):
+class GetCourseTool(BaseCourseTool):
     """Tool for retrieving course details."""
     name: str = Field(default="get_course", description="Name of the tool")
     description: str = Field(
         default="""Get details of a course by its ID.
         Input should be a UUID string.
-        Example: '123e4567-e89b-12d3-a456-426614174000'""",
+        Example: '123e4567-e89b-12d3-a456-426614174000'
+        Note: You can only retrieve courses you own.""",
         description="Tool description"
     )
     
     async def _arun(self, course_id: str) -> str:
         """Run the tool asynchronously."""
         try:
+            # Get course with owner information
             course = await Course.get(id=UUID(course_id)).prefetch_related("owner")
+            
+            # Check if user owns this course
+            if course.owner.id != self.user_id:
+                return f"Error: Access denied. You can only retrieve courses you own. This course belongs to user {course.owner.username}."
+            
             return f"""Course details:
             ID: {course.id}
             Name: {course.name}

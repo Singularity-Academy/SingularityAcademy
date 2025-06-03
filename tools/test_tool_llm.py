@@ -440,7 +440,7 @@ async def main():
         update_tool = UpdateCourseTool(user_id=args.id)
         delete_tool = DeleteCourseTool(user_id=args.id)
         regenerate_tool = RegenerateOutlineTool(user_id=args.id)
-        get_tool = GetCourseTool()  # No user_id needed for read-only operation
+        get_tool = GetCourseTool(user_id=1)  # Now requires user_id for security
         
         # Initialize LLM with tools
         llm = LLM(model_key=args.llm or "gpt-4")

@@ -272,18 +272,16 @@ async def handle_user_message(ws: Websocket, chat: PrincipalChat, llm: LLM, cont
     
     This function handles the complete message processing pipeline:
     1. Saves the user message to chat history
-    2. Fetches user information for tool authentication
-    3. Sets up course management tools for the LLM
-    4. Generates a streaming response using the LLM with tools
-    5. Saves the complete AI response to chat history
+    2. Generates a streaming response using the pre-configured LLM with tools
+    3. Saves the complete AI response to chat history
     
     Args:
         ws: WebSocket connection
         chat: PrincipalChat instance to use
-        llm: LLM instance for generating responses
+        llm: LLM instance for generating responses (already configured with tools)
         content: Message content
         session_id: WebSocket session ID for logging
-        user_id: User ID for tool authentication
+        user_id: User ID (optional, mainly for backwards compatibility)
         
     Raises:
         ConnectionError: If the WebSocket connection is closed
@@ -295,40 +293,11 @@ async def handle_user_message(ws: Websocket, chat: PrincipalChat, llm: LLM, cont
         # Save user message to chat history
         await chat.add_message(content, "user")
         
-        # Get user for tool authentication
-        user = None
-        if user_id:
-            try:
-                user = await User.get(id=user_id)
-            except Exception as e:
-                logger.warning(f"[{session_id}] Could not fetch user {user_id}: {e}")
-        elif hasattr(chat, 'user_id') and chat.user_id:
-            try:
-                user = await User.get(id=chat.user_id)
-            except Exception as e:
-                logger.warning(f"[{session_id}] Could not fetch user from chat: {e}")
-        
         # Create streaming callback
         callback = NewWSStreamingCallback(ws, session_id)
         
-        # Set up course management tools with user authentication
-        tools = []
-        if user:
-            tools = [
-                CreateCourseTool(user_id=user.id),
-                GetCourseTool(),
-                ListCoursesTool(user_id=user.id),
-                UpdateCourseTool(user_id=user.id),
-                DeleteCourseTool(user_id=user.id),
-            ]
-        else:
-            # Without user authentication, only allow read-only operations
-            tools = [
-                GetCourseTool(),
-            ]
-        
-        # Configure LLM with tools
-        llm.tools = tools
+        # Note: LLM tools are already configured in routes.py during session setup
+        logger.debug(f"[{session_id}] Using LLM with {len(llm.tools)} pre-configured tools")
         
         # Get messages and generate streaming response using the LLM class
         messages = chat.langchain_messages
@@ -344,7 +313,7 @@ async def handle_user_message(ws: Websocket, chat: PrincipalChat, llm: LLM, cont
         try:
             await send_ws_error(ws, f"Error processing message: {str(e)}", 500)
         except:
-            pass 
+            pass
 
 async def handle_course_req(ws: Websocket, content: str, session_id: str, llm: LLM) -> None:
     """

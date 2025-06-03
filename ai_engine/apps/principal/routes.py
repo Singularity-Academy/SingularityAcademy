@@ -23,6 +23,7 @@ from .chat import PrincipalChat
 from .models import PrincipalChatHistory
 from ..auth.models import User
 from .utils import handle_course_req, send_ws_error, handle_user_message
+from .ai_tools import CreateCourseTool, GetCourseTool, ListCoursesTool, UpdateCourseTool, DeleteCourseTool
 
 bp = Blueprint("principal", url_prefix="/principal-ai")
 
@@ -57,6 +58,20 @@ async def websocket(request: Request, ws: Websocket):
             await send_ws_error(ws, "Failed to initialize chat", 4004)
             return
         
+        # Set up course management tools with user authentication (once per session)
+        tools = [
+            CreateCourseTool(user_id=user.id),
+            GetCourseTool(user_id=user.id),
+            ListCoursesTool(user_id=user.id),
+            UpdateCourseTool(user_id=user.id),
+            DeleteCourseTool(user_id=user.id),
+        ]
+        
+        # Configure LLM with tools using the proper add_tool method (once per session)
+        for tool in tools:
+            llm.add_tool(tool)
+        logger.info(f"[{session_id}] LLM configured with {len(tools)} tools for user {user.id}")
+
         # Send chat history
         try:
             # Convert messages to client format
