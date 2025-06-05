@@ -35,7 +35,16 @@ const RegisterPage: React.FC = () => {
 
   const onSubmit = async (data: RegisterFormInputs) => {
     try {
-      await axiosInstance.post(API_ENDPOINTS.AUTH.REGISTER, data);
+      const resp = await axiosInstance.post<Resp.Result<string>>(API_ENDPOINTS.AUTH.REGISTER, data);
+      if (resp.data.code !== 0) {
+        toast({
+          title: t(resp.data.message),
+          description: '',
+          status: 'error',
+          duration: 3000,
+        });
+        return;
+      }
       toast({
         title: t("api.auth.registrationSuccessful"),
         description: t("api.auth.loginWithCredentials"),

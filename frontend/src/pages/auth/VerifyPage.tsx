@@ -60,7 +60,17 @@ const VerifyPage: React.FC = () => {
       }
 
       try {
-        await axiosInstance.post(API_ENDPOINTS.AUTH.VERIFY, { token });
+        const resp = await axiosInstance.post<Resp.Result<string>>(API_ENDPOINTS.AUTH.VERIFY, { token });
+        if (resp.data.code !== 0) {
+          toast({
+            title: resp.data.message,
+            description: '',
+            status: 'error',
+            duration: 3000,
+          });
+          return;
+        }
+
         setVerificationStatus('success');
         toast({
           title: '邮箱已验证',
