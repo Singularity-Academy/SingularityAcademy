@@ -22,7 +22,8 @@ from langchain.schema.runnable import RunnablePassthrough
 from langchain.schema.output_parser import StrOutputParser
 from ai_engine.logging import log_exception
 
-from ...config import load_llm_config
+from ai_engine.config import load_llm_config
+from .tools import TOOLS
 
 # Load model configurations
 CONFIG = load_llm_config()
@@ -460,3 +461,11 @@ class LLM:
             str: A string showing the model name and key.
         """
         return f"LLM(model='{self.config['name']}', key='{self.model_key}')"
+    
+    def load_default_tools(self) -> None:
+        """
+        Load the default tools for the LLM instance.
+        """
+        for tool in TOOLS:
+            self.add_tool(tool)
+        logger.info(f"[{self.model_key}] Loaded {len(TOOLS)} default tools")
