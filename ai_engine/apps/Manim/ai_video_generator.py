@@ -16,6 +16,8 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
+from ai_engine.utils import strip_markdown_code_blocks
+
 
 class AIVideoGenerator:
     def __init__(self, config_path: str = "config.json", selected_model: str = None):
@@ -339,10 +341,7 @@ class ExampleScene(Scene):
             code = chain.invoke({"scene_plan": scene_plan})
             
             # 清理代码 (移除可能的markdown标记)
-            if "```python" in code:
-                code = code.split("```python")[1].split("```")[0]
-            elif "```" in code:
-                code = code.split("```")[1].split("```")[0]
+            code = strip_markdown_code_blocks(code)
             
             return code.strip()
         except Exception as e:

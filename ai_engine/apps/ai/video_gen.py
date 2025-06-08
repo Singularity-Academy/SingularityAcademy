@@ -34,6 +34,7 @@ from .video_defaults import (
 )
 # Import prompt loader
 from .prompt_loader import default_loader as prompt_loader
+from ai_engine.utils import strip_markdown_code_blocks
 
 __all__ = ["AIVideoGenerator", "TaskState"]
 
@@ -268,32 +269,35 @@ class AIVideoGenerator:
 
     async def generate_manim_code(self, scene_plan: str) -> str:
         """
-        Generate Manim code from scene plan asynchronously.
+        Generate Manim code from a scene plan using LLM.
         
         Args:
-            scene_plan: The scene plan to convert to code.
+            scene_plan: The scene plan to convert to Manim code.
             
         Returns:
             str: Generated Manim code.
         """
         try:
-            prompt = prompt_loader.format_prompt("code_generation", scene_plan=scene_plan)
+            # Create the system prompt for code generation
+            system_prompt = self._create_code_prompt()
+            
+            # Create the human message with the scene plan
+            human_message = f"Scene Plan:\n{scene_plan}\n\nPlease generate the Manim code for this scene."
+            
+            # Create the message list
             messages = [
-                SystemMessage(content="You are an expert in Manim animation code generation."),
-                HumanMessage(content=prompt)
+                SystemMessage(content=system_prompt),
+                HumanMessage(content=human_message)
             ]
+            
+            # Generate response using LLM
             response = await self.llm.agenerate_response(messages)
             if not response or not response.strip():
                 logger.error("Empty response from LLM during code generation")
                 return self._get_fallback_code()
             
             # Clean up code (remove markdown if present)
-            if "```python" in response:
-                code = response.split("```python")[1].split("```")[0]
-            elif "```" in response:
-                code = response.split("```")[1].split("```")[0]
-            else:
-                code = response
+            code = strip_markdown_code_blocks(response)
             
             # Validate and fix common issues
             code = self._validate_manim_code(code.strip())

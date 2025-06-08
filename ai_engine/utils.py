@@ -33,3 +33,28 @@ def strict(func):
                 raise ValueError(f"Return value of {func.__name__} expected {expected}, got {type(result)}")
         return result
     return wrapper
+
+def strip_markdown_code_blocks(response: str) -> str:
+    """
+    Strip markdown code block markers from LLM responses.
+    
+    Removes leading and trailing triple backticks (```) and optional language tags
+    like 'json' that are commonly added by LLMs when generating structured responses.
+    
+    Args:
+        response (str): The raw response from the LLM
+        
+    Returns:
+        str: The cleaned response without markdown code block markers
+    """
+    response = response.strip()
+    
+    # Remove leading triple backticks and optional language tag
+    if response.startswith("```"):
+        response = response.lstrip("`").lstrip("json").strip()
+    
+    # Remove trailing triple backticks if present
+    if response.endswith("```"):
+        response = response.rstrip("```").strip()
+    
+    return response

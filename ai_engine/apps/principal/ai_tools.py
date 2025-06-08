@@ -28,6 +28,10 @@ class CourseUpdateInput(BaseModel):
     name: Optional[str] = Field(None, description="New name for the course")
     description: Optional[str] = Field(None, description="New description for the course")
 
+class CourseRecommendationInput(BaseModel):
+    """Input model for course recommendation."""
+    user_spec: str = Field(..., description="Plain text description of user's learning needs, goals, background, and preferences")
+
 class BaseCourseTool(BaseTool):
     """Base class for course tools with user validation."""
     user_id: int = Field(..., description="ID of the authenticated user")
@@ -324,6 +328,45 @@ class RegenerateOutlineTool(BaseCourseTool):
         """Run the tool synchronously (not supported)."""
         return "This tool only supports async operation"
 
+class CourseRecommenderTool(BaseCourseTool):
+    """Tool for recommending courses based on user specifications (analysis only, no creation)."""
+    name: str = Field(default="recommend_courses", description="Name of the tool")
+    description: str = Field(
+        default="""Analyze user specifications and recommend new courses that should be created.
+        This tool provides recommendations only and does not create any courses.
+        Input should be a JSON string with:
+        - user_spec: Plain text description of learning needs, goals, background, and preferences
+        Example: '{"user_spec": "I want to learn web development. I have basic HTML/CSS knowledge and want to build full-stack applications. I can dedicate 10 hours per week."}'""",
+        description="Tool description"
+    )
+    
+    async def _arun(self, input_str: str) -> str:
+        """Run the tool asynchronously."""
+        try:
+            # Parse input
+            input_data = CourseRecommendationInput.model_validate_json(input_str)
+            
+            # Get course recommendations (analysis only)
+            from ai_engine.apps.principal.course import recommend_courses
+            recommendations = await recommend_courses(
+                user_specification=input_data.user_spec,
+                user_id=self.user_id
+            )
+            
+            return f"""Course Recommendations Analysis:
+
+{recommendations}
+
+Note: These are recommendations only. Use the existing 'create_course' tool to create individual courses based on these recommendations."""
+            
+        except Exception as e:
+            log_exception(e, "Error generating course recommendations")
+            return f"Error generating course recommendations: {str(e)}"
+    
+    def _run(self, input_str: str) -> str:
+        """Run the tool synchronously (not supported)."""
+        return "This tool only supports async operation"
+
 # Input models for tools
 class CourseListParams(BaseModel):
     """Parameters for listing courses."""
@@ -353,5 +396,6 @@ __all__ = [
     "ListCoursesTool",
     "UpdateCourseTool",
     "DeleteCourseTool",
-    "RegenerateOutlineTool"
+    "RegenerateOutlineTool",
+    "CourseRecommenderTool"
 ]
