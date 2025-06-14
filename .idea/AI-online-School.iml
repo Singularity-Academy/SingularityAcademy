@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module version="4">
   <component name="Go" enabled="true" />
-  <component name="NewModuleRootManager">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/.idea/dataSources" />
       <excludeFolder url="file://$MODULE_DIR$/.idea/easycode" />
@@ -11,7 +12,7 @@
       <excludeFolder url="file://$MODULE_DIR$/backend/.venv/Scripts" />
       <excludeFolder url="file://$MODULE_DIR$/backend/.venv/include" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.12 (backend)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.13" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>
