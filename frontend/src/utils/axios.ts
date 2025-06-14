@@ -59,8 +59,8 @@ export async function getUserData(toast: (arg0: { title: string; description: st
     }
     else {
         try {
-            const response = await axiosInstance.get(API_ENDPOINTS.ME);
-            User = response.data;
+            const response = await axiosInstance.get<Resp.Result<Resp.UserData>>(API_ENDPOINTS.ME);
+            User = response.data.data;
             localStorage.setItem('user', JSON.stringify(response.data)); // 更新缓存
             console.log(User);
         } catch (err) {
