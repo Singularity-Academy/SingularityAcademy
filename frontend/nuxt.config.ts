@@ -51,4 +51,8 @@ export default defineNuxtConfig({
       },
     },
   },
+
+  build: {
+    transpile: ['naive-ui', 'vueuc'],
+  },
 })
