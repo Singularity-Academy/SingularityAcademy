@@ -17,6 +17,8 @@
     "@pinia/nuxt": "^0.11.1",
     "dayjs": "^1.11.13",
     "eslint": "^9.0.0",
+    "lucide-vue-next": "^0.522.0",
+    "naive-ui": "^2.42.0",
     "nuxt": "^3.17.5",
     "pinia": "^3.0.3",
     "pinia-plugin-persistedstate": "^4.3.0",
@@ -27,6 +29,8 @@
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
-    "@nuxtjs/tailwindcss": "^7.0.0-beta.0"
+    "@nuxtjs/tailwindcss": "^7.0.0-beta.0",
+    "nuxt-lucide-icons": "^1.0.5",
+    "nuxtjs-naive-ui": "^1.0.2"
   }
 }
