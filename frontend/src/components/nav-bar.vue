@@ -1,48 +1,45 @@
 <script setup lang="ts">
-import '~/styles/theme.scss'
-import { ref, h } from 'vue'
-import { RouterLink } from 'vue-router'
+import { h } from "vue"
+import { RouterLink } from "vue-router"
 import {
   NLayoutHeader,
   NIcon,
   NButton,
   NDropdown,
   NText
-} from 'naive-ui'
-
+} from "naive-ui"
 import {
   IconHouse,
   IconLayoutDashboard,
   IconMoon,
   IconSun,
   IconMenu
-} from '#components'
+} from "#components"
 
-const darkMode = ref(false)
+defineProps<{
+  darkMode: boolean
+}>()
+
+const emit = defineEmits(["toggle-dark"])
+
 const dropdownVisible = ref(false)
 
 const toggleDarkMode = () => {
-  darkMode.value = !darkMode.value
-  const cls = document.documentElement.classList
-  darkMode.value ? cls.add('dark') : cls.remove('dark')
+  emit("toggle-dark")
 }
 
 const menuOptions = [
   {
-    label: () => h(RouterLink, { to: '/' }, { default: () => '首页' }),
-    key: 'home',
-    icon: renderIcon(IconHouse)
+    label: () => h(RouterLink, { to: "/" }, { default: () => "首页" }),
+    key: "home",
+    icon: () => h(NIcon, null, { default: () => h(IconHouse) })
   },
   {
-    label: () => h(RouterLink, { to: '/dashboard' }, { default: () => '仪表盘' }),
-    key: 'dashboard',
-    icon: renderIcon(IconLayoutDashboard)
+    label: () => h(RouterLink, { to: "/dashboard" }, { default: () => "仪表盘" }),
+    key: "dashboard",
+    icon: () => h(NIcon, null, { default: () => h(IconLayoutDashboard) })
   }
 ]
-
-function renderIcon(icon: any) {
-  return () => h(NIcon, null, { default: () => h(icon) })
-}
 </script>
 
 <template>
@@ -53,7 +50,12 @@ function renderIcon(icon: any) {
       </RouterLink>
     </div>
     <div class="right">
-      <NButton text class="nav-item">登录</NButton>
+      <RouterLink to="/login">
+        <NButton text class="nav-item">登录</NButton>
+      </RouterLink>
+      <RouterLink to="/register">
+        <NButton text class="nav-item">注册</NButton>
+      </RouterLink>
       <NButton text circle @click="toggleDarkMode" class="nav-item">
         <NIcon>
           <component :is="darkMode ? IconSun : IconMoon" />

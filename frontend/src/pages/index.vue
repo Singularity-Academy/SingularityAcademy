@@ -100,7 +100,7 @@ const visions: { content: string; color: 'red' | 'white' }[] = [
 <style scoped lang="scss">
 .home-page {
   padding: 2.5rem;
-  background: #fef6f2;
+  background: var(--main-bg);
 }
 
 .hero {
@@ -168,7 +168,7 @@ const visions: { content: string; color: 'red' | 'white' }[] = [
 .vision-text.white {
   background-color: #ffffff;
   color: #333333;
-  border-left: 4px solid #d9d9d9;
+  border-left: 4px solid #b6b4b4;
 }
 
 .feature-card {
