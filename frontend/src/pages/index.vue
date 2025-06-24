@@ -36,9 +36,9 @@
     <div class="section">
       <n-h2 prefix="bar">我们的愿景</n-h2>
       <div class="vision-list">
-        <n-tag v-for="(vision, index) in visions" :key="index" :type="vision.color" size="large" style="margin: 8px">
+        <p v-for="(vision, index) in visions" :key="index" :class="'vision-text ' + vision.color">
           {{ vision.content }}
-        </n-tag>
+        </p>
       </div>
     </div>
   </div>
@@ -65,9 +65,9 @@ const features = [
   { title: '刨根问底', description: '我们提供深入的解析，帮助你理解复杂的概念。', icon: '📊' }
 ]
 
-const visions: { content: string; color: 'success' | 'info' | 'warning' }[] = [
-  { content: '我们致力于通过AI技术打破教育壁垒，让优质教育资源触手可及', color: 'success' },
-  { content: '教育不应是奢侈品！我们为需要帮助的学习者提供完全免费的顶级教育资源', color: 'warning' }
+const visions: { content: string; color: 'red' | 'white' }[] = [
+  { content: '我们致力于通过AI技术打破教育壁垒，让优质教育资源触手可及', color: 'white' },
+  { content: '教育不应是奢侈品！我们为需要帮助的学习者提供完全免费的顶级教育资源', color: 'red' }
 ]
 
 onMounted(() => {
@@ -143,6 +143,34 @@ onMounted(() => {
   background-color: #333;
   animation: blink 1s step-end infinite;
 }
+
+.vision-list-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.vision-text {
+  font-size: 1.125rem;
+  max-width: 720px;
+  text-align: center;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+}
+
+.vision-text.red {
+  background-color: #fff1f0;
+  color: #a8071a;
+  border-left: 4px solid #cf1322;
+}
+
+.vision-text.white {
+  background-color: #ffffff;
+  color: #333333;
+  border-left: 4px solid #d9d9d9;
+}
+
 
 @keyframes blink {
   from, to {
