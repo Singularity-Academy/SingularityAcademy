@@ -172,7 +172,7 @@ const visions: { content: string; color: 'red' | 'white' }[] = [
 }
 
 .feature-card {
-  max-width: 360px;
+  max-width: 750px;
   margin: 0 auto;
 }
 
