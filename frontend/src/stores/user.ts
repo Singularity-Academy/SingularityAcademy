@@ -8,7 +8,7 @@ export const useUserStore = defineStore('user', {
     actions: {
         login(username: string) {
             // 登录验证
-            this.token = 'mock-token'
+            this.token = ''
             this.username = username
         },
 
