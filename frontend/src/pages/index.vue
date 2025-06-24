@@ -18,17 +18,19 @@
         </n-space>
       </div>
       <div class="hero-image">
-        <img src="" alt="illustration" />
+        <img src="~/assets/illus/illus_hero_25.png" alt="illustration" />
       </div>
     </div>
 
     <div class="section">
       <n-h2 prefix="bar">平台特色</n-h2>
-      <n-grid :cols="3" :x-gap="20" :y-gap="20">
+      <n-grid :cols="cols" :x-gap="20" :y-gap="20">
         <n-gi v-for="(feature, index) in features" :key="index">
-          <n-card :title="feature.title" hoverable>
-            {{ feature.description }}
-          </n-card>
+          <div class="feature-card">
+            <n-card :title="feature.title" hoverable>
+              {{ feature.description }}
+            </n-card>
+          </div>
         </n-gi>
       </n-grid>
     </div>
@@ -45,7 +47,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 
 const fullText = '欢迎来到 ClarifAI - “看见” 学习，为你而来。'
@@ -53,10 +56,32 @@ const typedText = ref('')
 const showCursor = ref(true)
 
 const router = useRouter()
+const goTo = (path: string) => router.push(path)
 
-const goTo = (path: string) => {
-  router.push(path)
+const cols = ref(2)
+const updateCols = () => {
+  cols.value = window.innerWidth < 640 ? 1 : 2
 }
+
+onMounted(() => {
+  updateCols()
+  window.addEventListener('resize', updateCols)
+  let index = 0
+  const typingInterval = setInterval(() => {
+    if (index < fullText.length) {
+      typedText.value += fullText[index++]
+    } else {
+      clearInterval(typingInterval)
+    }
+  }, 100)
+  setInterval(() => {
+    showCursor.value = !showCursor.value
+  }, 500)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateCols)
+})
 
 const features = [
   { title: 'AI 智能学习', description: '体验个性化教育，配备前沿人工智能技术，适应您的学习风格。', icon: '🧠' },
@@ -70,27 +95,11 @@ const visions: { content: string; color: 'red' | 'white' }[] = [
   { content: '教育不应是奢侈品！我们为需要帮助的学习者提供完全免费的顶级教育资源', color: 'red' }
 ]
 
-onMounted(() => {
-  let index = 0
-  const typingInterval = setInterval(() => {
-    if (index < fullText.length) {
-      typedText.value += fullText[index]
-      index++
-    } else {
-      clearInterval(typingInterval)
-    }
-  }, 100)
-
-  setInterval(() => {
-    showCursor.value = !showCursor.value
-  }, 500)
-})
-
 </script>
 
 <style scoped lang="scss">
 .home-page {
-  padding: 2.5rem; // 40px
+  padding: 2.5rem;
   background: #fef6f2;
 }
 
@@ -101,6 +110,7 @@ onMounted(() => {
   padding: 3.75rem 0;
   background: url('@/assets/background.png') no-repeat center center;
   background-size: cover;
+  flex-wrap: wrap;
 }
 
 .hero-content {
@@ -119,22 +129,12 @@ onMounted(() => {
   margin: 1.25rem 0;
 }
 
-.highlight {
-  color: #f36f45;
-}
-
 .hero-image img {
   width: 22.5rem;
 }
 
 .section {
   padding: 3.75rem 0;
-}
-
-.vision-list {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
 }
 
 .cursor {
@@ -144,10 +144,10 @@ onMounted(() => {
   animation: blink 1s step-end infinite;
 }
 
-.vision-list-text {
+.vision-list {
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 1rem;
 }
 
@@ -171,11 +171,18 @@ onMounted(() => {
   border-left: 4px solid #d9d9d9;
 }
 
+.feature-card {
+  max-width: 360px;
+  margin: 0 auto;
+}
 
 @keyframes blink {
-  from, to {
+
+  from,
+  to {
     opacity: 1;
   }
+
   50% {
     opacity: 0;
   }
