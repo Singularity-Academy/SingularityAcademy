@@ -11,7 +11,7 @@
 .main-content {
   overflow: auto;
   background-color: var(--main-bg);
-  padding: 24px;
+  padding: 1.5rem;
   box-sizing: border-box;
 }
 </style>

@@ -3,7 +3,7 @@
     <div class="hero">
       <div class="hero-content">
         <h1 class="hero-title">
-          欢迎来到 ClarifAI - <span class="highlight">“看见”</span> 学习，为你而来。
+          {{ typedText }}<span v-if="showCursor" class="cursor">|</span>
         </h1>
         <p class="hero-description">
           首个 AI 教育平台，生成个性化知识视频，规划循序渐进的课程，为您提供系统性知识
@@ -45,7 +45,12 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+
+const fullText = '欢迎来到 ClarifAI - “看见” 学习，为你而来。'
+const typedText = ref('')
+const showCursor = ref(true)
 
 const router = useRouter()
 
@@ -64,11 +69,28 @@ const visions: { content: string; color: 'success' | 'info' | 'warning' }[] = [
   { content: '我们致力于通过AI技术打破教育壁垒，让优质教育资源触手可及', color: 'success' },
   { content: '教育不应是奢侈品！我们为需要帮助的学习者提供完全免费的顶级教育资源', color: 'warning' }
 ]
+
+onMounted(() => {
+  let index = 0
+  const typingInterval = setInterval(() => {
+    if (index < fullText.length) {
+      typedText.value += fullText[index]
+      index++
+    } else {
+      clearInterval(typingInterval)
+    }
+  }, 100)
+
+  setInterval(() => {
+    showCursor.value = !showCursor.value
+  }, 500)
+})
+
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .home-page {
-  padding: 40px;
+  padding: 2.5rem; // 40px
   background: #fef6f2;
 }
 
@@ -76,25 +98,25 @@ const visions: { content: string; color: 'success' | 'info' | 'warning' }[] = [
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 60px 0;
+  padding: 3.75rem 0;
   background: url('@/assets/background.png') no-repeat center center;
   background-size: cover;
 }
 
 .hero-content {
-  max-width: 600px;
+  max-width: 37.5rem;
 }
 
 .hero-title {
-  font-size: 36px;
+  font-size: 2.25rem;
   font-weight: 800;
   line-height: 1.5;
 }
 
 .hero-description {
-  font-size: 18px;
+  font-size: 1.125rem;
   color: #666;
-  margin: 20px 0;
+  margin: 1.25rem 0;
 }
 
 .highlight {
@@ -102,16 +124,32 @@ const visions: { content: string; color: 'success' | 'info' | 'warning' }[] = [
 }
 
 .hero-image img {
-  width: 360px;
+  width: 22.5rem;
 }
 
 .section {
-  padding: 60px 0;
+  padding: 3.75rem 0;
 }
 
 .vision-list {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+}
+
+.cursor {
+  display: inline-block;
+  width: 1px;
+  background-color: #333;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  from, to {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 </style>

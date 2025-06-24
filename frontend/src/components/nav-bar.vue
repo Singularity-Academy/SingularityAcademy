@@ -74,8 +74,8 @@ function renderIcon(icon: any) {
 
 <style scoped lang="scss">
 .nav-bar {
-  height: 64px;
-  padding: 0 24px;
+  height: 4rem;
+  padding: 0 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -94,7 +94,7 @@ function renderIcon(icon: any) {
 }
 
 .logo-text {
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: bold;
   color: var(--text-color);
 }
@@ -102,7 +102,7 @@ function renderIcon(icon: any) {
 .right {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 1rem;
 }
 
 .nav-item {
@@ -111,8 +111,8 @@ function renderIcon(icon: any) {
 }
 
 .lang-switch {
-  padding: 4px 12px;
-  border-radius: 6px;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
   background-color: var(--hover-bg);
   color: var(--text-color);
 }

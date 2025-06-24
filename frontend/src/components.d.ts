@@ -18,12 +18,9 @@ declare module 'vue' {
     NH2: typeof import('naive-ui')['NH2']
     NLayout: typeof import('naive-ui')['NLayout']
     NLayoutContent: typeof import('naive-ui')['NLayoutContent']
-    NLayoutHeader: typeof import('naive-ui')['NLayoutHeader']
-    NMenu: typeof import('naive-ui')['NMenu']
     NMessageProvider: typeof import('naive-ui')['NMessageProvider']
     NSpace: typeof import('naive-ui')['NSpace']
     NTag: typeof import('naive-ui')['NTag']
-    NText: typeof import('naive-ui')['NText']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }
