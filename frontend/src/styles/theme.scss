@@ -1,0 +1,43 @@
+:root {
+  --sider-bg: #ececec;
+  --divider-color: #f0f0f0;
+  --primary-color: #4e6fff;
+  --primary-color-light: rgba(78, 111, 255, 0.1);
+  --hover-bg: rgba(0, 0, 0, 0.04);
+  --main-bg: #ffffff;
+  --text-color: #000000;
+  --icon-color: #333333;
+}
+
+.dark {
+  --sider-bg: #1a1a1a;
+  --divider-color: #333333;
+  --primary-color: #6d8cff;
+  --primary-color-light: rgba(99, 226, 183, 0.15);
+  --hover-bg: rgba(255, 255, 255, 0.06);
+  --main-bg: #141414;
+  --text-color: #ffffff;
+  --icon-color: #eeeeee;
+}
+
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+.dark ::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.774);
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
