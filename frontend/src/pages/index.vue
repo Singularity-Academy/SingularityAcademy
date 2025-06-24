@@ -36,6 +36,20 @@
     </div>
 
     <div class="section">
+      <n-h2 prefix="bar">认识我们的创始人</n-h2>
+      <n-grid :cols="2" :x-gap="20" :y-gap="20">
+        <n-gi v-for="(founder, index) in founders" :key="index">
+          <div class="founder-card">
+            <n-card :title="founder.title" hoverable>
+              <p class="ids">{{ founder.ids }}</p>
+              <p class="description">{{ founder.description }}</p>
+            </n-card>
+          </div>
+        </n-gi>
+      </n-grid>
+    </div>
+
+    <div class="section">
       <n-h2 prefix="bar">我们的愿景</n-h2>
       <div class="vision-list">
         <p v-for="(vision, index) in visions" :key="index" :class="'vision-text ' + vision.color">
@@ -88,6 +102,11 @@ const features = [
   { title: '互动体验', description: '参与沉浸式学习环境，让复杂概念变得易于理解。', icon: '🎯' },
   { title: '全球社区', description: '与全世界的学习者连接，在我们充满活力的教育生态系统中分享知识。', icon: '🌍' },
   { title: '刨根问底', description: '我们提供深入的解析，帮助你理解复杂的概念。', icon: '📊' }
+]
+
+const founders = [
+  { title: '赵嘉策', ids: '首席执行官兼AI研究负责人', description: '高中生，人工智能与机器学习爱好者，USACO白金级选手. 对AI有着浓厚的兴趣，喜欢研究AI在教育领域的应用。爱好风格摄影，花切', icon: '' },
+  { title: '黄荻', ids: '首席技术官兼平台架构师', description: '全栈开发专家，主导多个开源项目开发。在麻省理工学院CSAIL实验室获得计算机科学博士学位，在牛津大学三一学院获得计算机科学学士学位。', icon: '' }
 ]
 
 const visions: { content: string; color: 'red' | 'white' }[] = [
@@ -174,6 +193,16 @@ const visions: { content: string; color: 'red' | 'white' }[] = [
 .feature-card {
   max-width: 750px;
   margin: 0 auto;
+}
+
+.founder-card {
+  max-width: 750px;
+  margin: 0 auto;
+
+  .ids {
+    color: #F47B4F;
+    font-weight: 600;
+  }
 }
 
 @keyframes blink {
