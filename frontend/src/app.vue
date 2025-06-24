@@ -2,6 +2,7 @@
 import NavBar from "~/components/nav-bar.vue"
 import MainContent from "~/components/main-content.vue"
 import "~/styles/global.scss"
+import Footer from "~/components/footer.vue"
 
 import { ref } from "vue"
 import { darkTheme, lightTheme } from "naive-ui"
@@ -23,6 +24,7 @@ const toggleDark = () => {
         <n-layout class="main-layout">
           <NavBar :dark-mode="darkMode" @toggle-dark="toggleDark" />
           <MainContent />
+          <Footer />
         </n-layout>
       </n-dialog-provider>
     </n-message-provider>
