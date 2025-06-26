@@ -1,0 +1,102 @@
+{
+    "api": {
+      "auth": {
+        "authorizationHeaderIsRequired": "En-tête Authorization requis",
+        "tokenIsRequired": "Jeton requis",
+        "invalidToken": "Jeton invalide",
+        "loginSuccessful": "Connexion réussie",
+        "loginFailed": "Échec de la connexion",
+        "incorrectEmailOrPassword": "Adresse e-mail ou mot de passe incorrect",
+        "failedToGenerateToken": "Échec de la génération du jeton",
+        "registrationSuccessful": "Inscription réussie",
+        "loginWithCredentials": "Veuillez vous connecter avec vos identifiants",
+        "invalidEmailAddress": "Adresse e-mail invalide",
+        "failedToCheckEmail": "Échec de la vérification de l'adresse e-mail",
+        "emailAlreadyRegistered": "Adresse e-mail déjà enregistrée",
+        "failedToEncryptPassword": "Échec du chiffrement du mot de passe"
+      }
+    },
+    "auth": {
+      "nameIsRequired": "Nom requis",
+      "name2Characters": "Le nom doit comporter au moins 2 caractères",
+      "emailIsRequired": "Adresse e-mail requise",
+      "invalidEmailAddress": "Adresse e-mail invalide",
+      "passwordIsRequired": "Mot de passe requis",
+      "password6Characters": "Le mot de passe doit comporter au moins 6 caractères",
+      "passwordsDoNotMatch": "Les mots de passe ne correspondent pas"
+    },
+    "common": {
+      "signUp": "S'inscrire",
+      "signIn": "Se connecter",
+      "fullName": "Nom complet",
+      "email": "E-mail",
+      "password": "Mot de passe",
+      "confirmPassword": "Confirmer le mot de passe"
+    },
+    "Navbar": {
+      "dashboard": "Tableau de bord",
+      "profile": "Profil",
+      "logout": "Déconnexion",
+      "darkMode": "Mode sombre",
+      "lightMode": "Mode clair"
+    },
+    "HomePage": {
+      "welcome": "Bienvenue à l'école en ligne AI",
+      "description": "Transformez votre expérience d'apprentissage avec l'éducation propulsée par l'IA. Rejoignez notre plateforme pour des parcours d'apprentissage personnalisés et un contenu interactif.",
+      "getStarted": "Commencez maintenant",
+      "feature": "Caractéristiques principales",
+      "features": [
+        {
+          "title": "Apprentissage propulsé par l'IA",
+          "description": "Parcours d'apprentissage personnalisés adaptés à votre rythme et style",
+          "icon": "🤖"
+        },
+        {
+          "title": "École virtuelle dédiée",
+          "description": "Chaque élève a une équipe éducative dédiée composée d'un directeur, de doyens et d'enseignants",
+          "icon": "👨🏫"
+        },
+        {
+          "title": "Interaction intelligente",
+          "description": "Interagissez en profondeur avec un contenu dynamique et un système de feedback en temps réel",
+          "icon": "💡"
+        }
+      ],
+      "founder": "Équipe fondatrice",
+      "founders": [
+        {
+          "name": "赵嘉策",
+          "role": "CEO & Responsable de la recherche en IA",
+          "bio": "Lycéen, passionné par l'intelligence artificielle et l'apprentissage automatique, plusieurs fois primé dans des compétitions internationales d'IA",
+          "image": "/images/founders/Jiace.png"
+        },
+        {
+          "name": "黄荻",
+          "role": "CTO & Architecte de la plateforme", 
+          "bio": "Expert en développement full-stack, leader de plusieurs projets open source",
+          "image": "/images/founders/Jiace.png"
+        }
+      ],
+      "vision": "Notre vision",
+      "visions": [
+        {
+          "content": "Nous nous engageons à briser les barrières éducatives grâce à la technologie IA, rendant les ressources éducatives de qualité accessibles à tous"
+        },
+        {
+          "color": "red",
+          "content": "L'éducation ne devrait pas être un luxe ! Nous offrons des ressources éducatives de premier ordre gratuitement à ceux qui en ont besoin"
+        }
+      ],
+      "journey": "Commencez votre parcours d'apprentissage",
+      "join": "Rejoignez la communauté éducative intelligente",
+      "start": "Essayez maintenant"
+    },
+    "RegisterPage": {
+      "createAccount": "Créer un compte",
+      "alreadyHaveAnAccount": "Vous avez déjà un compte ?"
+    },
+    "LoginPage": {
+      "wellcomeBack": "Bon retour",
+      "doNotHaveAnAccount": "Vous n'avez pas de compte ?"
+    }
+  }

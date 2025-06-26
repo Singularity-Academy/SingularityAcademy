@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { h } from "vue"
+import { ref, h } from "vue"
 import { RouterLink } from "vue-router"
 import {
   NLayoutHeader,
@@ -9,37 +9,45 @@ import {
   NText
 } from "naive-ui"
 import {
-  IconHouse,
-  IconLayoutDashboard,
   IconMoon,
   IconSun,
   IconMenu
 } from "#components"
 
-defineProps<{
-  darkMode: boolean
-}>()
+import { navMenuOptions } from '~/router/nav'
+import { useI18n } from 'vue-i18n'
 
+defineProps<{ darkMode: boolean }>()
 const emit = defineEmits(["toggle-dark"])
 
+const { locale, t } = useI18n()
 const dropdownVisible = ref(false)
+const languageDropdownVisible = ref(false)
 
 const toggleDarkMode = () => {
   emit("toggle-dark")
 }
 
-const menuOptions = [
-  {
-    label: () => h(RouterLink, { to: "/" }, { default: () => "首页" }),
-    key: "home",
-    icon: () => h(NIcon, null, { default: () => h(IconHouse) })
-  },
-  {
-    label: () => h(RouterLink, { to: "/dashboard" }, { default: () => "仪表盘" }),
-    key: "dashboard",
-    icon: () => h(NIcon, null, { default: () => h(IconLayoutDashboard) })
-  }
+const menuOptions = navMenuOptions.map(item => ({
+  label: () => h(RouterLink, { to: item.to }, { default: () => t(item.label) }),
+  key: item.key,
+  icon: () => h(NIcon, null, { default: () => h(item.icon) })
+}))
+
+const languageOptions = [
+  { label: 'English', value: 'en' },
+  { label: '简体中文', value: 'zh' },
+  { label: 'Español', value: 'es' },
+  { label: 'Français', value: 'fr' },
+  { label: 'Deutsch', value: 'de' },
+  { label: '日本語', value: 'ja' },
+  { label: 'العربية', value: 'ar' }
 ]
+
+const handleLanguageChange = (value: string) => {
+  locale.value = value
+  languageDropdownVisible.value = false
+}
 </script>
 
 <template>
@@ -50,18 +58,25 @@ const menuOptions = [
       </RouterLink>
     </div>
     <div class="right">
-      <RouterLink to="/login">
-        <NButton text class="nav-item">登录</NButton>
+      <RouterLink to="/auth/login">
+        <NButton text class="nav-item">{{ t('common.signIn') }}</NButton>
       </RouterLink>
-      <RouterLink to="/register">
-        <NButton text class="nav-item">注册</NButton>
+      <RouterLink to="/auth/register">
+        <NButton text class="nav-item">{{ t('common.signUp') }}</NButton>
       </RouterLink>
-      <NButton text circle @click="toggleDarkMode" class="nav-item">
+      <NButton text circle @click="toggleDarkMode" class="nav-item"
+        :title="darkMode ? t('Navbar.lightMode') : t('Navbar.darkMode')">
         <NIcon>
           <component :is="darkMode ? IconSun : IconMoon" />
         </NIcon>
       </NButton>
-      <NButton quaternary class="nav-item lang-switch">中文(简体)</NButton>
+      <n-dropdown trigger="click" :options="languageOptions" key-field="value" label-field="label"
+        :show="languageDropdownVisible" placement="bottom-end" @select="handleLanguageChange"
+        @clickoutside="languageDropdownVisible = false">
+        <NButton quaternary class="nav-item lang-switch" @click="languageDropdownVisible = !languageDropdownVisible">
+          {{languageOptions.find(lang => lang.value === locale)?.label}}
+        </NButton>
+      </n-dropdown>
       <n-dropdown trigger="click" :options="menuOptions" placement="bottom-end" :show="dropdownVisible"
         @clickoutside="dropdownVisible = false" @select="dropdownVisible = false">
         <NButton quaternary circle @click="dropdownVisible = !dropdownVisible">

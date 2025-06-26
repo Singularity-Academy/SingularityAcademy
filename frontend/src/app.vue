@@ -1,16 +1,12 @@
 <script setup lang="ts">
-import NavBar from "~/components/nav-bar.vue"
-import MainContent from "~/components/main-content.vue"
-import "~/styles/global.scss"
-import Footer from "~/components/footer.vue"
-
-import { ref } from "vue"
-import { darkTheme, lightTheme } from "naive-ui"
-
+import { ref, computed } from 'vue'
+import NavBar from '~/components/nav-bar.vue'
+import MainContent from '~/components/main-content.vue'
+import Footer from '~/components/footer.vue'
+import '~/styles/global.scss'
+import { darkTheme, lightTheme } from 'naive-ui'
 const darkMode = ref(false)
-
 const theme = computed(() => (darkMode.value ? darkTheme : lightTheme))
-
 const toggleDark = () => {
   darkMode.value = !darkMode.value
 }

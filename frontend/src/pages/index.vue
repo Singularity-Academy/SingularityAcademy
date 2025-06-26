@@ -41,7 +41,7 @@
         <n-gi v-for="(founder, index) in founders" :key="index">
           <div class="founder-card">
             <n-card :title="founder.title" hoverable>
-              <p class="ids">{{ founder.ids }}</p>
+              <p class="role">{{ founder.role }}</p>
               <p class="description">{{ founder.description }}</p>
             </n-card>
           </div>
@@ -105,8 +105,8 @@ const features = [
 ]
 
 const founders = [
-  { title: '赵嘉策', ids: '首席执行官兼AI研究负责人', description: '高中生，人工智能与机器学习爱好者，USACO白金级选手. 对AI有着浓厚的兴趣，喜欢研究AI在教育领域的应用。爱好风格摄影，花切', icon: '' },
-  { title: '黄荻', ids: '首席技术官兼平台架构师', description: '全栈开发专家，主导多个开源项目开发。在麻省理工学院CSAIL实验室获得计算机科学博士学位，在牛津大学三一学院获得计算机科学学士学位。', icon: '' }
+  { title: '赵嘉策', role: '首席执行官兼AI研究负责人', description: '高中生，人工智能与机器学习爱好者，USACO白金级选手. 对AI有着浓厚的兴趣，喜欢研究AI在教育领域的应用。爱好风格摄影，花切', icon: '' },
+  { title: '黄荻', role: '首席技术官兼平台架构师', description: '全栈开发专家，主导多个开源项目开发。在麻省理工学院CSAIL实验室获得计算机科学博士学位，在牛津大学三一学院获得计算机科学学士学位。', icon: '' }
 ]
 
 const visions: { content: string; color: 'red' | 'white' }[] = [
@@ -199,7 +199,7 @@ const visions: { content: string; color: 'red' | 'white' }[] = [
   max-width: 750px;
   margin: 0 auto;
 
-  .ids {
+  .role {
     color: #F47B4F;
     font-weight: 600;
   }

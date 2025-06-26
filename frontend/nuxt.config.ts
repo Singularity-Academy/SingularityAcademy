@@ -17,7 +17,7 @@ export default defineNuxtConfig({
     'pinia-plugin-persistedstate/nuxt',
     '@nuxtjs/tailwindcss',
     'nuxtjs-naive-ui',
-    'nuxt-lucide-icons',
+    'nuxt-lucide-icons'
   ],
 
   lucide: {
@@ -55,4 +55,7 @@ export default defineNuxtConfig({
   build: {
     transpile: ['naive-ui', 'vueuc'],
   },
+  plugins: [
+    '~/i18n/index.ts'
+  ],
 })
