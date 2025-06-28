@@ -92,10 +92,10 @@ const visions = computed(() =>
           首个 AI 教育平台，生成个性化知识视频，规划循序渐进的课程，为您提供系统性知识
         </p>
         <n-space :size="20">
-          <n-button type="primary" size="large" @click="goTo('/register')">
+          <n-button type="primary" size="large" @click="goTo('/auth/register')">
             开始学习
           </n-button>
-          <n-button size="large" @click="goTo('/login')">
+          <n-button size="large" @click="goTo('/auth/login')">
             探索演示
           </n-button>
         </n-space>
