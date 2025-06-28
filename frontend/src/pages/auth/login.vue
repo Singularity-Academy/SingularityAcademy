@@ -3,7 +3,6 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useMessage } from 'naive-ui'
-import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
 const message = useMessage()

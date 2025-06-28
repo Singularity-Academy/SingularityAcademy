@@ -64,7 +64,6 @@
 
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 
@@ -107,35 +106,40 @@ onBeforeUnmount(() => {
 //   { title: '刨根问底', description: '我们提供深入的解析，帮助你理解复杂的概念。', icon: '📊' }
 // ]
 
-const features = [0, 1, 2].map(i => ({
-  title: t(`HomePage.features[${i}].title`),
-  description: t(`HomePage.features[${i}].description`),
-  icon: t(`HomePage.features[${i}].icon`)
-}))
-
-features.push({ title: '刨根问底', description: '我们提供深入的解析，帮助你理解复杂的概念。', icon: '📊' })
-
 // const founders = [
 //   { name: '赵嘉策', role: '首席执行官兼AI研究负责人', bio: '高中生，人工智能与机器学习爱好者，USACO白金级选手. 对AI有着浓厚的兴趣，喜欢研究AI在教育领域的应用。爱好风格摄影，花切', icon: '' },
 //   { name: '黄荻', role: '首席技术官兼平台架构师', bio: '全栈开发专家，主导多个开源项目开发。在麻省理工学院CSAIL实验室获得计算机科学博士学位，在牛津大学三一学院获得计算机科学学士学位。', icon: '' }
 // ]
-
-const founders = [0, 1].map(i => ({
-  name: t(`HomePage.founders[${i}].name`),
-  role: t(`HomePage.founders[${i}].role`),
-  bio: t(`HomePage.founders[${i}].bio`),
-  image: t(`HomePage.founders[${i}].image`)
-}))
 
 // const visions: { content: string; color: 'red' | 'white' }[] = [
 //   { content: '我们致力于通过AI技术打破教育壁垒，让优质教育资源触手可及', color: 'white' },
 //   { content: '教育不应是奢侈品！我们为需要帮助的学习者提供完全免费的顶级教育资源', color: 'red' }
 // ]
 
-const visions = [0, 1].map(i => ({
-  content: t(`HomePage.visions[${i}].content`),
-  color: t(`HomePage.visions[${i}].color`)
-}))
+const features = computed(() => [
+  ...[0, 1, 2].map(i => ({
+    title: t(`HomePage.features[${i}].title`),
+    description: t(`HomePage.features[${i}].description`),
+    icon: t(`HomePage.features[${i}].icon`)
+  })),
+  { title: t('HomePage.features[3].title'), description: t('HomePage.features[3].description'), icon: t('HomePage.features[3].icon') }
+])
+
+const founders = computed(() =>
+  [0, 1].map(i => ({
+    name: t(`HomePage.founders[${i}].name`),
+    role: t(`HomePage.founders[${i}].role`),
+    bio: t(`HomePage.founders[${i}].bio`),
+    image: t(`HomePage.founders[${i}].image`)
+  }))
+)
+
+const visions = computed(() =>
+  [0, 1].map(i => ({
+    content: t(`HomePage.visions[${i}].content`),
+    color: t(`HomePage.visions[${i}].color`)
+  }))
+)
 
 </script>
 

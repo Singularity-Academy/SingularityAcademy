@@ -650,14 +650,6 @@
     "@intlify/message-compiler" "10.0.7"
     "@intlify/shared" "10.0.7"
 
-"@intlify/core-base@11.1.7":
-  version "11.1.7"
-  resolved "https://registry.yarnpkg.com/@intlify/core-base/-/core-base-11.1.7.tgz#497280e4774011cf0d42eaedb20e9cd4594c0a3f"
-  integrity sha512-gYiGnQeJVp3kNBeXQ73m1uFOak0ry4av8pn+IkEWigyyPWEMGzB+xFeQdmGMFn49V+oox6294oGVff8bYOhtOw==
-  dependencies:
-    "@intlify/message-compiler" "11.1.7"
-    "@intlify/shared" "11.1.7"
-
 "@intlify/core@^10.0.3":
   version "10.0.7"
   resolved "https://registry.yarnpkg.com/@intlify/core/-/core-10.0.7.tgz#e23c452e41f3586b81e472623abe7dc53d9a4280"
@@ -682,7 +674,7 @@
     "@intlify/shared" "10.0.7"
     source-map-js "^1.0.2"
 
-"@intlify/message-compiler@11.1.7", "@intlify/message-compiler@^11.1.2":
+"@intlify/message-compiler@^11.1.2":
   version "11.1.7"
   resolved "https://registry.yarnpkg.com/@intlify/message-compiler/-/message-compiler-11.1.7.tgz#047ba659cfd34b0f630dddf73c3f9224bd3af7f8"
   integrity sha512-0ezkep1AT30NyuKj8QbRlmvMORCCRlOIIu9v8RNU8SwDjjTiFCZzczCORMns2mCH4HZ1nXgrfkKzYUbfjNRmng==
@@ -10413,15 +10405,6 @@ vue-i18n@^10.0.0, vue-i18n@^10.0.7:
   dependencies:
     "@intlify/core-base" "10.0.7"
     "@intlify/shared" "10.0.7"
-    "@vue/devtools-api" "^6.5.0"
-
-vue-i18n@^11.1.7:
-  version "11.1.7"
-  resolved "https://registry.yarnpkg.com/vue-i18n/-/vue-i18n-11.1.7.tgz#a26c0224d1311ac89b82ff6d0ee45f68b5099237"
-  integrity sha512-CDrU7Cmyh1AxJjerQmipV9nVa//exVBdhTcWGlbfcDCN8bKp/uAe7Le6IoN4//5emIikbsSKe9Uofmf/xXkhOA==
-  dependencies:
-    "@intlify/core-base" "11.1.7"
-    "@intlify/shared" "11.1.7"
     "@vue/devtools-api" "^6.5.0"
 
 vue-router@^4.5.1:
