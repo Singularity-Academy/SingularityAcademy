@@ -1,24 +1,3 @@
-<template>
-  <div class="whiteboard">
-    <ToolBar @addComponent="addComponent" />
-    <div class="board-area">
-      <component
-        v-for="(comp, idx) in currentPage"
-        :is="comp.type"
-        v-bind="comp.props"
-        :key="idx"
-      />
-    </div>
-    <Timeline
-      :timeline="timeline"
-      :current="currentNodeIndex"
-      @select="selectNode"
-      @next="nextNode"
-      @prev="prevNode"
-    />
-  </div>
-</template>
-
 <script setup lang="ts">
 
 import { computed } from 'vue'
@@ -45,7 +24,28 @@ function prevNode() {
 }
 </script>
 
-<style scoped>
+<template>
+  <div class="whiteboard">
+    <ToolBar @addComponent="addComponent" />
+    <div class="board-area">
+      <component
+        v-for="(comp, idx) in currentPage"
+        :is="comp.type"
+        v-bind="comp.props"
+        :key="idx"
+      />
+    </div>
+    <Timeline
+      :timeline="timeline"
+      :current="currentNodeIndex"
+      @select="selectNode"
+      @next="nextNode"
+      @prev="prevNode"
+    />
+  </div>
+</template>
+
+<style lang="scss" scoped>
 .whiteboard {
   display: flex;
   flex-direction: column;

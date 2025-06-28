@@ -1,3 +1,10 @@
+<script setup lang="ts">
+defineProps<{
+  timeline: any[]
+  current: number
+}>()
+</script>
+
 <template>
   <div class="timeline">
     <button @click="$emit('prev')" :disabled="current === 0">上一节点</button>
@@ -9,18 +16,14 @@
     <button @click="$emit('next')" :disabled="current === timeline.length - 1">下一节点</button>
   </div>
 </template>
-<script setup lang="ts">
-defineProps<{
-  timeline: any[]
-  current: number
-}>()
-</script>
-<style scoped>
+
+<style lang="scss" scoped>
 .timeline {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
+
 .active {
   font-weight: bold;
   color: #409eff;
