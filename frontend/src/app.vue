@@ -13,6 +13,7 @@ const toggleDark = () => {
 </script>
 
 <template>
+  <title>Singularity Academy</title>
   <n-config-provider :theme="theme">
     <n-global-style />
     <n-message-provider>

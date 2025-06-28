@@ -12,5 +12,11 @@ export const navMenuOptions = [
     key: 'dashboard',
     to: '/dashboard',
     icon: IconLayoutDashboard
+  },
+  {
+    label: '白板',
+    key: 'whiteboard',
+    to: '/whiteboard',
+    icon: IconLayoutDashboard
   }
 ]
