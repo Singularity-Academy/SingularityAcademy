@@ -1,20 +1,13 @@
 import { defineStore } from 'pinia'
 
-export interface TimelineNode {
-  id: string
-  title: string
-  description: string
-  components: any[]
-}
-
 export const useWhiteboardStore = defineStore('whiteboard', {
   state: () => ({
-    timeline: [] as TimelineNode[],
+    timeline: [] as Item.TimelineNode[],
     currentNodeIndex: 0,
     pages: [[]] as any[][],
   }),
   actions: {
-    setTimeline(timeline: TimelineNode[]) {
+    setTimeline(timeline: Item.TimelineNode[]) {
       this.timeline = timeline
       this.currentNodeIndex = 0
     },
