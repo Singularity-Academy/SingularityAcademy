@@ -1,65 +1,3 @@
-<template>
-  <div class="home-page">
-    <div class="hero">
-      <div class="hero-content">
-        <h1 class="hero-title">
-          {{ typedText }}<span v-if="showCursor" class="cursor">|</span>
-        </h1>
-        <p class="hero-description">
-          首个 AI 教育平台，生成个性化知识视频，规划循序渐进的课程，为您提供系统性知识
-        </p>
-        <n-space :size="20">
-          <n-button type="primary" size="large" @click="goTo('/register')">
-            开始学习
-          </n-button>
-          <n-button size="large" @click="goTo('/login')">
-            探索演示
-          </n-button>
-        </n-space>
-      </div>
-      <div class="hero-image">
-        <img src="~/assets/illus/illus_hero_25.png" alt="illustration" />
-      </div>
-    </div>
-
-    <div class="section">
-      <n-h2 prefix="bar">平台特色</n-h2>
-      <n-grid :cols="cols" :x-gap="20" :y-gap="20">
-        <n-gi v-for="(feature, index) in features" :key="index">
-          <div class="feature-card">
-            <n-card :title="feature.title" hoverable>
-              {{ feature.description }}
-            </n-card>
-          </div>
-        </n-gi>
-      </n-grid>
-    </div>
-
-    <div class="section">
-      <n-h2 prefix="bar">认识我们的创始人</n-h2>
-      <n-grid :cols="2" :x-gap="20" :y-gap="20">
-        <n-gi v-for="(founder, index) in founders" :key="index">
-          <div class="founder-card">
-            <n-card :title="founder.name" hoverable>
-              <p class="role">{{ founder.role }}</p>
-              <p class="description">{{ founder.bio }}</p>
-            </n-card>
-          </div>
-        </n-gi>
-      </n-grid>
-    </div>
-
-    <div class="section">
-      <n-h2 prefix="bar">我们的愿景</n-h2>
-      <div class="vision-list">
-        <p v-for="(vision, index) in visions" :key="index" :class="'vision-text ' + vision.color">
-          {{ vision.content }}
-        </p>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 
 import { ref, onMounted, onBeforeUnmount } from 'vue'
@@ -126,22 +64,84 @@ const features = computed(() => [
 ])
 
 const founders = computed(() =>
-  [0, 1].map(i => ({
-    name: t(`HomePage.founders[${i}].name`),
-    role: t(`HomePage.founders[${i}].role`),
-    bio: t(`HomePage.founders[${i}].bio`),
-    image: t(`HomePage.founders[${i}].image`)
-  }))
+    [0, 1].map(i => ({
+      name: t(`HomePage.founders[${i}].name`),
+      role: t(`HomePage.founders[${i}].role`),
+      bio: t(`HomePage.founders[${i}].bio`),
+      image: t(`HomePage.founders[${i}].image`)
+    }))
 )
 
 const visions = computed(() =>
-  [0, 1].map(i => ({
-    content: t(`HomePage.visions[${i}].content`),
-    color: t(`HomePage.visions[${i}].color`)
-  }))
+    [0, 1].map(i => ({
+      content: t(`HomePage.visions[${i}].content`),
+      color: t(`HomePage.visions[${i}].color`)
+    }))
 )
 
 </script>
+
+<template>
+  <div class="home-page">
+    <div class="hero">
+      <div class="hero-content">
+        <h1 class="hero-title">
+          {{ typedText }}<span v-if="showCursor" class="cursor">|</span>
+        </h1>
+        <p class="hero-description">
+          首个 AI 教育平台，生成个性化知识视频，规划循序渐进的课程，为您提供系统性知识
+        </p>
+        <n-space :size="20">
+          <n-button type="primary" size="large" @click="goTo('/register')">
+            开始学习
+          </n-button>
+          <n-button size="large" @click="goTo('/login')">
+            探索演示
+          </n-button>
+        </n-space>
+      </div>
+      <div class="hero-image">
+        <img src="~/assets/illus/illus_hero_25.png" alt="illustration" />
+      </div>
+    </div>
+
+    <div class="section">
+      <n-h2 prefix="bar">平台特色</n-h2>
+      <n-grid :cols="cols" :x-gap="20" :y-gap="20">
+        <n-gi v-for="(feature, index) in features" :key="index">
+          <div class="feature-card">
+            <n-card :title="feature.title" hoverable>
+              {{ feature.description }}
+            </n-card>
+          </div>
+        </n-gi>
+      </n-grid>
+    </div>
+
+    <div class="section">
+      <n-h2 prefix="bar">认识我们的创始人</n-h2>
+      <n-grid :cols="2" :x-gap="20" :y-gap="20">
+        <n-gi v-for="(founder, index) in founders" :key="index">
+          <div class="founder-card">
+            <n-card :title="founder.name" hoverable>
+              <p class="role">{{ founder.role }}</p>
+              <p class="description">{{ founder.bio }}</p>
+            </n-card>
+          </div>
+        </n-gi>
+      </n-grid>
+    </div>
+
+    <div class="section">
+      <n-h2 prefix="bar">我们的愿景</n-h2>
+      <div class="vision-list">
+        <p v-for="(vision, index) in visions" :key="index" :class="'vision-text ' + vision.color">
+          {{ vision.content }}
+        </p>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped lang="scss">
 .home-page {
