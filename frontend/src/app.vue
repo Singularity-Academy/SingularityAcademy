@@ -4,12 +4,13 @@ import NavBar from '~/components/nav-bar.vue'
 import MainContent from '~/components/main-content.vue'
 import Footer from '~/components/footer.vue'
 import '~/styles/global.scss'
-import { darkTheme, lightTheme } from 'naive-ui'
+import { darkTheme } from 'naive-ui'
+import {useThemeStore} from "~/stores/theme";
 const darkMode = ref(false)
-const theme = computed(() => (darkMode.value ? darkTheme : lightTheme))
-const toggleDark = () => {
-  darkMode.value = !darkMode.value
-}
+
+const themeStore = useThemeStore()
+
+const theme = computed(() => (themeStore.actualTheme === 'dark' ? darkTheme : null))
 </script>
 
 <template>
@@ -19,7 +20,7 @@ const toggleDark = () => {
     <n-message-provider>
       <n-dialog-provider>
         <n-layout class="main-layout">
-          <NavBar :dark-mode="darkMode" @toggle-dark="toggleDark" />
+          <NavBar :dark-mode="darkMode" @toggle-dark="themeStore.toggleTheme()" />
           <MainContent />
           <Footer />
         </n-layout>

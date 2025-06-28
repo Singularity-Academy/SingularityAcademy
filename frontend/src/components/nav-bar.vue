@@ -11,10 +11,11 @@ import {
 import {
   IconMoon,
   IconSun,
-  IconMenu
+  IconMenu, IconSunMoon
 } from "#components"
 
 import { navMenuOptions } from '~/router/nav'
+import {useThemeStore} from "~/stores/theme";
 
 defineProps<{ darkMode: boolean }>()
 const emit = defineEmits(["toggle-dark"])
@@ -22,6 +23,30 @@ const emit = defineEmits(["toggle-dark"])
 const { locale, setLocale, t } = useI18n()
 const dropdownVisible = ref(false)
 const languageDropdownVisible = ref(false)
+
+const themeStore = useThemeStore()
+
+const themeIcon = computed(() => {
+  switch (themeStore.themeName) {
+    case 'light': return IconSun
+    case 'dark': return IconMoon
+    case 'auto': return IconSunMoon
+    default: return IconSunMoon
+  }
+})
+
+const themeLabel = computed(() => {
+  switch (themeStore.themeName) {
+    case 'light':
+      return t('Navbar.lightMode')
+    case 'dark':
+      return t('Navbar.darkMode')
+    case 'auto':
+      return t('Navbar.autoMode')
+    default:
+      return t('Navbar.unknowMode')
+  }
+});
 
 const toggleDarkMode = () => {
   emit("toggle-dark")
@@ -64,9 +89,9 @@ const handleLanguageChange = (value: typeof locale.value) => {
         <NButton text class="nav-item">{{ t('common.signUp') }}</NButton>
       </RouterLink>
       <NButton text circle @click="toggleDarkMode" class="nav-item"
-        :title="darkMode ? t('Navbar.lightMode') : t('Navbar.darkMode')">
+        :title="themeLabel">
         <NIcon>
-          <component :is="darkMode ? IconSun : IconMoon" />
+          <component :is="themeIcon" />
         </NIcon>
       </NButton>
       <n-dropdown trigger="click" :options="languageOptions" key-field="value" label-field="label"

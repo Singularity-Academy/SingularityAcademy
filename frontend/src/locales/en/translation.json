@@ -38,7 +38,9 @@
     "profile": "Profile",
     "logout": "Logout",
     "darkMode": "Dark mode",
-    "lightMode": "Light mode"
+    "lightMode": "Light mode",
+    "autoMode": "Auto mode",
+    "unknowMode": "Auto mode"
   },
   "HomePage": {
     "welcome": "Welcome to AI Online School",
