@@ -2,6 +2,7 @@
 import AutoImport from 'unplugin-auto-import/vite'
 import { NaiveUiResolver } from 'unplugin-vue-components/resolvers'
 import Components from 'unplugin-vue-components/vite'
+import { resolve } from 'path'
 
 export default defineNuxtConfig({
   srcDir: "src/",
@@ -17,7 +18,8 @@ export default defineNuxtConfig({
     'pinia-plugin-persistedstate/nuxt',
     '@nuxtjs/tailwindcss',
     'nuxtjs-naive-ui',
-    'nuxt-lucide-icons'
+    'nuxt-lucide-icons',
+    '@nuxtjs/i18n'
   ],
 
   lucide: {
@@ -55,7 +57,21 @@ export default defineNuxtConfig({
   build: {
     transpile: ['naive-ui', 'vueuc'],
   },
-  plugins: [
-    '~/i18n/index.ts'
-  ],
+
+  i18n: {
+    locales: [
+      { code: 'en', name: 'English', file: 'en/translation.json' },
+      { code: 'zh', name: '简体中文', file: 'zh/translation.json' },
+      { code: 'es', name: 'Español', file: 'es/translation.json' },
+      { code: 'fr', name: 'Français', file: 'fr/translation.json' },
+      { code: 'de', name: 'Deutsch', file: 'de/translation.json' },
+      { code: 'ja', name: '日本語', file: 'ja/translation.json' },
+      { code: 'ar', name: 'العربية', file: 'ar/translation.json' }
+    ],
+    lazy: true,
+    skipSettingLocaleOnNavigate: true,
+    langDir: resolve(__dirname, 'src/locales'),
+    defaultLocale: 'zh',
+    strategy: 'no_prefix'
+  }
 })

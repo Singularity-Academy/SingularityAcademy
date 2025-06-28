@@ -80,6 +80,7 @@
     "vision": "Unsere Vision",
     "visions": [
       {
+        "color": "white",
         "content": "Wir setzen uns dafür ein, durch KI-Technologie Bildungsbarrieren abzubauen und qualitativ hochwertige Bildung für alle zugänglich zu machen"
       },
       {

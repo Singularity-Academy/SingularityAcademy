@@ -80,6 +80,7 @@
     "vision": "我们的愿景",
     "visions": [
       {
+        "color": "white",
         "content": "我们致力于通过AI技术打破教育壁垒，让优质教育资源触手可及"
       },
       {

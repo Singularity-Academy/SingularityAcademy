@@ -40,9 +40,9 @@
       <n-grid :cols="2" :x-gap="20" :y-gap="20">
         <n-gi v-for="(founder, index) in founders" :key="index">
           <div class="founder-card">
-            <n-card :title="founder.title" hoverable>
+            <n-card :title="founder.name" hoverable>
               <p class="role">{{ founder.role }}</p>
-              <p class="description">{{ founder.description }}</p>
+              <p class="description">{{ founder.bio }}</p>
             </n-card>
           </div>
         </n-gi>
@@ -64,6 +64,9 @@
 
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const fullText = '欢迎来到 ClarifAI - “看见” 学习，为你而来。'
 const typedText = ref('')
@@ -97,22 +100,42 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', updateCols)
 })
 
-const features = [
-  { title: 'AI 智能学习', description: '体验个性化教育，配备前沿人工智能技术，适应您的学习风格。', icon: '🧠' },
-  { title: '互动体验', description: '参与沉浸式学习环境，让复杂概念变得易于理解。', icon: '🎯' },
-  { title: '全球社区', description: '与全世界的学习者连接，在我们充满活力的教育生态系统中分享知识。', icon: '🌍' },
-  { title: '刨根问底', description: '我们提供深入的解析，帮助你理解复杂的概念。', icon: '📊' }
-]
+// const features = [
+//   { title: 'AI 智能学习', description: '体验个性化教育，配备前沿人工智能技术，适应您的学习风格。', icon: '🧠' },
+//   { title: '互动体验', description: '参与沉浸式学习环境，让复杂概念变得易于理解。', icon: '🎯' },
+//   { title: '全球社区', description: '与全世界的学习者连接，在我们充满活力的教育生态系统中分享知识。', icon: '🌍' },
+//   { title: '刨根问底', description: '我们提供深入的解析，帮助你理解复杂的概念。', icon: '📊' }
+// ]
 
-const founders = [
-  { title: '赵嘉策', role: '首席执行官兼AI研究负责人', description: '高中生，人工智能与机器学习爱好者，USACO白金级选手. 对AI有着浓厚的兴趣，喜欢研究AI在教育领域的应用。爱好风格摄影，花切', icon: '' },
-  { title: '黄荻', role: '首席技术官兼平台架构师', description: '全栈开发专家，主导多个开源项目开发。在麻省理工学院CSAIL实验室获得计算机科学博士学位，在牛津大学三一学院获得计算机科学学士学位。', icon: '' }
-]
+const features = [0, 1, 2].map(i => ({
+  title: t(`HomePage.features[${i}].title`),
+  description: t(`HomePage.features[${i}].description`),
+  icon: t(`HomePage.features[${i}].icon`)
+}))
 
-const visions: { content: string; color: 'red' | 'white' }[] = [
-  { content: '我们致力于通过AI技术打破教育壁垒，让优质教育资源触手可及', color: 'white' },
-  { content: '教育不应是奢侈品！我们为需要帮助的学习者提供完全免费的顶级教育资源', color: 'red' }
-]
+features.push({ title: '刨根问底', description: '我们提供深入的解析，帮助你理解复杂的概念。', icon: '📊' })
+
+// const founders = [
+//   { name: '赵嘉策', role: '首席执行官兼AI研究负责人', bio: '高中生，人工智能与机器学习爱好者，USACO白金级选手. 对AI有着浓厚的兴趣，喜欢研究AI在教育领域的应用。爱好风格摄影，花切', icon: '' },
+//   { name: '黄荻', role: '首席技术官兼平台架构师', bio: '全栈开发专家，主导多个开源项目开发。在麻省理工学院CSAIL实验室获得计算机科学博士学位，在牛津大学三一学院获得计算机科学学士学位。', icon: '' }
+// ]
+
+const founders = [0, 1].map(i => ({
+  name: t(`HomePage.founders[${i}].name`),
+  role: t(`HomePage.founders[${i}].role`),
+  bio: t(`HomePage.founders[${i}].bio`),
+  image: t(`HomePage.founders[${i}].image`)
+}))
+
+// const visions: { content: string; color: 'red' | 'white' }[] = [
+//   { content: '我们致力于通过AI技术打破教育壁垒，让优质教育资源触手可及', color: 'white' },
+//   { content: '教育不应是奢侈品！我们为需要帮助的学习者提供完全免费的顶级教育资源', color: 'red' }
+// ]
+
+const visions = [0, 1].map(i => ({
+  content: t(`HomePage.visions[${i}].content`),
+  color: t(`HomePage.visions[${i}].color`)
+}))
 
 </script>
 

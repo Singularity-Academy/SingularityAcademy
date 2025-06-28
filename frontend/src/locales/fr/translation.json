@@ -80,6 +80,7 @@
       "vision": "Notre vision",
       "visions": [
         {
+          "color": "white",
           "content": "Nous nous engageons à briser les barrières éducatives grâce à la technologie IA, rendant les ressources éducatives de qualité accessibles à tous"
         },
         {

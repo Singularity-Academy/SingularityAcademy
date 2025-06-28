@@ -15,12 +15,11 @@ import {
 } from "#components"
 
 import { navMenuOptions } from '~/router/nav'
-import { useI18n } from 'vue-i18n'
 
 defineProps<{ darkMode: boolean }>()
 const emit = defineEmits(["toggle-dark"])
 
-const { locale, t } = useI18n()
+const { locale, setLocale, t } = useI18n()
 const dropdownVisible = ref(false)
 const languageDropdownVisible = ref(false)
 
@@ -44,8 +43,8 @@ const languageOptions = [
   { label: 'العربية', value: 'ar' }
 ]
 
-const handleLanguageChange = (value: string) => {
-  locale.value = value
+const handleLanguageChange = (value: typeof locale.value) => {
+  setLocale(value)
   languageDropdownVisible.value = false
 }
 </script>

@@ -70,8 +70,8 @@
     "vision": "Vision",
     "visions": [
       {
-        "content": "When I want to learn about something, I often start with searching it on the internet. However, the lack of organized results, making me shattered; jagged quality of tutorial videos; and etc. make it hard to learn things.\n             So, if we can utilize AI to generate, collect, and teach students whatever they want to learn in a systematic way will a be great boost. Attending extra-curricular classes can be expensive, but by using this platform the cost will be reduced to $20 a month with infinite teachers and courses.",
-        "color": "blue"
+        "color": "white",
+        "content": "When I want to learn about something, I often start with searching it on the internet. However, the lack of organized results, making me shattered; jagged quality of tutorial videos; and etc. make it hard to learn things.\n             So, if we can utilize AI to generate, collect, and teach students whatever they want to learn in a systematic way will a be great boost. Attending extra-curricular classes can be expensive, but by using this platform the cost will be reduced to $20 a month with infinite teachers and courses."
       },
       {
         "color": "red",
