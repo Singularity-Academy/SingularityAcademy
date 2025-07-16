@@ -5,7 +5,6 @@ import Components from 'unplugin-vue-components/vite'
 import { resolve } from 'path'
 
 export default defineNuxtConfig({
-  srcDir: "src/",
   compatibilityDate: '2025-05-15',
   devtools: { enabled: true },
 
@@ -70,7 +69,7 @@ export default defineNuxtConfig({
     ],
     lazy: true,
     skipSettingLocaleOnNavigate: true,
-    langDir: resolve(__dirname, 'src/locales'),
+    langDir: resolve(__dirname, 'app/locales'),
     defaultLocale: 'zh',
     strategy: 'no_prefix'
   }
