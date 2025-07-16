@@ -120,7 +120,6 @@ const handleLanguageChange = (value: typeof locale.value) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: var(--sider-bg);
   border-bottom: 1px solid var(--divider-color);
   box-sizing: border-box;
   position: sticky;
