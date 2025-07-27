@@ -83,10 +83,10 @@ const handleLanguageChange = (value: typeof locale.value) => {
     </div>
     <div class="right">
       <RouterLink to="/auth/login">
-        <NButton text class="nav-item">{{ t('common.signIn') }}</NButton>
+        <NButton quaternary class="nav-item">{{ t('common.signIn') }}</NButton>
       </RouterLink>
       <RouterLink to="/auth/register">
-        <NButton text class="nav-item">{{ t('common.signUp') }}</NButton>
+        <NButton quaternary class="nav-item">{{ t('common.signUp') }}</NButton>
       </RouterLink>
       <NButton text circle @click="toggleDarkMode" class="nav-item"
         :title="themeLabel">

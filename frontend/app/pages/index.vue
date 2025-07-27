@@ -12,9 +12,9 @@ const showCursor = ref(true)
 const router = useRouter()
 const goTo = (path: string) => router.push(path)
 
-const cols = ref(2)
+const cols = ref(3)
 const updateCols = () => {
-  cols.value = window.innerWidth < 640 ? 1 : 2
+  cols.value = window.innerWidth < 640 ? 1 : window.innerWidth < 1024 ? 2 : 3
 }
 
 onMounted(() => {
@@ -110,7 +110,7 @@ const visions = computed(() =>
       <n-grid :cols="cols" :x-gap="20" :y-gap="20">
         <n-gi v-for="(feature, index) in features" :key="index">
           <div class="feature-card">
-            <n-card :title="feature.title" hoverable>
+            <n-card :title="feature.title">
               {{ feature.description }}
             </n-card>
           </div>
@@ -123,7 +123,7 @@ const visions = computed(() =>
       <n-grid :cols="2" :x-gap="20" :y-gap="20">
         <n-gi v-for="(founder, index) in founders" :key="index">
           <div class="founder-card">
-            <n-card :title="founder.name" hoverable>
+            <n-card :title="founder.name" >
               <p class="role">{{ founder.role }}</p>
               <p class="description">{{ founder.bio }}</p>
             </n-card>
@@ -218,8 +218,18 @@ const visions = computed(() =>
 }
 
 .feature-card {
-  max-width: 750px;
+  max-width: 500px;
   margin: 0 auto;
+  
+  .n-card {
+    border: 1px solid #e0e0e5;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+  }
 }
 
 .founder-card {
@@ -229,6 +239,15 @@ const visions = computed(() =>
   .role {
     color: #F47B4F;
     font-weight: 600;
+  }
+  .n-card {
+    border: 1px solid #e0e0e5;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
   }
 }
 
