@@ -1,0 +1,8 @@
+[phases.install]
+cmds = ["go mod download"]
+
+[phases.build]
+cmds = ["go build -o main ."]
+
+[start]
+command = "./main"
