@@ -11,6 +11,8 @@ services:
     ports:
       - "3306:3306"
     restart: unless-stopped
+    networks:
+      - app-network
 
   backend:
     build:
@@ -26,6 +28,8 @@ services:
     depends_on:
       - mysql
     restart: unless-stopped
+    networks:
+      - app-network
 
   ai-engine:
     build:
@@ -38,12 +42,16 @@ services:
     restart: unless-stopped
     volumes:
       - ./ai_engine/config:/app/ai_engine/config
+    networks:
+      - app-network
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     restart: unless-stopped
+    networks:
+      - app-network
 
   caddy:
     image: caddy:2-alpine
@@ -58,6 +66,12 @@ services:
       - backend
       - ai-engine
     restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   mysql_data:
