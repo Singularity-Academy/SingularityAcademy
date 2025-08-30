@@ -62,14 +62,8 @@ services:
       - backend
       - ai-engine
     restart: unless-stopped
-    networks:
-      - default
 
 volumes:
   mysql_data:
   caddy_data:
   caddy_config:
-
-networks:
-  default:
-    driver: bridge
