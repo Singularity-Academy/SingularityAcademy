@@ -1,0 +1,102 @@
+{
+  "api": {
+    "auth": {
+      "authorizationHeaderIsRequired": "Se requiere el encabezado de autorización",
+      "tokenIsRequired": "Se requiere el token",
+      "invalidToken": "Token inválido",
+      "loginSuccessful": "Inicio de sesión exitoso",
+      "loginFailed": "Error al iniciar sesión",
+      "incorrectEmailOrPassword": "Correo electrónico o contraseña incorrectos",
+      "failedToGenerateToken": "Error al generar el token",
+      "registrationSuccessful": "Registro exitoso",
+      "loginWithCredentials": "Por favor, inicie sesión con sus credenciales",
+      "invalidEmailAddress": "Dirección de correo electrónico inválida",
+      "failedToCheckEmail": "Error al verificar el correo electrónico",
+      "emailAlreadyRegistered": "El correo electrónico ya está registrado",
+      "failedToEncryptPassword": "Error al encriptar la contraseña"
+    }
+  },
+  "auth": {
+    "nameIsRequired": "Se requiere el nombre",
+    "name2Characters": "El nombre debe tener al menos 2 caracteres",
+    "emailIsRequired": "Se requiere el correo electrónico",
+    "invalidEmailAddress": "Dirección de correo electrónico inválida",
+    "passwordIsRequired": "Se requiere la contraseña",
+    "password6Characters": "La contraseña debe tener al menos 6 caracteres",
+    "passwordsDoNotMatch": "Las contraseñas no coinciden"
+  },
+  "common": {
+    "signUp": "Registrarse",
+    "signIn": "Iniciar Sesión",
+    "fullName": "Nombre Completo",
+    "email": "Correo Electrónico",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar Contraseña"
+  },
+  "Navbar": {
+    "dashboard": "Panel de Control",
+    "profile": "Perfil",
+    "logout": "Cerrar Sesión",
+    "darkMode": "Modo Oscuro",
+    "lightMode": "Modo Claro"
+  },
+  "HomePage": {
+    "welcome": "Bienvenido a la Escuela en Línea de IA",
+    "description": "Transforma tu experiencia de aprendizaje con educación impulsada por IA. Únete a nuestra plataforma para obtener rutas de aprendizaje personalizadas y contenido interactivo.",
+    "getStarted": "Comenzar",
+    "feature": "Características Principales",
+    "features": [
+      {
+        "title": "Aprendizaje Impulsado por IA",
+        "description": "Rutas de aprendizaje personalizadas adaptadas a tu ritmo y estilo",
+        "icon": "🤖"
+      },
+      {
+        "title": "Escuela Virtual Personalizada",
+        "description": "Equipo educativo dedicado con director, subdirector y profesores para cada estudiante",
+        "icon": "👨🏫"
+      },
+      {
+        "title": "Interacción Inteligente",
+        "description": "Participación profunda con contenido dinámico y sistema de retroalimentación en tiempo real",
+        "icon": "💡"
+      }
+    ],
+    "founder": "Equipo Fundador",
+    "founders": [
+      {
+        "name": "Zhao Jiace",
+        "role": "CEO y Director de Investigación en IA",
+        "bio": "Estudiante de secundaria, entusiasta de la IA y el aprendizaje automático, medallista de platino USACO",
+        "image": ""
+      },
+      {
+        "name": "Huang Di",
+        "role": "CTO y Arquitecto de Plataforma",
+        "bio": "Experto en desarrollo full-stack, líder de múltiples proyectos de código abierto",
+        "image": ""
+      }
+    ],
+    "vision": "Nuestra Visión",
+    "visions": [
+      {
+        "content": "Nos dedicamos a romper las barreras educativas a través de la tecnología de IA, haciendo que la educación de calidad sea accesible para todos"
+      },
+      {
+        "color": "red",
+        "content": "¡La educación no debe ser un lujo! Ofrecemos recursos educativos de primer nivel completamente gratuitos para estudiantes que lo necesitan"
+      }
+    ],
+    "journey": "Comienza tu Viaje de Aprendizaje",
+    "join": "Únete a la Comunidad de Educación Inteligente",
+    "start": "Empieza Ahora"
+  },
+  "RegisterPage": {
+    "createAccount": "Crear Cuenta",
+    "alreadyHaveAnAccount": "¿Ya tienes una cuenta?"
+  },
+  "LoginPage": {
+    "wellcomeBack": "Bienvenido de Nuevo",
+    "doNotHaveAnAccount": "¿No tienes una cuenta?"
+  }
+} 

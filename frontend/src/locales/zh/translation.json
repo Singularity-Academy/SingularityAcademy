@@ -1,0 +1,102 @@
+{
+  "api": {
+    "auth": {
+      "authorizationHeaderIsRequired": "需要请求头Authorization",
+      "tokenIsRequired": "需要传入令牌",
+      "invalidToken": "不可用的令牌",
+      "loginSuccessful": "登陆成功",
+      "loginFailed": "登录失败",
+      "incorrectEmailOrPassword": "用户名或密码错误",
+      "failedToGenerateToken": "生成令牌失败",
+      "registrationSuccessful": "注册成功",
+      "loginWithCredentials": "请使用您的凭据登录",
+      "invalidEmailAddress": "不可用的邮箱地址",
+      "failedToCheckEmail": "检查邮箱地址错误",
+      "emailAlreadyRegistered": "邮箱已经被注册了",
+      "failedToEncryptPassword": "加密密码错误"
+    }
+  },
+  "auth": {
+    "nameIsRequired": "需要输入名字",
+    "name2Characters": "名字至少需要2个字符",
+    "emailIsRequired": "需要输入邮箱",
+    "invalidEmailAddress": "不可用的邮箱地址",
+    "passwordIsRequired": "需要输入密码",
+    "password6Characters": "密码至少需要6个字符",
+    "passwordsDoNotMatch": "密码不匹配"
+  },
+  "common": {
+    "signUp": "注册",
+    "signIn": "登录",
+    "fullName": "全名",
+    "email": "电子邮箱",
+    "password": "密码",
+    "confirmPassword": "确认密码"
+  },
+  "Navbar": {
+    "dashboard": "仪表盘",
+    "profile": "主页",
+    "logout": "登出",
+    "darkMode": "深色模式",
+    "lightMode": "亮色模式"
+  },
+  "HomePage": {
+    "welcome": "欢迎来到AI在线学校",
+    "description": "用人工智能驱动的教育改变您的学习体验，加入我们的平台，获取个性化学习路径和互动内容。",
+    "getStarted": "立即开始",
+    "feature": "主要特色",
+    "features": [
+      {
+        "title": "AI驱动学习",
+        "description": "根据您的节奏和风格定制的个性化学习路径",
+        "icon": "🤖"
+      },
+      {
+        "title": "专属虚拟学校",
+        "description": "每位学生都拥有由校长、院长和教师组成的专属教育团队",
+        "icon": "👨🏫"
+      },
+      {
+        "title": "智能互动",
+        "description": "与动态内容和实时反馈系统进行深度交互",
+        "icon": "💡"
+      }
+    ],
+    "founder": "创始团队",
+    "founders": [
+      {
+        "name": "赵嘉策",
+        "role": "首席执行官兼AI研究负责人",
+        "bio": "高中生，人工智能与机器学习爱好者，USACO白金级选手. 对AI有着浓厚的兴趣，喜欢研究AI在教育领域的应用。爱好风格摄影，花切",
+        "image": ""
+      },
+      {
+        "name": "黄荻",
+        "role": "首席技术官兼平台架构师", 
+        "bio": "全栈开发专家，主导多个开源项目开发。在麻省理工学院CSAIL实验室获得计算机科学博士学位，在牛津大学三一学院获得计算机科学学士学位。",
+        "image": ""
+      }
+    ],
+    "vision": "我们的愿景",
+    "visions": [
+      {
+        "content": "我们致力于通过AI技术打破教育壁垒，让优质教育资源触手可及"
+      },
+      {
+        "color": "red",
+        "content": "教育不应是奢侈品！我们为需要帮助的学习者提供完全免费的顶级教育资源"
+      }
+    ],
+    "journey": "开启您的学习之旅",
+    "join": "加入智能教育社区",
+    "start": "立即体验"
+  },
+  "RegisterPage": {
+    "createAccount": "创建账号",
+    "alreadyHaveAnAccount": "已经有账号了?"
+  },
+  "LoginPage": {
+    "wellcomeBack": "欢迎回来",
+    "doNotHaveAnAccount": "没有账号?"
+  }
+}

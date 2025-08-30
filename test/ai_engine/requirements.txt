@@ -1,0 +1,16 @@
+langchain==0.1.0
+langchain-openai==0.0.2
+langchain-community==0.0.13
+python-dotenv==1.0.0
+opencv-python==4.9.0.80
+numpy==1.24.3
+transformers==4.36.2
+torch==2.1.2
+faiss-cpu==1.7.4
+pillow==10.2.0
+websockets==12.0
+pydantic==2.5.3
+manim==0.18.0
+deepseek-ai==0.9.0
+whisper-timestamped==1.12.20
+chromadb==0.4.22 

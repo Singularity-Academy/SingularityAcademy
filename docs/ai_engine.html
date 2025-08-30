@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Engine API Documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.5;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #2980b9;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        h3 {
+            color: #2c3e50;
+            margin-top: 25px;
+        }
+        .highlight {
+            background-color: #f8f8f8;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 15px 0;
+        }
+        th, td {
+            text-align: left;
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .note {
+            background-color: #e7f2fa;
+            padding: 10px;
+            border-left: 4px solid #2980b9;
+            margin: 15px 0;
+        }
+        .warning {
+            background-color: #fff3cd;
+            padding: 10px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+        }
+        .parameter {
+            font-weight: bold;
+        }
+        .method {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        .ws {
+            font-weight: bold;
+            color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+    <h1>AI Engine API Documentation</h1>
+    
+    <div class="section">
+        <h2>Overview</h2>
+        <p>
+            The AI Engine provides a comprehensive set of APIs for frontend applications to interact with AI functionalities,
+            including course management, AI chat, and real-time streaming capabilities. This documentation is intended for
+            frontend developers who need to integrate with the AI Engine.
+        </p>
+        <div class="note">
+            <p>
+                <strong>Note:</strong> All AI Engine routes are under specific prefixes (/course, /principal-ai, /dean) due to the application running behind a Caddy proxy.
+            </p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Authentication</h2>
+        <p>
+            Most endpoints require authentication using JWT tokens. The token should be included in the request headers or as specified in individual endpoint documentation.
+        </p>
+        
+        <h4>HTTP Request Authentication</h4>
+        <p>For HTTP endpoints, include the JWT token in the Authorization header using the Bearer scheme:</p>
+        <div class="highlight">
+            <pre>
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJRCI6IjEyMzQ1Njc4OTAiLCJleHAiOjE3MTYyMzkwMjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</pre>
+        </div>
+        
+        <h4>WebSocket Authentication</h4>
+        <p>For WebSocket connections, authentication is handled through an initial message after connection establishment:</p>
+        <div class="highlight">
+            <pre>
+{
+    "token": "your_jwt_token"
+}</pre>
+        </div>
+        
+        <div class="note">
+            <p>
+                <strong>Important:</strong> The JWT token shown in these examples is for illustration only. Your actual tokens will be provided by the authentication system.
+            </p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Course Management API</h2>
+        <p>All course management endpoints are available under the <code>/course</code> prefix.</p>
+        
+        <h3><span class="method">POST</span> /course/</h3>
+        <p>Create a new course.</p>
+        <p><strong>Authentication required:</strong> Yes</p>
+        <p><strong>Request Body:</strong></p>
+        <div class="highlight">
+            <pre>
+{
+    "name": "Introduction to Deep Learning",
+    "description": "Explore the fundamentals of neural networks and deep learning"
+}</pre>
+        </div>
+        <p><strong>Response:</strong></p>
+        <div class="highlight">
+            <pre>
+{
+    "id": "uuid-string",
+    "name": "Introduction to Deep Learning",
+    "description": "Explore the fundamentals of neural networks and deep learning",
+    "created_at": "2024-03-15T10:45:00Z",
+    "updated_at": "2024-03-15T10:45:00Z",
+    "outline": "Generating..."
+}</pre>
+        </div>
+
+        <h3><span class="method">GET</span> /course/</h3>
+        <p>List all courses with optional filtering.</p>
+        <p><strong>Authentication required:</strong> Yes</p>
+        <p><strong>Query Parameters:</strong></p>
+        <ul>
+            <li><span class="parameter">owner_id</span> - Filter by owner ID</li>
+            <li><span class="parameter">search</span> - Search in name and description</li>
+            <li><span class="parameter">limit</span> - Maximum number of courses (default: 50, max: 100)</li>
+            <li><span class="parameter">offset</span> - Number of courses to skip (default: 0)</li>
+        </ul>
+        <p><strong>Response:</strong></p>
+        <div class="highlight">
+            <pre>
+{
+    "courses": [
+        {
+            "id": "uuid-string",
+            "name": "Course Name",
+            "description": "Course Description",
+            "created_at": "2024-03-15T10:45:00Z",
+            "updated_at": "2024-03-15T10:45:00Z",
+            "outline": "Course outline or 'Generating...'",
+            "owner": {
+                "id": 123,
+                "username": "username"
+            }
+        }
+    ],
+    "total": 100,
+    "limit": 50,
+    "offset": 0
+}</pre>
+        </div>
+
+        <h3><span class="method">GET</span> /course/{course_id}</h3>
+        <p>Get a specific course by ID.</p>
+        <p><strong>Authentication required:</strong> Yes</p>
+        <p><strong>Response:</strong></p>
+        <div class="highlight">
+            <pre>
+{
+    "id": "uuid-string",
+    "name": "Course Name",
+    "description": "Course Description",
+    "created_at": "2024-03-15T10:45:00Z",
+    "updated_at": "2024-03-15T10:45:00Z",
+    "outline": "Course outline or 'Generating...'",
+    "owner": {
+        "id": 123,
+        "username": "username"
+    }
+}</pre>
+        </div>
+
+        <h3><span class="method">PUT</span> /course/{course_id}</h3>
+        <p>Update a specific course.</p>
+        <p><strong>Authentication required:</strong> Yes</p>
+        <p><strong>Request Body:</strong></p>
+        <div class="highlight">
+            <pre>
+{
+    "name": "Updated Course Title",
+    "description": "Updated course description"
+}</pre>
+        </div>
+
+        <h3><span class="method">DELETE</span> /course/{course_id}</h3>
+        <p>Delete a specific course.</p>
+        <p><strong>Authentication required:</strong> Yes</p>
+
+        <h3><span class="method">POST</span> /course/{course_id}/regenerate-outline</h3>
+        <p>Manually trigger regeneration of a course outline.</p>
+        <p><strong>Authentication required:</strong> Yes</p>
+    </div>
+
+    <div class="section">
+        <h2>Principal AI WebSocket API</h2>
+        <p>All Principal AI endpoints are available under the <code>/principal-ai</code> prefix.</p>
+
+        <h3><span class="ws">WebSocket</span> /principal-ai/ws/chat</h3>
+        <p>WebSocket endpoint for streaming chat responses from the Principal AI.</p>
+        <p><strong>Authentication required:</strong> Yes (via initial message)</p>
+        
+        <h4>Connection Flow</h4>
+        <ol>
+            <li>Establish WebSocket connection</li>
+            <li>Send authentication message</li>
+            <li>Receive authentication response</li>
+            <li>Receive chat history (if available)</li>
+            <li>Send and receive messages</li>
+        </ol>
+
+        <h4>Authentication Message</h4>
+        <div class="highlight">
+            <pre>
+{
+    "token": "your_jwt_token"
+}</pre>
+        </div>
+
+        <h4>Authentication Response (Success)</h4>
+        <div class="highlight">
+            <pre>
+{
+    "type": "auth_success",
+    "message": "Authentication successful",
+    "user_id": "user_id_value"
+}</pre>
+        </div>
+
+        <h4>Chat History Message</h4>
+        <div class="highlight">
+            <pre>
+{
+    "type": "history_messages",
+    "messages": [
+        {
+            "role": "user",
+            "content": "User message content",
+            "timestamp": "2024-03-15T10:45:00Z"
+        },
+        {
+            "role": "assistant",
+            "content": "Assistant response content",
+            "timestamp": "2024-03-15T10:46:00Z"
+        }
+    ]
+}</pre>
+        </div>
+
+        <h4>Sending Messages</h4>
+        <div class="highlight">
+            <pre>
+{
+    "type": "message",
+    "content": "Your message here"
+}</pre>
+        </div>
+
+        <h4>Course Request Message</h4>
+        <div class="highlight">
+            <pre>
+{
+    "type": "course",
+    "content": {
+        "type": "create|update|delete",
+        "name": "Course Name",           // Required for create
+        "description": "Course Description", // Required for create
+        "course_id": "uuid-string"       // Required for update/delete
+    }
+}</pre>
+        </div>
+        <p><strong>Response Types:</strong></p>
+        <ul>
+            <li><code>create_course</code> - Sent when course is created (before outline generation)</li>
+            <li><code>course_outline</code> - Sent when course outline is generated</li>
+            <li><code>update_course</code> - Sent when course is updated</li>
+            <li><code>delete_course</code> - Sent when course is deleted</li>
+        </ul>
+        <p><strong>Response Format:</strong></p>
+        <div class="highlight">
+            <pre>
+{
+    "type": "create_course|course_outline|update_course|delete_course",
+    "course_id": "uuid-string",          // Not present for delete_course
+    "name": "Course Name",               // Not present for delete_course
+    "description": "Course Description", // Not present for delete_course
+    "outline": "Course outline or 'Generating...'" // Only for create_course and course_outline
+}</pre>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Dean WebSocket API <span style="background-color: #ffd700; color: #000; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; font-weight: bold;">Not Finished</span></h2>
+        <p>All Dean endpoints are available under the <code>/dean</code> prefix.</p>
+
+        <h3><span class="ws">WebSocket</span> /dean/ws/{course_id}</h3>
+        <p>WebSocket endpoint for handling real-time video and audio streams for course sessions.</p>
+        <p><strong>Authentication required:</strong> Yes (via initial message)</p>
+
+        <h4>Streaming Messages</h4>
+        <div class="highlight">
+            <pre>
+{
+    "video": "base64_encoded_video_frame",
+    "audio": "base64_encoded_audio_frame"
+}</pre>
+        </div>
+        <p>Both video and audio fields are optional. At least one must be present in each message.</p>
+    </div>
+
+    <div class="section">
+        <h2>Error Codes</h2>
+        <table>
+            <tr>
+                <th>Error Code</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>AUTH_REQUIRED</td>
+                <td>Authentication token is required</td>
+            </tr>
+            <tr>
+                <td>INVALID_TOKEN</td>
+                <td>Invalid or expired token</td>
+            </tr>
+            <tr>
+                <td>INVALID_TOKEN_CLAIMS</td>
+                <td>Invalid token claims</td>
+            </tr>
+            <tr>
+                <td>USER_NOT_FOUND</td>
+                <td>User not found in database</td>
+            </tr>
+            <tr>
+                <td>COURSE_NOT_FOUND</td>
+                <td>Course not found</td>
+            </tr>
+            <tr>
+                <td>PERMISSION_DENIED</td>
+                <td>User doesn't have permission for the operation</td>
+            </tr>
+        </table>
+    </div>
+
+    <footer style="margin-top: 50px; border-top: 1px solid #eee; padding-top: 20px; color: #777;">
+        <p>AI Engine API Documentation - Generated for frontend developers</p>
+    </footer>
+</body>
+</html> 

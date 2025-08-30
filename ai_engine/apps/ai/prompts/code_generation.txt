@@ -1,0 +1,131 @@
+You are an expert in Manim animation code generation. Generate complete Manim code based on the following scene plan.
+
+Scene Plan:
+{scene_plan}
+
+Generate a complete Manim Scene class following these requirements:
+
+## 1. Basic Structure
+```python
+from manim import *
+import numpy as np
+
+class YourSceneName(Scene):
+    def construct(self):
+        # Your code here
+```
+
+## 2. Important Syntax Rules (Must Follow)
+
+### Imports and Basics
+- Required import: `from manim import *`
+- For random numbers: `import numpy as np` then use `np.random.random()`
+- Never use `import random`, use numpy instead
+
+### Text and Formula Handling
+- Chinese text: `Text("Chinese content", font_size=32, color="#FFFFFF")`
+- Math formulas: `MathTex(r"E = mc^2")`
+- Never use `Tex()` for Chinese text
+
+### Geometric Objects
+- Circle: `Circle(radius=1, color="#00FF00", fill_opacity=0.5)`
+- Square: `Square(side_length=1, color="#FF0000")`
+- Rectangle: `Rectangle(width=2, height=1, color="#00FF00")`
+- Line: `Line(start=LEFT, end=RIGHT, color="#FFFFFF")`
+- Arrow: `Arrow(start=ORIGIN, end=UP, color="#FFFF00")`
+- Dot: `Dot(point=ORIGIN, color="#FF0000")`
+
+### Animation Methods
+- Create: `Create(object)`
+- Write: `Write(text_object)`
+- Fade In: `FadeIn(object)`
+- Fade Out: `FadeOut(object)`
+- Transform: `Transform(obj1, obj2)`
+- Move: `object.animate.shift(direction)`
+- Rotate: `object.animate.rotate(angle)`
+- Scale: `object.animate.scale(factor)`
+
+### Directions and Positions
+- UP, DOWN, LEFT, RIGHT, ORIGIN
+- Move: `object.shift(UP*2)` or `object.animate.shift(RIGHT*3)`
+- Position: `object.move_to(UP*2 + RIGHT*1)`
+- Edge: `object.to_edge(UP)`, `object.to_corner(UL)`
+
+### Colors
+- Always use hex format: `"#FF5733"`
+
+### Animation Execution
+- Play animation: `self.play(Create(circle), run_time=2)`
+- Wait: `self.wait(1)`
+- Multiple animations: `self.play(Write(text), Create(circle))`
+
+### Group Objects
+- Group: `group = VGroup(obj1, obj2, obj3)`
+- Arrange: `group.arrange(RIGHT, buff=0.5)`
+
+## 3. Common Errors to Avoid
+
+❌ Incorrect:
+- `self.camera.frame.animate` (Camera has no frame attribute)
+- `import random; random.random()` (use numpy instead)
+- `Tex("Chinese")` (use Text for Chinese)
+- `rate_func='accelerate'` (use rate_func=rush_into)
+
+✅ Correct:
+- Direct object movement: `object.animate.shift(UP)`
+- `import numpy as np; np.random.random()`
+- `Text("Chinese", font_size=24)`
+- `rate_func=rush_into` or `rate_func=smooth`
+
+## 4. Example Template
+```python
+from manim import *
+import numpy as np
+
+class ExampleScene(Scene):
+    def construct(self):
+        # Title
+        title = Text("Example Animation", font_size=36, color="#FFFFFF")
+        title.to_edge(UP)
+        self.play(Write(title))
+        self.wait(1)
+        
+        # Geometric objects
+        circle = Circle(radius=1, color="#0000FF", fill_opacity=0.3)
+        square = Square(side_length=1.5, color="#FF0000")
+        
+        # Positioning
+        circle.shift(LEFT*2)
+        square.shift(RIGHT*2)
+        
+        # Animations
+        self.play(Create(circle), Create(square))
+        self.wait(1)
+        
+        # Formula
+        formula = MathTex(r"x^2 + y^2 = r^2")
+        formula.shift(DOWN*2)
+        self.play(Write(formula))
+        self.wait(1)
+        
+        # Movement animation
+        self.play(
+            circle.animate.shift(RIGHT*1),
+            square.animate.shift(LEFT*1),
+            run_time=2
+        )
+        self.wait(1)
+        
+        # End
+        self.play(FadeOut(VGroup(*self.mobjects)))
+```
+
+## 5. Your Task
+Generate complete, runnable code based on the scene plan, ensuring:
+- Correct module imports
+- Use Text() for Chinese, MathTex() for formulas
+- Use correct API calls
+- No non-existent methods
+- Perfect code syntax
+
+Output only the Python code, no additional explanations. 

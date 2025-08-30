@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Material Storage Strategy</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f9;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+        }
+        h1 {
+            text-align: center;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 0.5em;
+            margin-bottom: 1em;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1em;
+            margin-bottom: 1em;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #ecf0f1;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        code {
+            background-color: #e8e8e8;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+            font-size: 0.9em;
+        }
+        .pros {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        .cons {
+            color: #c0392b;
+            font-weight: bold;
+        }
+        .recommended {
+            font-weight: bold;
+            color: #3498db;
+        }
+        .warning {
+            color: #e67e22;
+            font-style: italic;
+        }
+        .code-block {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-top: 1em;
+            margin-bottom: 1em;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+            font-size: 0.9em;
+        }
+        .strategy-box {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            background-color: #fdfdfd;
+        }
+        .strategy-box h3 {
+            margin-top: 0;
+        }
+        strong {
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Course Material Storage Strategy</h1>
+
+        <p>Storing diverse course materials (PDFs, videos, audio, text files, inline text) requires a flexible and scalable approach. Here's a breakdown of how to manage the metadata and the actual content.</p>
+
+        <h2>1. Storing Material Metadata (in the Database)</h2>
+        <p>Regardless of where the actual material content resides, metadata about each material will always be stored in our database. This allows the application to organize, find, and display materials.</p>
+        
+        <div class="strategy-box">
+            <h3>Proposed <code>CourseMaterial</code> Database Model</h3>
+            <p>This model is designed to handle various material types, storing metadata in the database and linking to externally stored files or inline content.</p>
+            <div class="code-block">
+<pre>
+# In ai_engine/db.py (using Tortoise-ORM)
+
+class CourseMaterial(models.Model):
+    id = fields.BigIntField(pk=True)
+    course = fields.ForeignKeyField('models.Course', related_name='materials')
+    title = fields.CharField(max_length=255, null=False)
+    description = fields.TextField(null=True, blank=True)
+    
+    material_type = fields.CharField(max_length=50, null=False, 
+                                     description="E.g., PDF, VIDEO, INLINE_TEXT, EXTERNAL_LINK")
+    
+    # For INLINE_TEXT type material
+    content_text = fields.TextField(null=True, blank=True) 
+    
+    # For file-based materials or external links
+    # If local FS: relative path from MEDIA_ROOT
+    # If cloud storage (S3): object key/path in bucket
+    # If EXTERNAL_LINK: full URL
+    file_path_or_url = fields.TextField(null=True, blank=True) 
+    
+    original_filename = fields.CharField(max_length=255, null=True, blank=True)
+    mime_type = fields.CharField(max_length=100, null=True, blank=True)
+    file_size = fields.BigIntField(null=True, description="File size in bytes")
+
+    uploaded_by = fields.ForeignKeyField('models.User', related_name='uploaded_materials', null=True)
+    display_order = fields.IntField(default=0)
+
+    created_at = fields.DatetimeField(auto_now_add=True)
+    updated_at = fields.DatetimeField(auto_now=True)
+
+    class Meta:
+        table = "course_materials"
+        ordering = ["course_id", "display_order"]
+</pre>
+            </div>
+            <h4>Key Metadata Fields:</h4>
+            <ul>
+                <li><code>material_type</code>: Crucial! Determines how to handle the material (e.g., display <code>content_text</code> or fetch from <code>file_path_or_url</code>).</li>
+                <li><code>content_text</code>: Stores actual text for <code>INLINE_TEXT</code> type materials.</li>
+                <li><code>file_path_or_url</code>: Stores the path/key for files (local or cloud) or the URL for external links.</li>
+                <li><code>original_filename</code>, <code>mime_type</code>, <code>file_size</code>: Essential metadata for uploaded files.</li>
+            </ul>
+        </div>
+
+        <h2>2. Storing Actual Material Content</h2>
+        <p>This section discusses where the file data (PDFs, MP4s, etc.) or larger text content should live.</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Storage Option</th>
+                    <th>Description</th>
+                    <th>Pros</th>
+                    <th>Cons</th>
+                    <th>Verdict</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>A. Directly in Database (BLOBs/TEXT)</strong></td>
+                    <td>Storing file content within database columns.</td>
+                    <td><span class="pros">Data and metadata co-located (for small text).</span></td>
+                    <td>
+                        <span class="cons">Major performance hit for binaries.</span><br>
+                        <span class="cons">Database bloat & large backups.</span><br>
+                        <span class="cons">Inefficient for serving/streaming media.</span><br>
+                        <span class="cons">No CDN benefits.</span>
+                    </td>
+                    <td><span class="warning">Strongly discouraged for binary files. OK for small, inline text.</span></td>
+                </tr>
+                <tr>
+                    <td><strong>B. Server's File System</strong></td>
+                    <td>Storing files on the same server as the application.</td>
+                    <td>
+                        <span class="pros">Simple for small-scale.</span><br>
+                        <span class="pros">Fast local access.</span>
+                    </td>
+                    <td>
+                        <span class="cons">Scalability issues (needs shared FS for multi-instance).</span><br>
+                        <span class="cons">Separate backup management.</span><br>
+                        <span class="cons">Deployment path complexities.</span>
+                    </td>
+                    <td><span class="warning">Viable for very small apps or local dev. Problematic at scale.</span></td>
+                </tr>
+                <tr>
+                    <td><strong>C. Cloud Object Storage (e.g., AWS S3, Google Cloud Storage)</strong></td>
+                    <td>Using dedicated cloud services for file storage.</td>
+                    <td>
+                        <span class="pros">Highly Scalable & Durable.</span><br>
+                        <span class="pros">Cost-effective for large files.</span><br>
+                        <span class="pros">Efficient serving (direct or via CDN).</span><br>
+                        <span class="pros">Advanced features (versioning, security).</span><br>
+                        <span class="pros">Decouples storage.</span>
+                    </td>
+                    <td>
+                        <span class="cons">Slightly more complex initial setup.</span><br>
+                        <span class="cons">Potential bandwidth costs (data egress).</span>
+                    </td>
+                    <td><span class="recommended">Most Recommended for production. Best balance of scalability, reliability, performance, and cost for files.</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>3. Recommended Hybrid Strategy</h2>
+        <p>This strategy combines the strengths of database metadata storage with flexible content storage.</p>
+
+        <div class="strategy-box">
+            <h3>Strategy Details:</h3>
+            <ol>
+                <li>
+                    <strong>For Files (PDF, MP4, MP3, downloadable TXT, images):</strong>
+                    <ul>
+                        <li><strong>Store actual file content in:</strong> Cloud Object Storage (e.g., AWS S3).</li>
+                        <li><strong>In the <code>CourseMaterial</code> database record:</strong>
+                            <ul>
+                                <li>Set <code>material_type</code> (e.g., <code>"VIDEO"</code>).</li>
+                                <li>Store the S3 object key (path within bucket) in <code>file_path_or_url</code>.</li>
+                                <li>Populate <code>original_filename</code>, <code>mime_type</code>, <code>file_size</code>.</li>
+                                <li><code>content_text</code> would be <code>NULL</code>.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <strong>For Plain Text (inline notes, instructions, code snippets):</strong>
+                    <ul>
+                        <li><strong>Store actual text content in:</strong> The database.</li>
+                        <li><strong>In the <code>CourseMaterial</code> database record:</strong>
+                            <ul>
+                                <li>Set <code>material_type</code> to <code>"INLINE_TEXT"</code>.</li>
+                                <li>Store the text content in the <code>content_text</code> field.</li>
+                                <li><code>file_path_or_url</code> and file-specific metadata fields would be <code>NULL</code>.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <strong>For External Links (linking to external articles, videos, etc.):</strong>
+                    <ul>
+                        <li><strong>Store URL in:</strong> The database.</li>
+                        <li><strong>In the <code>CourseMaterial</code> database record:</strong>
+                            <ul>
+                                <li>Set <code>material_type</code> to <code>"EXTERNAL_LINK"</code>.</li>
+                                <li>Store the full external URL in <code>file_path_or_url</code>.</li>
+                                <li><code>content_text</code> and file-specific metadata fields would be <code>NULL</code>.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+
+        <h2>Implementation Considerations</h2>
+        <ul>
+            <li><strong>File Upload Endpoint:</strong> Your Sanic application will need an endpoint to:
+                <ol>
+                    <li>Receive uploaded files.</li>
+                    <li>Transfer them to the chosen storage (e.g., S3).</li>
+                    <li>Create a <code>CourseMaterial</code> metadata record in the database.</li>
+                </ol>
+            </li>
+            <li><strong>Serving/Accessing Files:</strong>
+                <ul>
+                    <li>For cloud storage (S3): Generate secure, time-limited pre-signed URLs from your backend. The client uses these URLs to fetch files directly from S3. This is secure and efficient.</li>
+                    <li>For local files: Sanic can serve them, but a dedicated web server like Nginx is better for production.</li>
+                </ul>
+            </li>
+            <li><strong>Security:</strong>
+                <ul>
+                    <li>Securely manage cloud credentials (environment variables, secrets managers).</li>
+                    <li>Implement proper access control for who can upload and access materials.</li>
+                </ul>
+            </li>
+            <li><strong>Libraries:</strong>
+                <ul>
+                    <li>For AWS S3: <code>boto3</code> (Python SDK).</li>
+                    <li>For file uploads in Sanic: <code>request.files</code>.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <p>This comprehensive approach ensures your system is flexible, scalable, and efficient for managing diverse course materials.</p>
+
+    </div>
+</body>
+</html> 
