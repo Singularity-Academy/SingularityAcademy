@@ -1,31 +1,18 @@
-# Frontend Dockerfile
-FROM node:18-alpine AS builder
+# Frontend Dockerfile - Development mode
+FROM node:18-alpine
 
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install all dependencies (including devDependencies for build)
+# Install dependencies
 RUN npm install
 
-# Copy source code and config
+# Copy source code
 COPY . .
-
-# Build the application
-RUN npm run build
-
-# Production stage - serve static files
-FROM node:18-alpine
-
-WORKDIR /app
-
-# Install serve for static files
-RUN npm install -g serve
-
-# Copy built files
-COPY --from=builder /app/build ./build
 
 EXPOSE 3000
 
-CMD ["serve", "-s", "build", "-l", "3000"]
+# Run in development mode (like your successful deployment)
+CMD ["npm", "start"]
