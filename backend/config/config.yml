@@ -1,7 +1,7 @@
 database:
   user: "sa_user"
   password: "omEYxipkmbhFJYg9LcZ9"  
-  host: "localhost" 
+  host: "mysql" 
   port: 3306
   name: "singularity_academy"
   charset: "utf8mb4"
