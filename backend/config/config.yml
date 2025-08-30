@@ -1,9 +1,9 @@
 database:
-  user: "root"
-  password: "PivotHack.0269"  
-  host: "livestream.kevinwang.top" 
-  port: 25600
-  name: "test1"
+  user: "sa_user"
+  password: "omEYxipkmbhFJYg9LcZ9"  
+  host: "localhost" 
+  port: 3306
+  name: "singularity_academy"
   charset: "utf8mb4"
   parseTime: true
   loc: "Local"
