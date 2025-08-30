@@ -1,12 +1,12 @@
 :1298 {
-	# API 路由反向代理到 8080 端口
-	reverse_proxy /api/* 127.0.0.1:8080
+	# API 路由反向代理到后端容器
+	reverse_proxy /api/* backend:8080
 
-	# AI 路由反代到 8000端口
-	reverse_proxy /ai/* 127.0.0.1:8000
+	# AI 路由反代到 AI 引擎容器
+	reverse_proxy /ai/* ai-engine:8000
 
-	# 其他路由反向代理到 3001 端口
-	reverse_proxy /* 127.0.0.1:3001
+	# 其他路由反向代理到前端容器
+	reverse_proxy /* frontend:3000
 
 	# CORS 设置
 	header {
