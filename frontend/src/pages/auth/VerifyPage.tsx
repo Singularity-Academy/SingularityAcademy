@@ -14,7 +14,7 @@ import axiosInstance, { getToastMessage } from '@/utils/axios';
 import { AxiosError } from 'axios';
 import { ErrorResponse as ApiErrorResponse } from '@/config/api';
 import { motion, Variants } from 'framer-motion';
-import { FaCheckCircle, FaTimesCircle, FaHourglassHalf } from 'react-icons/fa';
+import { CheckCircleIcon, WarningIcon, TimeIcon } from '@chakra-ui/icons';
 import Navbar from "@components/Navbar";
 
 interface ErrorResponse extends ApiErrorResponse {
@@ -108,7 +108,7 @@ const VerifyPage: React.FC = () => {
                         transition={{duration: 2, repeat: Infinity, ease: "linear"}}
                     >
                       <VStack spacing={4}>
-                        <FaHourglassHalf size="60px" color="#4299E1"/>
+                        <TimeIcon w="60px" h="60px" color="#4299E1"/>
                         <Text fontSize="xl">正在验证您的邮箱...</Text>
                       </VStack>
                     </motion.div>
@@ -121,7 +121,7 @@ const VerifyPage: React.FC = () => {
                         transition={{type: "spring", stiffness: 260, damping: 20}}
                     >
                       <VStack spacing={6}>
-                        <FaCheckCircle size="80px" color="#48BB78"/>
+                        <CheckCircleIcon w="80px" h="80px" color="#48BB78"/>
                         <Text
                             color="green.500"
                             fontSize="2xl"
@@ -149,7 +149,7 @@ const VerifyPage: React.FC = () => {
                         transition={{type: "spring", stiffness: 260, damping: 20}}
                     >
                       <VStack spacing={6}>
-                        <FaTimesCircle size="80px" color="#E53E3E"/>
+                        <WarningIcon w="80px" h="80px" color="#E53E3E"/>
                         <Text
                             color="red.500"
                             fontSize="xl"
@@ -214,4 +214,4 @@ const VerifyPage: React.FC = () => {
   );
 };
 
-export default VerifyPage; 
+export default VerifyPage;

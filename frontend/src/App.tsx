@@ -9,6 +9,10 @@ import PersonalHomePage from './pages/PersonalHomePage';
 import LearningPage from './pages/LearningPage';
 import CourseInteractionPage from './pages/course/CourseInteractionPage';
 import VerifyPage from './pages/auth/VerifyPage';
+import BecomeAMentorPage from './pages/BecomeAMentorPage';
+import PartnerWithUsPage from './pages/PartnerWithUsPage';
+import SupportMissionPage from './pages/SupportMissionPage';
+import SignupPage from './pages/SignupPage';
 import { useTranslation } from 'react-i18next';
 import Footer from './components/Footer';
 import PrincipalAIPage from './pages/PrincipalAIPage';
@@ -38,6 +42,10 @@ const App: React.FC = () => {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/auth/verify" element={<VerifyPage />} />
+                <Route path="/signup" element={<SignupPage />} />
+                <Route path="/become-mentor" element={<BecomeAMentorPage />} />
+                <Route path="/partner-with-us" element={<PartnerWithUsPage />} />
+                <Route path="/support-mission" element={<SupportMissionPage />} />
                 
                 {/* Protected Routes */}
                 <Route element={<PrivateRoute />}>
@@ -57,4 +65,4 @@ const App: React.FC = () => {
   );
 };
 
-export default App; 
+export default App;

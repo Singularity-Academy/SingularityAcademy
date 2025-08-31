@@ -1,5 +1,5 @@
 import { Box, Grid, GridItem, Link, Text, Flex, Icon, useColorModeValue } from '@chakra-ui/react';
-import { FaTwitter } from 'react-icons/fa';
+import { ExternalLinkIcon } from '@chakra-ui/icons';
 
 const Footer = () => {
   const linkColor = useColorModeValue('blue.600', 'blue.200');
@@ -12,7 +12,7 @@ const Footer = () => {
     { name: 'Studio', url: 'http://studio.krypoto.top/' },
     { name: 'Photography', url: 'http://photograph.krypoto.top/' },
     { name: 'Blog', url: 'https://chrisdsasa.github.io/' },
-    { name: 'Twitter', url: 'https://x.com/KrypotoZ', icon: FaTwitter }
+    { name: 'Twitter', url: 'https://x.com/KrypotoZ', icon: ExternalLinkIcon }
   ];
 
   return (
@@ -134,4 +134,4 @@ const Footer = () => {
   );
 };
 
-export default Footer; 
+export default Footer;

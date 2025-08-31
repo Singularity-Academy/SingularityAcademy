@@ -16,12 +16,11 @@ import {
     IconButton,
     useMediaQuery // ✅ 改用 useMediaQuery
 } from '@chakra-ui/react';
-import {FaMoon, FaSun, FaBars, FaGlobe} from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import { getUserData } from "@utils/axios";
 import { useTranslation } from "react-i18next";
-import { ChevronDownIcon } from '@chakra-ui/icons';
+import { ChevronDownIcon, MoonIcon, SunIcon, HamburgerIcon, ExternalLinkIcon } from '@chakra-ui/icons';
 
 const Navbar: React.FC = () => {
     const [user, setUser] = useState<{ id: number; name: string; email: string } | null>(null);
@@ -100,7 +99,7 @@ const Navbar: React.FC = () => {
                             {token ? (
                                 <Avatar size="sm" name={user?.name || '用户'} />
                             ) : (
-                                <IconButton icon={<FaBars />} aria-label="打开菜单" variant="ghost" />
+                                <IconButton icon={<HamburgerIcon />} aria-label="打开菜单" variant="ghost" />
                             )}
                         </MenuButton>
                         <MenuList>
@@ -115,7 +114,7 @@ const Navbar: React.FC = () => {
                             ) : (
                                 <MenuItem onClick={() => navigate('/login')}>登录</MenuItem>
                             )}
-                            <MenuItem onClick={toggleColorMode} icon={colorMode === 'light' ? <FaMoon /> : <FaSun />}>
+                            <MenuItem onClick={toggleColorMode} icon={colorMode === 'light' ? <MoonIcon /> : <SunIcon />}>
                                 {colorMode === 'light' ? '深色模式' : '浅色模式'}
                             </MenuItem>
                             <Menu>
@@ -164,7 +163,7 @@ const Navbar: React.FC = () => {
 
                         {/* 主题切换按钮 */}
                         <IconButton
-                            icon={colorMode === 'light' ? <FaMoon /> : <FaSun />}
+                            icon={colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
                             aria-label={colorMode === 'light' ? "切换到深色模式" : "切换到浅色模式"}
                             onClick={toggleColorMode}
                             variant="ghost"

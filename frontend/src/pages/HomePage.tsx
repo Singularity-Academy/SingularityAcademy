@@ -30,28 +30,8 @@ import {
   Divider,
   Image,
 } from '@chakra-ui/react';
-import {
-  FaGraduationCap,
-  FaBrain,
-  FaShieldAlt,
-  FaHeart,
-  FaBookOpen,
-  FaUsers,
-  FaCheck,
-  FaArrowRight,
-  FaGlobe,
-  FaHome,
-  FaChevronDown,
- 
-  FaRobot,
-  FaUserGraduate,
-  FaChalkboardTeacher,
-  FaLaptopCode,
-  FaHandsHelping,
-  FaLock,
-  FaBalanceScale,
-} from 'react-icons/fa';
-import { ExternalLinkIcon } from '@chakra-ui/icons';
+// All icons replaced with Chakra UI icons
+import { ExternalLinkIcon, ArrowForwardIcon, CheckIcon, LockIcon } from '@chakra-ui/icons';
 
 interface CTACallbacks {
   onCTAClick?: (action: string, section: string) => void;
@@ -97,7 +77,7 @@ const Header: React.FC<HeaderProps> = ({ onCTAClick }) => {
       <Container maxW="container.xl">
         <Flex h={16} alignItems="center" justifyContent="space-between">
           <HStack spacing={4}>
-            <Icon as={FaGraduationCap} w={8} h={8} color="purple.500" />
+            <Icon as={ExternalLinkIcon} w={8} h={8} color="purple.500" />
             <Heading size="md" color={useColorModeValue('gray.800', 'white')}>
               Singularity Academy
             </Heading>
@@ -133,12 +113,12 @@ const Hero: React.FC<HeroProps> = ({ onCTAClick }) => {
   
   const handlePrimaryCTA = () => {
     onCTAClick?.('start_free', 'hero');
-    navigate('/register');
+    navigate('/signup');
   };
   
   const handleSecondaryCTA = () => {
     onCTAClick?.('become_mentor', 'hero');
-    // Navigate to mentor signup or contact form
+    navigate('/become-mentor');
   };
 
   return (
@@ -194,7 +174,7 @@ const Hero: React.FC<HeroProps> = ({ onCTAClick }) => {
                 <Button
                   size="lg"
                   colorScheme="purple"
-                  rightIcon={<FaArrowRight />}
+                  rightIcon={<ArrowForwardIcon />}
                   onClick={handlePrimaryCTA}
                   _hover={{ transform: 'translateY(-2px)', boxShadow: 'lg' }}
                   transition="all 0.2s"
@@ -217,7 +197,7 @@ const Hero: React.FC<HeroProps> = ({ onCTAClick }) => {
           
           <GridItem display={{ base: "none", lg: "block" }}>
             <Flex justify="center" align="center" h="full">
-              <Icon as={FaGraduationCap} w={64} h={64} color="purple.400" opacity={0.8} />
+              <Icon as={ExternalLinkIcon} w={64} h={64} color="purple.400" opacity={0.8} />
             </Flex>
           </GridItem>
         </Grid>
@@ -320,7 +300,7 @@ const MissionSection: React.FC = () => {
               <List spacing={4}>
                 {whoList.map((item, index) => (
                   <ListItem key={index} display="flex" alignItems="flex-start">
-                    <ListIcon as={FaCheck} color="purple.500" mt={1} />
+                    <ListIcon as={CheckIcon} color="purple.500" mt={1} />
                     <Text color={useColorModeValue('gray.600', 'gray.300')} lineHeight="1.6">
                       {item}
                     </Text>
@@ -340,7 +320,7 @@ const OfferSection: React.FC = () => {
   const { t } = useTranslation();
   const bullets = t('offer.bullets', { returnObjects: true }) as string[];
   
-  const icons = [FaRobot, FaUserGraduate, FaChalkboardTeacher, FaLaptopCode, FaBookOpen, FaGlobe, FaHandsHelping];
+  const icons = [ExternalLinkIcon, ExternalLinkIcon, ExternalLinkIcon, ExternalLinkIcon, ExternalLinkIcon, ExternalLinkIcon, ExternalLinkIcon];
   
   return (
     <Box py={20} bg={useColorModeValue('white', 'gray.800')}>
@@ -365,7 +345,7 @@ const OfferSection: React.FC = () => {
           
           <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={8} w="full">
             {bullets.map((bullet, index) => {
-              const IconComponent = icons[index] || FaCheck;
+              const IconComponent = icons[index] || CheckIcon;
               return (
                 <VStack
                   key={index}
@@ -546,7 +526,7 @@ const OutcomesSection: React.FC = () => {
                 _hover={{ transform: 'translateX(4px)' }}
                 transition="all 0.2s"
               >
-                <Icon as={FaCheck} color="green.500" w={6} h={6} flexShrink={0} />
+                <Icon as={CheckIcon} color="green.500" w={6} h={6} flexShrink={0} />
                 <Text color={useColorModeValue('gray.700', 'gray.200')} lineHeight="1.6">
                   {outcome}
                 </Text>
@@ -569,7 +549,7 @@ const SafeguardingSection: React.FC = () => {
       <Container maxW="container.xl">
         <VStack spacing={12}>
           <VStack spacing={4} textAlign="center">
-            <Icon as={FaShieldAlt} w={16} h={16} color="blue.500" />
+            <Icon as={LockIcon} w={16} h={16} color="blue.500" />
             <Heading
               fontSize={{ base: '2xl', md: '3xl', lg: '4xl' }}
               color={useColorModeValue('gray.800', 'white')}
@@ -588,7 +568,7 @@ const SafeguardingSection: React.FC = () => {
                 spacing={4}
                 align="flex-start"
               >
-                <Icon as={FaLock} color="blue.500" w={6} h={6} flexShrink={0} mt={1} />
+                <Icon as={LockIcon} color="blue.500" w={6} h={6} flexShrink={0} mt={1} />
                 <Text color={useColorModeValue('gray.700', 'gray.200')} lineHeight="1.6">
                   {item}
                 </Text>
@@ -609,7 +589,7 @@ const RespectSystemSection: React.FC = () => {
     <Box py={20} bg={useColorModeValue('orange.50', 'orange.900')}>
       <Container maxW="container.xl">
         <VStack spacing={8} textAlign="center">
-          <Icon as={FaBalanceScale} w={16} h={16} color="orange.500" />
+          <Icon as={ExternalLinkIcon} w={16} h={16} color="orange.500" />
           <Heading
             fontSize={{ base: '2xl', md: '3xl', lg: '4xl' }}
             color={useColorModeValue('gray.800', 'white')}
@@ -633,6 +613,7 @@ const RespectSystemSection: React.FC = () => {
 // Get Involved Component
 const GetInvolvedSection: React.FC<GetInvolvedProps> = ({ onCTAClick }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const sections = t('getInvolved.sections', { returnObjects: true }) as Array<{
     title: string;
     description: string;
@@ -641,6 +622,15 @@ const GetInvolvedSection: React.FC<GetInvolvedProps> = ({ onCTAClick }) => {
   
   const handleCTA = (action: string) => {
     onCTAClick?.(action, 'get_involved');
+    
+    // Navigate based on the action
+    if (action.includes('mentor')) {
+      navigate('/become-mentor');
+    } else if (action.includes('partner')) {
+      navigate('/partner-with-us');
+    } else if (action.includes('support') || action.includes('mission')) {
+      navigate('/support-mission');
+    }
   };
   
   return (
@@ -751,7 +741,7 @@ const CTASection: React.FC<CTAProps> = ({ onCTAClick }) => {
   
   const handleCTA = () => {
     onCTAClick?.('start_journey', 'cta');
-    navigate('/register');
+    navigate('/signup');
   };
   
   return (
@@ -794,7 +784,7 @@ const CTASection: React.FC<CTAProps> = ({ onCTAClick }) => {
               bg: 'gray.50'
             }}
             transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
-            rightIcon={<Icon as={FaArrowRight} />}
+            rightIcon={<ArrowForwardIcon />}
             onClick={handleCTA}
           >
             {t('cta.button')}
@@ -821,7 +811,7 @@ const Footer: React.FC = () => {
           <GridItem>
             <VStack align="flex-start" spacing={4}>
               <HStack>
-                <Icon as={FaGraduationCap} w={6} h={6} color="purple.400" />
+                <Icon as={ExternalLinkIcon} w={6} h={6} color="purple.400" />
                 <Text fontWeight="bold" fontSize="lg">Singularity Academy</Text>
               </HStack>
               <Text fontSize="sm" color="gray.400" lineHeight="1.6">
