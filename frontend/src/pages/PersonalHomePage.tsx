@@ -22,19 +22,7 @@ import {
   GridItem,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
-import {
-  FiMail,
-  FiMapPin,
-  FiCalendar,
-  FiCode,
-  FiGithub,
-  FiLinkedin,
-  FiExternalLink,
-  FiAward,
-  FiTrendingUp,
-  FiUsers,
-  FiStar,
-} from 'react-icons/fi';
+import { EmailIcon, ExternalLinkIcon, StarIcon } from '@chakra-ui/icons';
 import { getUserData } from '@utils/axios';
 import Navbar from '@components/Navbar';
 import Cookies from "js-cookie";
@@ -270,11 +258,11 @@ const PersonalHomePage: React.FC = () => {
                   animation={`${fadeIn} 1.6s ease-out`}
                 >
                   <HStack spacing={2}>
-                    <Icon as={FiMail} color="#F47B4F" />
+                    <EmailIcon color="#F47B4F" />
                     <Text color="#5D5858" fontSize="md">{user.email}</Text>
                   </HStack>
                   <HStack spacing={2}>
-                    <Icon as={FiCalendar} color="#F47B4F" />
+                    <ExternalLinkIcon color="#F47B4F" />
                     <Text color="#5D5858" fontSize="md">加入 ClarifAI</Text>
                   </HStack>
                 </HStack>
@@ -291,7 +279,7 @@ const PersonalHomePage: React.FC = () => {
                     bg="#F47B4F"
                     color="white"
                     borderRadius="full"
-                    rightIcon={<Icon as={FiTrendingUp} />}
+                    rightIcon={<ExternalLinkIcon />}
                     _hover={{ 
                       transform: 'translateY(-3px) scale(1.05)',
                       boxShadow: '0 20px 40px rgba(244, 123, 79, 0.4)'
@@ -307,7 +295,7 @@ const PersonalHomePage: React.FC = () => {
                     borderColor="#5D5858"
                     borderWidth="2px"
                     borderRadius="full"
-                    rightIcon={<Icon as={FiExternalLink} />}
+                    rightIcon={<ExternalLinkIcon />}
                     _hover={{ 
                       bg: 'rgba(93, 88, 88, 0.1)',
                       transform: 'translateY(-3px) scale(1.05)'
@@ -347,28 +335,28 @@ const PersonalHomePage: React.FC = () => {
                 <StatsCard
                   title="已完成课程"
                   value="8"
-                  icon={FiCode}
+                  icon={ExternalLinkIcon}
                   color="#F47B4F"
                   illustration={Illus18}
                 />
                 <StatsCard
                   title="学习连续天数"
                   value="12 天"
-                  icon={FiTrendingUp}
+                  icon={ExternalLinkIcon}
                   color="#FFB69B"
                   illustration={Illus19}
                 />
                 <StatsCard
                   title="总积分"
                   value="2,450"
-                  icon={FiStar}
+                  icon={StarIcon}
                   color="#5D5858"
                   illustration={Illus20}
                 />
                 <StatsCard
                   title="成就"
                   value="15"
-                  icon={FiAward}
+                  icon={StarIcon}
                   color="#F47B4F"
                   illustration={Illus21}
                 />
@@ -503,7 +491,7 @@ const PersonalHomePage: React.FC = () => {
                   size="lg"
                   bg="white"
                   color="#F47B4F"
-                  leftIcon={<Icon as={FiMail} />}
+                  leftIcon={<EmailIcon />}
                   _hover={{ 
                     transform: 'translateY(-3px)', 
                     boxShadow: '0 20px 40px rgba(0,0,0,0.3)'
@@ -518,7 +506,7 @@ const PersonalHomePage: React.FC = () => {
                   color="white"
                   borderColor="white"
                   borderWidth="2px"
-                  leftIcon={<Icon as={FiUsers} />}
+                  leftIcon={<ExternalLinkIcon />}
                   _hover={{ 
                     bg: 'rgba(255, 255, 255, 0.15)',
                     transform: 'translateY(-3px)'
@@ -702,7 +690,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ title, description, tech, ill
           bg="#F47B4F"
           color="white"
           borderRadius="full"
-          rightIcon={<Icon as={FiExternalLink} />}
+          rightIcon={<ExternalLinkIcon />}
           _hover={{ 
             bg: '#E85A2B',
             transform: 'scale(1.02)'

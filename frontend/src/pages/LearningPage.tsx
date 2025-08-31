@@ -22,18 +22,7 @@ import {
   Spinner,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
-import { 
-  FiBook, 
-  FiCalendar, 
-  FiTrendingUp, 
-  FiUser, 
-  FiStar, 
-  FiClock,
-  FiTarget,
-  FiAward,
-  FiArrowRight,
-  FiPlay
-} from 'react-icons/fi';
+import { StarIcon, TimeIcon, ArrowForwardIcon, ExternalLinkIcon } from '@chakra-ui/icons';
 import Navbar from "@components/Navbar";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
@@ -170,10 +159,10 @@ const LearningPage: React.FC = () => {
   const extendedUserData = getExtendedUserData(user);
 
   const sidebarItems = [
-    { id: 'overview', label: '仪表板', icon: FiTrendingUp },
-    { id: 'courses', label: '我的课程', icon: FiBook },
-    { id: 'meeting', label: 'AI 导师', icon: FiUser },
-    { id: 'achievements', label: '成就', icon: FiAward },
+    { id: 'overview', label: '仪表板', icon: ArrowForwardIcon },
+    { id: 'courses', label: '我的课程', icon: ExternalLinkIcon },
+    { id: 'meeting', label: 'AI 导师', icon: ExternalLinkIcon },
+    { id: 'achievements', label: '成就', icon: StarIcon },
   ];
 
   const renderContent = () => {
@@ -383,28 +372,28 @@ const DashboardContent: React.FC<{ userData: ExtendedUserData }> = ({ userData }
         <StatsCard
           title="已完成课程"
           value={userData.completedCourses}
-          icon={FiBook}
+          icon={ExternalLinkIcon}
           color="#F47B4F"
           illustration={Illus18}
         />
         <StatsCard
           title="学习连续天数"
           value={`${userData.streak} 天`}
-          icon={FiTarget}
+          icon={ExternalLinkIcon}
           color="#FFB69B"
           illustration={Illus19}
         />
         <StatsCard
           title="总积分"
           value={userData.totalPoints}
-          icon={FiStar}
+          icon={StarIcon}
           color="#5D5858"
           illustration={Illus20}
         />
         <StatsCard
           title="学习时长"
           value="124小时"
-          icon={FiClock}
+          icon={TimeIcon}
           color="#F47B4F"
           illustration={Illus21}
         />
@@ -660,7 +649,7 @@ const MentorCard: React.FC<MentorCardProps> = ({
           color="white"
           size="lg"
           borderRadius="full"
-          rightIcon={<Icon as={FiArrowRight} />}
+          rightIcon={<ArrowForwardIcon />}
           _hover={{ 
             transform: 'scale(1.05)',
             boxShadow: `0 10px 30px ${color}40`
@@ -758,7 +747,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
           bg="#F47B4F"
           color="white"
           borderRadius="full"
-          rightIcon={<Icon as={FiPlay} />}
+          rightIcon={<ArrowForwardIcon />}
           _hover={{ 
             bg: '#E85A2B',
             transform: 'scale(1.02)'
@@ -780,10 +769,10 @@ interface ActivityItemProps {
 const ActivityItem: React.FC<ActivityItemProps> = ({ title, time, type }) => {
   const getIcon = () => {
     switch (type) {
-      case 'completion': return FiBook;
-      case 'achievement': return FiAward;
-      case 'start': return FiPlay;
-      default: return FiBook;
+      case 'completion': return ExternalLinkIcon;
+      case 'achievement': return StarIcon;
+      case 'start': return ArrowForwardIcon;
+      default: return ExternalLinkIcon;
     }
   };
 
@@ -804,7 +793,7 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ title, time, type }) => {
         bg={`${getColor()}20`}
         mr={4}
       >
-        <Icon as={getIcon()} color={getColor()} size="20px" />
+        <ExternalLinkIcon color={getColor()} />
       </Box>
       <Box flex="1">
         <Text fontWeight="500" color="#5D5858">
@@ -847,9 +836,8 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ title, description, e
           alignItems="center"
           justifyContent="center"
         >
-          <Icon 
-            as={FiAward} 
-            size="30px" 
+          <StarIcon 
+            boxSize="30px" 
             color={earned ? 'white' : '#A0AEC0'} 
           />
         </Box>
@@ -871,4 +859,4 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ title, description, e
   );
 };
 
-export default LearningPage; 
+export default LearningPage;

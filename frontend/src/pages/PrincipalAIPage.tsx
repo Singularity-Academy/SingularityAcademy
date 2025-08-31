@@ -14,7 +14,7 @@ import {
   useToast,
   Button,
 } from '@chakra-ui/react';
-import { FaPaperPlane, FaVideo, FaVideoSlash, FaExpand } from 'react-icons/fa';
+import { ArrowForwardIcon, ViewIcon, ViewOffIcon, ExternalLinkIcon } from '@chakra-ui/icons';
 import Navbar from '@components/Navbar';
 import { useTranslation } from 'react-i18next';
 import './../styles/ParticleBackground.css';
@@ -411,8 +411,8 @@ const PrincipalAIPage: React.FC = () => {
               <Box position="relative" h="70vh" borderRadius="xl" bg="gray.800" boxShadow="2xl">
                 <video autoPlay muted loop style={{ width: '100%', height: '100%', objectFit: 'cover' }} src="/ai-principal-presentation.mp4" />
                 <HStack position="absolute" bottom="4" left="4" spacing="3">
-                  <IconButton aria-label="Toggle video" icon={<FaVideo />} variant="ghost" color="white" />
-                  <IconButton aria-label="Fullscreen" icon={<FaExpand />} onClick={() => document.documentElement.requestFullscreen()} variant="ghost" color="white" />
+                  <IconButton aria-label="Toggle video" icon={<ViewIcon />} variant="ghost" color="white" />
+                  <IconButton aria-label="Fullscreen" icon={<ExternalLinkIcon />} onClick={() => document.documentElement.requestFullscreen()} variant="ghost" color="white" />
                 </HStack>
               </Box>
             </Box>
@@ -479,7 +479,7 @@ const PrincipalAIPage: React.FC = () => {
               />
               <IconButton
                 aria-label={t('PrincipalAI.send') || 'Send'}
-                icon={<FaPaperPlane />}
+                icon={<ArrowForwardIcon />}
                 onClick={() => sendMessage(inputMessage)}
                 colorScheme="orange"
                 isDisabled={!isConnected || isTyping || !inputMessage.trim()}
