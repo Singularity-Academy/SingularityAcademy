@@ -4,6 +4,8 @@
 
 	# AI 路由反代到 AI 引擎容器
 	reverse_proxy /ai/* ai-engine:8000
+	# WebSocket 路由反代到 AI 引擎容器
+	reverse_proxy /ai/principal-ai/ws/* ai-engine:8000
 
 	# 其他路由反向代理到前端容器
 	reverse_proxy /* frontend:3000
