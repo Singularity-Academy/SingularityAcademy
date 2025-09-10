@@ -18,11 +18,8 @@ module.exports.devServer = function(configFunction) {
         const config = configFunction(proxy, allowedHost);
         
         // Disable WebSocket in containerized environment
-        config.webSocketURL = false;
-        config.client = {
-            ...config.client,
-            webSocketURL: false
-        };
+        config.client = false;
+        config.webSocketServer = false;
         
         return config;
     };
