@@ -97,7 +97,7 @@
                 chunkSize: 100    // 100ms chunks
             },
             websocket: {
-                url: 'ws://localhost:1298/ai/dean/ws',
+                url: `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ai/dean/ws`,
                 pingInterval: 5000  // 5 seconds
             }
         };

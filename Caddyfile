@@ -13,14 +13,14 @@
 	# CORS 设置
 	header {
 		Access-Control-Allow-Origin: *
-		Access-Control-Allow-Methods: GET, POST, PUT, DELETE
-		Access-Control-Allow-Headers: Content-Type, X-Real-IP, Authorization
+		Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+		Access-Control-Allow-Headers: Content-Type, X-Real-IP, Authorization, Connection, Upgrade
 		header_up Host {host}
 		header_up X-Real-IP {remote}
 		Access-Control-Allow-Credentials true
 		Access-Control-Allow-WebSockets true
 		# 为 WebSocket 连接添加必要的头部
-		header_up Connection Upgrade
-		header_up Upgrade websocket
+		header_up Connection {>Connection}
+		header_up Upgrade {>Upgrade}
 	}
 }
