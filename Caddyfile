@@ -1,21 +1,8 @@
 :1298 {
-	# AI WebSocket 路由 - 使用更精确的匹配
-	@ai_websockets {
-		header Connection Upgrade
-		header Upgrade websocket
-		path_regexp ^/ai/principal-ai/ws/
-	}
-	reverse_proxy @ai_websockets ai-engine:8000 {
-		header_up Host {upstream_hostport}
-		header_up X-Real-IP {remote}
-		header_up X-Forwarded-For {remote}
-		header_up X-Forwarded-Proto {scheme}
-	}
-
 	# API 路由反向代理到后端容器
 	reverse_proxy /api/* backend:8080
 
-	# AI 路由反代到 AI 引擎容器
+	# AI 路由反代到 AI 引擎容器 (包含 WebSocket)
 	reverse_proxy /ai/* ai-engine:8000
 
 	# 其他路由反向代理到前端容器
@@ -29,6 +16,5 @@
 		header_up Host {host}
 		header_up X-Real-IP {remote}
 		Access-Control-Allow-Credentials true
-		Access-Control-Allow-WebSockets true
 	}
 }
