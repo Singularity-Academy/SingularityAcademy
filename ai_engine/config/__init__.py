@@ -3,6 +3,7 @@ Config module for AI Engine.
 
 This module loads config from config.json, which provides config for Sanic.
 """
+import os
 import ujson as json
 from sanic import Sanic
 from typing import Dict, Any, Optional
@@ -45,7 +46,21 @@ def load_app_config(app: Sanic) -> None:
         log_exception(e, f"Invalid JSON in config file {APP_CONFIG_PATH}")
 
 def load_db_config() -> Dict[str, Any]:
-    """Load database configuration from db.json."""
+    """Load database configuration from db.json or environment variables."""
+    # First try environment variables (for Docker deployment)
+    if os.getenv("DB_HOST"):
+        return {
+            "type": "mysql",
+            "user": os.getenv("DB_USER", "root"),
+            "password": os.getenv("DB_PASSWORD"),
+            "host": os.getenv("DB_HOST"),
+            "port": int(os.getenv("DB_PORT", "3306")),
+            "name": os.getenv("DB_NAME"),
+            "charset": "utf8mb4",
+            "loc": "Local"
+        }
+    
+    # Fallback to db.json file
     try:
         with open(DB_CONFIG_PATH, "r") as f:
             CONFIG = json.load(f)
