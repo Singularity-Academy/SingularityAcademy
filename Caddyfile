@@ -1,11 +1,17 @@
 :1298 {
+	# AI WebSocket 路由 - 需要在前面以便优先匹配
+	@websockets {
+		header Connection *Upgrade*
+		header Upgrade websocket
+		path /ai/principal-ai/ws/*
+	}
+	reverse_proxy @websockets ai-engine:8000
+
 	# API 路由反向代理到后端容器
 	reverse_proxy /api/* backend:8080
 
 	# AI 路由反代到 AI 引擎容器
 	reverse_proxy /ai/* ai-engine:8000
-	# WebSocket 路由反代到 AI 引擎容器
-	reverse_proxy /ai/principal-ai/ws/* ai-engine:8000
 
 	# 其他路由反向代理到前端容器
 	reverse_proxy /* frontend:3000

@@ -9,17 +9,21 @@ module.exports = function override(config, env) {
         "@pages": path.resolve(__dirname, "src/pages"),
         "@store": path.resolve(__dirname, "src/store"),
     };
-
-    // Disable WebSocket connections in production build
-    if (env === 'production') {
-        config.devServer = {
-            ...config.devServer,
-            webSocketURL: 'auto://0.0.0.0:0/ws',
-            client: {
-                webSocketURL: 'auto://0.0.0.0:0/ws'
-            }
-        };
-    }
     
     return config;
+};
+
+module.exports.devServer = function(configFunction) {
+    return function(proxy, allowedHost) {
+        const config = configFunction(proxy, allowedHost);
+        
+        // Disable WebSocket in containerized environment
+        config.webSocketURL = false;
+        config.client = {
+            ...config.client,
+            webSocketURL: false
+        };
+        
+        return config;
+    };
 };

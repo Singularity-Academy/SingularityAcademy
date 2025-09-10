@@ -14,5 +14,11 @@ COPY . .
 
 EXPOSE 3000
 
+# Set environment variables to disable WebSocket
+ENV WDS_SOCKET_HOST=0.0.0.0
+ENV WDS_SOCKET_PORT=0  
+ENV FAST_REFRESH=false
+ENV GENERATE_SOURCEMAP=false
+
 # Run in development mode (like your successful deployment)
 CMD ["npm", "start"]
