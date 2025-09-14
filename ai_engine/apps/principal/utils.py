@@ -108,39 +108,29 @@ class LegacyWSStreamingCallback(AsyncCallbackHandler):
         """Get the complete collected response."""
         return "".join(self.collected_tokens)
     
-class NewWSStreamingCallback(AsyncCallbackHandler):
+class SimpleWSStreamingCallback(AsyncCallbackHandler):
     """
-    Enhanced callback handler for streaming LLM responses through WebSocket.
-    Sends raw content directly and JSON for special events (tool calls, start/end, errors).
+    Simple callback handler for streaming LLM responses through WebSocket.
+    Sends only plaintext content - no JSON messages, timestamps, or special events.
     """
     
     def __init__(self, ws: Websocket, session_id: str):
         super().__init__()
         self.ws = ws
         self.session_id = session_id
-        self.message_id = str(uuid.uuid4())
         self.content = ""
-        self.finalized = False
-        self.started = False
-        logger.debug(f"[TRACE] NewWSStreamingCallback: Initialized with message_id={self.message_id}")
-
-    async def on_llm_start(self, serialized: Dict[str, Any], prompts: List[str], **kwargs) -> None:
-        """Handle start of LLM response."""
-        if not self.started:
-            self.started = True
-            start_msg = json.dumps({
-                "type": "response_start",
-                "message_id": self.message_id,
-                "timestamp": datetime.now().isoformat()
-            })
-            logger.debug(f"[{self.session_id}] Sending start message: {start_msg}")
-            await self.ws.send(start_msg)
+        self.message_id = str(uuid.uuid4())  # Add message_id for compatibility
+        logger.debug(f"[{self.session_id}] SimpleWSStreamingCallback initialized with message_id={self.message_id}")
 
     async def on_llm_new_token(self, token: str, **kwargs) -> None:
         """Handle new token from LLM - send raw content."""
         try:
-            logger.debug(f"[{self.session_id}] Sending raw token: {repr(token)}")
-            # Send raw content without JSON wrapping
+            # Skip empty tokens
+            if not token or token.strip() == "":
+                return
+                
+            logger.debug(f"[{self.session_id}] Sending token: {repr(token)}")
+            # Send raw content directly
             await self.ws.send(token)
             self.content += token
             
@@ -294,14 +284,14 @@ async def handle_user_message(ws: Websocket, chat: PrincipalChat, llm: LLM, cont
         await chat.add_message(content, "user")
         
         # Create streaming callback
-        callback = NewWSStreamingCallback(ws, session_id)
+        callback = SimpleWSStreamingCallback(ws, session_id)
         
         # Note: LLM tools are already configured in routes.py during session setup
         logger.debug(f"[{session_id}] Using LLM with {len(llm.tools)} pre-configured tools")
         
         # Get messages and generate streaming response using the LLM class
         messages = chat.langchain_messages
-        response = await llm.agenerate_response(messages, callbacks=[callback])
+        response = await llm.agenerate_response(messages, callbacks=[callback], use_tools=True)
         
         # Save complete AI response to chat history
         await chat.add_message(callback.get_content(), "assistant")

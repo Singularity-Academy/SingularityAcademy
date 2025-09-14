@@ -1,10 +1,4 @@
 {
-    "type": "mysql",
-    "user": "root",
-    "password": "PivotHack.0269",
-    "host": "livestream.kevinwang.top",
-    "port": 25600,
-    "name": "test1",
-    "charset": "utf8mb4",
-    "loc": "Local"
+    "type": "sqlite",
+    "path": "/Users/allen/Desktop/SingulariyAcademy/backend/sa_database.db"
 }

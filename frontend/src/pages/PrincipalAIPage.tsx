@@ -40,7 +40,6 @@ interface WSMessage {
 type MessageAction = 
   | { type: 'APPEND_TOKEN'; token: string }
   | { type: 'START_MESSAGE'; timestamp: string; message_id?: string }
-  | { type: 'COMPLETE_MESSAGE' }
   | { type: 'SET_METADATA'; metadata: any }
   | { type: 'RESET_MESSAGES' }
   | { type: 'SET_HISTORY'; messages: Message[] }
@@ -148,21 +147,50 @@ const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
 const messageReducer = (state: Message[], action: MessageAction): Message[] => {
   switch (action.type) {
     case 'START_MESSAGE':
-      return [...state, {
+      const newMessage: Message = {
         role: 'assistant',
         content: '',
         timestamp: action.timestamp,
         message_id: action.message_id || ''
-      }];
+      };
+      console.log(`[Reducer] Starting new message:`, newMessage);
+      return [...state, newMessage];
       
     case 'APPEND_TOKEN':
-      const updated = [...state];
-      const lastMessage = updated[updated.length - 1];
-      if (lastMessage && lastMessage.role === 'assistant') {
-        // Ensure content is a string and append token
-        lastMessage.content = (lastMessage.content || '') + action.token;
+      console.log(`[Reducer] APPEND_TOKEN called with token: "${action.token}"`);
+      
+      if (state.length === 0) {
+        console.warn(`[Reducer] No messages in state to append to`);
+        return state;
       }
-      return updated;
+      
+      const lastMessage = state[state.length - 1];
+      console.log(`[Reducer] Last message:`, lastMessage);
+      
+      if (lastMessage && lastMessage.role === 'assistant') {
+        // Only append if the token is not empty
+        if (action.token && action.token.trim()) {
+          const previousContent = lastMessage.content || '';
+          const newContent = previousContent + action.token;
+          
+          // Create a new message object to ensure React detects the change
+          const updatedLastMessage: Message = {
+            ...lastMessage,
+            content: newContent
+          };
+          
+          console.log(`[Reducer] Appending token: "${action.token}" | Previous: "${previousContent}" | New: "${newContent}"`);
+          
+          // Return new state with updated message
+          return [...state.slice(0, -1), updatedLastMessage];
+        } else {
+          console.warn(`[Reducer] Token is empty or whitespace: "${action.token}"`);
+        }
+      } else {
+        console.warn(`[Reducer] Cannot append token - lastMessage:`, lastMessage, `role: ${lastMessage?.role}`);
+      }
+      
+      return state;
       
     case 'SET_METADATA':
       const withMetadata = [...state];
@@ -178,9 +206,6 @@ const messageReducer = (state: Message[], action: MessageAction): Message[] => {
     case 'SET_HISTORY':
       return action.messages;
       
-    case 'COMPLETE_MESSAGE':
-      // No state change needed, just a signal
-      return state;
       
     case 'ADD_MESSAGE':
       return [...state, action.message];
@@ -210,6 +235,7 @@ const PrincipalAIPage: React.FC = () => {
   const [isTyping, setIsTyping] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
+  const isTypingRef = useRef<boolean>(false);
 
   const connectWebSocket = () => {
     const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
@@ -230,7 +256,7 @@ const PrincipalAIPage: React.FC = () => {
 
     ws.onopen = () => {
       setIsConnected(true);
-      ws.send(JSON.stringify({ type: 'auth', token }));
+      ws.send(JSON.stringify({ token }));
       toast({
         title: '已连接',
         description: '已连接到 Principal AI',
@@ -243,6 +269,7 @@ const PrincipalAIPage: React.FC = () => {
       try {
         const message = event.data;
         
+        // Handle JSON messages (auth, history, etc.)
         if (typeof message === 'string' && message.trim().startsWith('{')) {
           logger.debug(`[WebSocket] Received JSON message: ${JSON.stringify(message)}`);
           const data: WSMessage = JSON.parse(message);
@@ -259,26 +286,6 @@ const PrincipalAIPage: React.FC = () => {
               }
               break;
               
-            case 'start':
-              setIsTyping(true);
-              dispatch({ 
-                type: 'START_MESSAGE', 
-                timestamp: data.timestamp,
-                message_id: data.message_id 
-              });
-              break;
-              
-            case 'token':
-              // Handle streaming tokens
-              dispatch({ type: 'APPEND_TOKEN', token: data.content });
-              break;
-              
-            case 'complete':
-              setIsTyping(false);
-              dispatch({ type: 'COMPLETE_MESSAGE' });
-              logger.info('Message stream completed');
-              break;
-              
             case 'message-reset-success':
               dispatch({ type: 'RESET_MESSAGES' });
               toast({
@@ -289,11 +296,8 @@ const PrincipalAIPage: React.FC = () => {
               });
               break;
               
-            case 'metadata':
-              dispatch({ type: 'SET_METADATA', metadata: data.content });
-              break;
-              
             case 'error':
+              isTypingRef.current = false;
               setIsTyping(false);
               toast({ 
                 title: 'AI Error', 
@@ -305,9 +309,36 @@ const PrincipalAIPage: React.FC = () => {
             default:
               logger.warn(`Unknown JSON message type: ${data.type}`);
           }
-        } else if (typeof message === 'string' && message.trim()) {
-          // Handle raw streaming tokens
+        } 
+        // Handle plaintext streaming tokens
+        else if (typeof message === 'string' && message.trim()) {
+          // If we're not currently typing, start a new assistant message
+          if (!isTypingRef.current) {
+            isTypingRef.current = true;
+            setIsTyping(true);
+            dispatch({ 
+              type: 'START_MESSAGE', 
+              timestamp: new Date().toISOString(),
+              message_id: `assistant-${Date.now()}`
+            });
+            console.log('[WebSocket] Started new assistant message');
+          }
+          
+          // Append the token
           dispatch({ type: 'APPEND_TOKEN', token: message });
+          
+          // Reset the typing timeout - if no more tokens arrive in 2 seconds, stop typing
+          // Clear any existing timeout
+          if ((window as any).__typingTimeout) {
+            clearTimeout((window as any).__typingTimeout);
+          }
+          
+          // Set new timeout
+          (window as any).__typingTimeout = setTimeout(() => {
+            isTypingRef.current = false;
+            setIsTyping(false);
+            console.log('[WebSocket] Typing timeout - assuming response complete');
+          }, 2000);
         }
       } catch (err) {
         logger.error('[WebSocket] Error parsing message:', err);
@@ -317,6 +348,7 @@ const PrincipalAIPage: React.FC = () => {
     ws.onerror = (error) => {
       logger.error('[WebSocket] Error:', error);
       setIsConnected(false);
+      isTypingRef.current = false;
       setIsTyping(false);
       toast({
         title: '连接错误',
@@ -329,6 +361,7 @@ const PrincipalAIPage: React.FC = () => {
     ws.onclose = (event) => {
       logger.info(`[WebSocket] Closed: ${event.code} ${event.reason}`);
       setIsConnected(false);
+      isTypingRef.current = false;
       setIsTyping(false);
       if (event.code !== 1000) {
         toast({
@@ -358,6 +391,11 @@ const PrincipalAIPage: React.FC = () => {
       }
     };
   }, [toast]);
+
+  // Debug effect to log messages changes
+  useEffect(() => {
+    console.log('[Messages] Messages array updated:', messages);
+  }, [messages]);
 
   const sendMessage = (content: string) => {
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
@@ -462,7 +500,7 @@ const PrincipalAIPage: React.FC = () => {
                     </Text>
                   </Box>
                 )}
-                {messages.map((msg, idx) => <MessageBubble key={idx} message={msg} />)}
+                {messages.map((msg, idx) => <MessageBubble key={msg.message_id || `msg-${idx}`} message={msg} />)}
               </VStack>
             </Box>
             

@@ -48,7 +48,7 @@ echo "Backend started with PID $BACKEND_PID"
 
 # Start Python service
 echo "Starting AI engine..."
-cd "$BASE_DIR" && python3 run.py --log-level TRACE> "$BASE_DIR/logs/python.log" 2>&1 &
+cd "$BASE_DIR" && uv run python run.py --log-level TRACE > "$BASE_DIR/logs/python.log" 2>&1 &
 PYTHON_PID=$!
 echo $PYTHON_PID >> "$PID_FILE"
 echo "AI engine started with PID $PYTHON_PID"

@@ -50,13 +50,19 @@ const CourseInteractionPage = () => {
 
   const connectWebSocket = useCallback(() => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ai/principal/stream`;
+    const wsUrl = `${protocol}//${window.location.host}/ai/principal-ai/ws/chat`;
     
     wsRef.current = new WebSocket(wsUrl);
 
     wsRef.current.onopen = () => {
       console.log('WebSocket connected');
       setIsConnected(true);
+      
+      // Send authentication
+      const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
+      if (token && wsRef.current) {
+        wsRef.current.send(JSON.stringify({ token }));
+      }
     };
 
     wsRef.current.onmessage = (event) => {
@@ -167,8 +173,10 @@ const CourseInteractionPage = () => {
     setIsLoading(true);
 
     wsRef.current.send(JSON.stringify({
-      message: inputValue,
-      user_id: 'test_user', // This should come from authentication
+      type: 'message',
+      content: inputValue,
+      timestamp: new Date().toISOString(),
+      message_id: `user-${Date.now()}`
     }));
 
     setInputValue('');

@@ -3,16 +3,17 @@ package main
 import (
 	"backend/auth"
 	"backend/config"
+	"backend/controllers"
 	"backend/courses"
 	"backend/info"
 	"backend/me"
 	"backend/middlewares"
 	"backend/models"
 	"backend/ws"
-	"backend/controllers"
+	"log"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"log"
 )
 
 func main() {
@@ -21,7 +22,7 @@ func main() {
 
 	// 连接 SMTP 和数据库
 	config.ConnectSMTP()
-	config.ConnectDatabaseMySQL()
+	config.ConnectDatabase()
 
 	// 执行数据库自动迁移
 	err := config.DB.AutoMigrate(&models.User{})

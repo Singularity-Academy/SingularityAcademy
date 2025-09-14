@@ -1,5 +1,5 @@
 {
-    "default_model": "gpt-4",
+    "default_model": "deepseek-v3",
     "models": {
         "gpt-4": {
             "name": "GPT-4",
@@ -30,7 +30,7 @@
         "deepseek-v3": {
             "name": "Deepseek Chat v3",
             "model_id": "deepseek-chat",
-            "api_key": "sk-f4035b1b6ee54b58871ed85d2e53e21f",
+            "api_key": "sk-670e5cff3b7a4d52ab13e570494ca3fc",
             "api_base": "https://api.deepseek.com/v1",
             "temperature": 0.7,
             "max_tokens": 1500,
